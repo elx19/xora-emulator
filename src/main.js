@@ -1938,7 +1938,9 @@ function registerIpc() {
 
   async function listAddonStates() {
     const records = addonRecords();
-    const result = addons.listAddons({ records });
+    let playImageReady = false;
+    try { playImageReady = !!runtime.provisioner.playImageInfo().ok; } catch (_) { /* runtime aún no disponible */ }
+    const result = addons.listAddons({ records }, { playImageReady });
     let client = null;
     try {
       client = runtime.client();
@@ -1972,9 +1974,13 @@ function registerIpc() {
     const addon = addons.BUILTIN_ADDONS.find((candidate) => candidate.id === String(id || ''));
     if (!addon) return { ok: false, error: 'Complemento desconocido' };
     const records = addonRecords();
+    let playImageReady = false;
+    try { playImageReady = !!runtime.provisioner.playImageInfo().ok; } catch (_) { /* runtime aún no disponible */ }
+    const knownAddons = addons.listAddons({ records }, { playImageReady });
     for (const required of addon.requires) {
-      if (records[required]?.state !== 'installed') {
-        return { ok: false, error: `Primero instala ${addons.BUILTIN_ADDONS.find((candidate) => candidate.id === required)?.name || required}` };
+      const dependency = knownAddons.find((candidate) => candidate.id === required);
+      if (dependency?.state !== 'installed') {
+        return { ok: false, error: `Primero instala ${dependency?.name || required}` };
       }
     }
     let filePath = String(requestedPath || '').trim();
@@ -2033,9 +2039,13 @@ function registerIpc() {
       const ready = await runtime.ensure();
       if (!ready.ok) throw new Error(ready.error || 'El runtime no está disponible');
       await ready.client.uninstall(addon.packageName);
-      const records = addonRecords();
-      delete records[addon.id];
-      const settings = store.saveSettings({ addons: { records } });
+      // Persistir la decisión del usuario evita que la detección de la imagen
+      // Google Play vuelva a mostrar el componente como instalado al refrescar.
+      const settings = saveAddonRecord(addon.id, 'not_installed', {
+        packageName: addon.packageName,
+        source: 'user',
+        uninstalledAt: Date.now(),
+      });
       send('addons:changed');
       return { ok: true, settings };
     } catch (error) {

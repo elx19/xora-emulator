@@ -264,8 +264,8 @@ app.whenReady().then(async () => {
     notice: document.querySelector('.addons-notice')?.textContent || '',
   }))()`);
   step('el módulo de complementos se abre desde la navegación', addonsView.visible && addonsView.active === 'addons', `${addonsView.active} / visible=${addonsView.visible}`);
-  step('el catálogo muestra los complementos opcionales', addonsView.cards === 3 && addonsView.installButtons === 3, `${addonsView.cards} tarjetas / ${addonsView.installButtons} acciones`);
-  step('el módulo no afirma que Google Play esté activo', /no viene activado|opcionales/i.test(addonsView.notice), addonsView.notice);
+  step('el catálogo muestra los complementos disponibles', addonsView.cards === 3 && addonsView.installButtons === 3, `${addonsView.cards} tarjetas / ${addonsView.installButtons} acciones`);
+  step('el módulo informa que Google Play viene incluido por defecto', /incluido por defecto|imagen oficial/i.test(addonsView.notice), addonsView.notice);
   await evalJs('new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
   await win.webContents.capturePage().then((img) => fs.writeFileSync(path.join(OUT, 'addons.png'), img.toPNG()));
 

@@ -29,6 +29,13 @@ assert.strictEqual(initial.length, 3);
 assert.ok(initial.every((addon) => addon.state === 'not_installed'));
 assert.ok(initial.every((addon) => addon.actions.includes('install')));
 
+const playImage = listAddons({}, { playImageReady: true });
+assert.strictEqual(playImage[0].state, 'installed');
+assert.strictEqual(playImage[0].source, 'runtime-image');
+assert.strictEqual(playImage[2].state, 'installed');
+assert.strictEqual(playImage[2].source, 'runtime-image');
+assert.strictEqual(playImage[1].state, 'not_installed');
+
 const installed = listAddons({
   records: {
     'google-play-store': {

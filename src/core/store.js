@@ -126,8 +126,9 @@ const DEFAULT_SETTINGS = {
   // Perfiles de dispositivo: los integrados viven en core/profiles.js;
   // aquí solo persistimos el activo y los perfiles personalizados validados.
   profiles: { active: 'laptop', custom: [] },
-  // Complementos opcionales: solo se guardan estados y hashes locales.
-  // Nunca se almacenan credenciales ni se asume que Google Play esté instalado.
+  // Complementos: Play Store y Servicios de Google vienen en la imagen Play
+  // predeterminada; solo se guardan estados y hashes locales. Nunca se
+  // almacenan credenciales.
   addons: { records: {} },
   updates: { channel: 'stable', requireSignedManifest: true, autoCheck: true, lastCheckAt: 0, rollbackVersion: null },
   runtime: {
@@ -141,7 +142,7 @@ const DEFAULT_SETTINGS = {
     installMode: 'guided',   // guided（引导手动安装） | auto（实验性自动安装）
     emulatorUrl: '',         // 手动指定 emulator 包地址（空 = 自动从 SDK 索引解析最新版）
     sysimgUrl: '',           // 手动指定系统镜像包地址
-    compatImage: false,      // ARM 兼容模式：改用 Google Play 镜像（内置 native bridge，可装 ARM-only 应用）
+    compatImage: true,       // Imagen Google Play predeterminada: Play Store/GMS y compatibilidad ARM
     deployFailedAt: 0,       // 上次自动部署失败的时间戳（0=无失败）。失败后 30 分钟内不再自动重下
     // 轻量版的运行时整包：默认从本项目 GitHub Release 下载（与「软件更新」同源），
     // 拿不到时自动退回 dl.google.com 分组件下载。可在这里换成自建镜像地址。

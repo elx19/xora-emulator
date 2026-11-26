@@ -22,6 +22,7 @@ const BUILTIN_ADDONS = Object.freeze([
     description: 'Tienda oficial para instalar y actualizar aplicaciones Android.',
     packageName: 'com.android.vending',
     requires: ['google-play-services'],
+    preinstalled: true,
   }),
   Object.freeze({
     id: 'google-play-games',
@@ -36,6 +37,7 @@ const BUILTIN_ADDONS = Object.freeze([
     description: 'Servicios de compatibilidad usados por aplicaciones Android.',
     packageName: 'com.google.android.gms',
     requires: [],
+    preinstalled: true,
   }),
 ]);
 
@@ -99,10 +101,20 @@ function actionsFor(addon, record) {
   }
 }
 
-function listAddons(rawState = {}) {
+function listAddons(rawState = {}, options = {}) {
   const records = normalizeRecords(rawState);
   return BUILTIN_ADDONS.map((addon) => {
-    const record = records[addon.id] || { state: 'not_installed' };
+    const hasRecord = Object.prototype.hasOwnProperty.call(records, addon.id);
+    const record = hasRecord
+      ? records[addon.id]
+      : (options.playImageReady && addon.preinstalled
+        ? {
+          state: 'installed',
+          packageName: addon.packageName,
+          version: 'incluido',
+          source: 'runtime-image',
+        }
+        : { state: 'not_installed' });
     return {
       ...clone(addon),
       ...clone(record),

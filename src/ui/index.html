@@ -293,13 +293,13 @@
         <svg class="page-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 3a2 2 0 0 1 2 2v1h2V5a2 2 0 1 1 4 0v1h1a3 3 0 0 1 3 3v1h-1a2 2 0 1 0 0 4h1v1a3 3 0 0 1-3 3h-1v-1a2 2 0 1 0-4 0v1h-2v-1a2 2 0 1 0-4 0H6a3 3 0 0 1-3-3v-1h1a2 2 0 1 0 0-4H3V9a3 3 0 0 1 3-3h1V5a2 2 0 0 1 2-2z"/></svg>
         <div>
           <h1 id="addonsTitle">Complementos de Android</h1>
-          <p>Instala componentes opcionales desde archivos con licencia. XORA funciona sin ellos cuando una aplicación no los necesita.</p>
+          <p>Google Play Store y los Servicios de Google vienen en la imagen predeterminada. Los complementos adicionales se gestionan por separado.</p>
         </div>
       </div>
     </section>
     <div class="addons-notice" role="note">
       <span class="notice-icon" aria-hidden="true">i</span>
-      <div><strong>Google Play no viene activado por defecto.</strong><span>Selecciona tus propios APK compatibles. XORA comprueba el paquete, la versión y el hash antes de instalarlos.</span></div>
+      <div><strong>Google Play viene incluido por defecto.</strong><span>La preparación del runtime descarga la imagen oficial con Play Store y Servicios de Google. Play Juegos y otros complementos siguen siendo opcionales.</span></div>
     </div>
     <section class="addons-grid" id="addonsGrid" aria-label="Complementos disponibles"></section>
   </section>
@@ -931,16 +931,16 @@
         </div>
         <div class="field switch-field">
           <div>
-            <label>通用兼容镜像（自动管理）</label>
-            <span class="sub">现在只有一个 Android 14 通用镜像，x86 与 ARM 应用都能跑，首次遇到 ARM 应用时会自动下载，不需要手动切换。此开关仅用于旧配置兼容。</span>
+            <label>Imagen Google Play y compatibilidad ARM (predeterminada)</label>
+            <span class="sub">XORA usa una imagen oficial de Android 14 con Google Play Store, Servicios de Google y compatibilidad para aplicaciones ARM. Se descarga automáticamente durante la preparación del runtime.</span>
           </div>
           <input type="checkbox" id="setCompat" class="switch" />
         </div>
         <div class="field" id="compatInstallField" hidden>
-          <label>兼容镜像</label>
+            <label>Imagen Google Play</label>
           <div class="row">
             <span class="inline-note" id="compatImgStatus">未下载</span>
-            <button class="btn ghost sm" id="btnInstallPlay">下载兼容镜像</button>
+            <button class="btn ghost sm" id="btnInstallPlay">Descargar imagen Google Play</button>
           </div>
         </div>
         <div class="runtime-actions">

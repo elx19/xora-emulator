@@ -637,8 +637,8 @@ async function applySelectedProfile() {
 
 function showAddonNotice() {
   toast({
-    title: 'Complementos opcionales',
-    body: 'Google Play y los Servicios de Google se instalarán por separado cuando estén disponibles para este runtime.',
+    title: 'Google Play incluido por defecto',
+    body: 'Play Store y los Servicios de Google se preparan con la imagen oficial. Play Juegos continúa como complemento opcional.',
     type: 'info',
   });
 }
@@ -2323,8 +2323,8 @@ function bindSettings() {
     const env = ((state.status = await api.runtimeStatus()).env) || {};
     const ok = env.playImage && env.playImage.ok;
     $('compatInstallField').hidden = !on || !!ok;
-    if (on && !ok) toast({ title: 'ARM 兼容模式已开启', body: '还需要下载 Google Play 兼容镜像（Android 14，约 1.5GB），点击下方按钮开始', type: 'info' });
-    else if (on) toast({ title: 'ARM 兼容模式已开启', body: '重启运行时后生效', type: 'info' });
+    if (on && !ok) toast({ title: 'Google Play predeterminado', body: 'Descarga la imagen oficial de Android 14 para activar Play Store y Servicios de Google.', type: 'info' });
+    else if (on) toast({ title: 'Google Play está listo', body: 'Reinicia el runtime para aplicar cualquier cambio.', type: 'info' });
   });
   $('setAutoShortcut').addEventListener('change', (e) => save({ createShortcutOnInstall: e.target.checked }));
   $('setStartMenuShortcut').addEventListener('change', (e) => save({ createStartMenuShortcut: e.target.checked }));
@@ -2653,37 +2653,37 @@ function bindSettings() {
     toast({ title: '正在卸载…', body: '卸载程序已启动，ApkStart 即将退出', type: 'ok', sticky: true });
   });
 
-  // ARM 兼容镜像下载（带进度 toast）
+  // Descarga de la imagen oficial Google Play (con progreso)
   $('btnInstallPlay').addEventListener('click', async () => {
     const btn = $('btnInstallPlay');
     btn.disabled = true;
-    const t = toast({ title: '开始下载 ARM 兼容镜像', body: '准备中…', sticky: true, spinner: true, progress: 3 });
+    const t = toast({ title: 'Descargando imagen Google Play', body: 'Preparando…', sticky: true, spinner: true, progress: 3 });
     const un = api.on('provision:progress', (p) => {
       if (p.component !== 'playimg') return;
-      t.update({ title: '下载 ARM 兼容镜像', body: p.message || '', progress: p.percent });
+      t.update({ title: 'Descargando imagen Google Play', body: p.message || '', progress: p.percent });
     });
     try {
       const r = await api.installPlayImage();
       if (r && r.ok) {
-        t.update({ title: 'ARM 兼容镜像就绪', body: '重启运行时后生效', progress: 100 });
+        t.update({ title: 'Imagen Google Play lista', body: 'Reinicia el runtime para aplicar el cambio', progress: 100 });
         setTimeout(() => t.dismiss(), 3000);
         $('compatInstallField').hidden = true;
         refreshStatus();
       } else {
-        t.update({ title: '兼容镜像下载失败', body: (r && r.error) || '未知错误', progress: null });
+        t.update({ title: 'No se pudo descargar Google Play', body: (r && r.error) || 'Error desconocido', progress: null });
         t.dismiss();
-        toast({ title: '兼容镜像下载失败', body: (r && r.error) || '未知错误', type: 'error' });
+        toast({ title: 'No se pudo descargar Google Play', body: (r && r.error) || 'Error desconocido', type: 'error' });
       }
     } catch (e) {
       t.dismiss();
-      toast({ title: '兼容镜像下载失败', body: e.message, type: 'error' });
+      toast({ title: 'No se pudo descargar Google Play', body: e.message, type: 'error' });
     } finally {
       un();
       btn.disabled = false;
     }
   });
 
-  // 兼容镜像状态显示
+  // Estado de la imagen Google Play
   (async () => {
     const env = ((state.status = await api.runtimeStatus()).env) || {};
     const s = state.settings;
@@ -2692,7 +2692,7 @@ function bindSettings() {
     $('compatInstallField').hidden = !on || !!ok;
     if (env.playImage) {
       $('compatImgStatus').textContent = ok
-        ? `已就绪（${(env.playImage.size / 1073741824).toFixed(2)} GB）` : '未下载';
+        ? `Lista (${(env.playImage.size / 1073741824).toFixed(2)} GB)` : 'No descargada';
     }
   })();
   $('btnOpenData').addEventListener('click', async () => {
