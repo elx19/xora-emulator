@@ -4,7 +4,7 @@
 
 **Emulador Android ligero, fluido y modular para Windows y Linux.** XORA ejecuta aplicaciones Android en ventanas independientes, adapta el rendimiento al equipo y permite configurar perfiles de dispositivo, mando, teclado, mouse y DPI.
 
-> XORA 0.6.6 integra la identidad nueva, la interfaz en español, los perfiles, el rendimiento, los controles, Google Play predeterminado y el actualizador seguro. Las validaciones externas de hardware y publicación siguen documentadas en el [plan maestro](docs/XORA-PLAN.md).
+> XORA 0.6.7 integra la identidad nueva, la interfaz en español, los perfiles, el rendimiento, los controles, Google Play predeterminado y el actualizador seguro. Las validaciones externas de hardware y publicación siguen documentadas en el [plan maestro](docs/XORA-PLAN.md).
 
 ## Características
 

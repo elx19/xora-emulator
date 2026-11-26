@@ -31,6 +31,7 @@
       'apps.count': '{count} aplicaciones',
       'apps.new': 'Recién instalada',
       'apps.installed': 'Instalada',
+      'apps.included': 'Incluida',
       'library.count': '{count} aplicaciones',
       'library.countOne': '1 aplicación',
       'library.liveInstalled': '{label} se añadió a la biblioteca.',

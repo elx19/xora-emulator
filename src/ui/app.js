@@ -228,7 +228,7 @@ function renderGrid() {
           : `<div class="fallback" style="background:${esc(a.accent || '#9aa6b2')}">${esc(initialOf(a.label))}</div>`}
       </div>
       <div class="name">${esc(a.label)}</div>
-      <div class="meta"><span>${esc(categoryLabel(a))}</span><span class="meta-sep">·</span><span>v${esc(a.versionName || '?')}</span><span class="installed-badge">✓ ${esc(i18n.t('apps.installed'))}</span></div>
+      <div class="meta"><span>${esc(categoryLabel(a))}</span><span class="meta-sep">·</span><span>${a.system ? esc(i18n.t('apps.included')) : `v${esc(a.versionName || '?')}`}</span><span class="installed-badge">✓ ${esc(a.system ? i18n.t('apps.included') : i18n.t('apps.installed'))}</span></div>
       <div class="open-hint">${a.running ? esc(i18n.t('app.bringToFront')) : esc(i18n.t('app.open'))}</div>
     </div>
   `).join('') + `
@@ -1166,7 +1166,9 @@ function showMenu(x, y, pkg) {
   const menu = $('ctxmenu');
   state.menuPkg = pkg;
   const app = state.apps.find((a) => a.package === pkg);
-  const items = MENU_ITEMS.filter((it) => !it.onlyRunning || (app && app.running));
+  const items = app && app.system
+    ? MENU_ITEMS.filter((it) => it.key === 'open')
+    : MENU_ITEMS.filter((it) => !it.onlyRunning || (app && app.running));
   menu.innerHTML = items.map((it) => {
     if (it.divider) return '<div class="divider"></div>';
     const label = it.key === 'pin' ? (app && app.pinned ? '取消固定' : '固定到顶部')

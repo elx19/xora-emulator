@@ -53,6 +53,7 @@ const { Updater, findUninstaller } = require('./core/updater');
 const updateManifest = require('./core/update-manifest');
 const profiles = require('./core/profiles');
 const addons = require('./core/addons');
+const { mergeSystemApps, isProtectedSystemApp } = require('./core/system-apps');
 const { sha256File } = require('./core/download');
 const { MetricsSampler } = require('./core/telemetry');
 const leftovers = require('./core/leftovers');
@@ -1684,7 +1685,9 @@ function registerIpc() {
   });
 
   ipcMain.handle('apps:list', async () => {
-    const apps = store.getApps();
+    let playImageReady = false;
+    try { playImageReady = !!runtime.provisioner.playImageInfo().ok; } catch (_) { /* runtime todavía no está preparado */ }
+    const apps = mergeSystemApps(store.getApps(), { playImageReady });
     const settings = store.getSettings();
     let running = [];
     try {
@@ -1732,6 +1735,9 @@ function registerIpc() {
   ipcMain.handle('app:stop', async (_e, pkg, opts = {}) => stopApp(pkg, opts));
 
   ipcMain.handle('app:uninstall', async (_e, pkg) => {
+    if (isProtectedSystemApp(pkg)) {
+      throw new Error('Google Play Store viene incluida en la imagen oficial y no se puede desinstalar');
+    }
     await installer.uninstall(pkg);
     return { ok: true };
   });
@@ -2600,7 +2606,7 @@ function registerIpc() {
     const preview = await runtime.cleanup(pass);
     const { response } = await dialog.showMessageBox(mainWindow, {
       type: 'warning',
-      buttons: ['取消', `清理 ${preview.candidates.length} 项`],
+      buttons: ['Cancelar', `Limpiar ${preview.candidates.length} elemento${preview.candidates.length === 1 ? '' : 's'}`],
       defaultId: 0,
       cancelId: 0,
       title: 'Confirmar limpieza de caché',

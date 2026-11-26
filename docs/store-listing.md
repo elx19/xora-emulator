@@ -9,14 +9,20 @@ Documento de referencia para Partner Center. El instalador, el icono y el manifi
 | Nombre del producto | `XORA` |
 | Categoría | Developer tools → Utilities & tools |
 | Precio | Gratis |
-| Paquete técnico | `dist/store/XORA_0.6.6.0_x64.msix` |
+| Paquete técnico | `dist/store/XORA_0.6.7.0_x64.msix` |
 | Idioma principal | Español |
 | Idioma adicional | English (United States) |
 | Sitio del proyecto | https://github.com/elx19/xora-emulator |
 | Política de privacidad | https://github.com/elx19/xora-emulator/blob/main/docs/privacy.md |
 | Soporte | https://github.com/elx19/xora-emulator/issues |
 
-## Novedades de XORA 0.6.6
+## Novedades de XORA 0.6.7
+
+Google Play Store aparece en la Biblioteca como aplicación incluida y lista para abrir cuando la imagen oficial está preparada. Servicios de Google siguen protegidos como componente del sistema y no se pueden desinstalar accidentalmente.
+
+El cuadro nativo de limpieza de caché ya usa botones en español, incluido el caso singular y plural. También se mantienen las comprobaciones de idioma para que los diagnósticos y notificaciones no expongan texto chino.
+
+### Cambios anteriores
 
 XORA ahora permite que las aplicaciones Android usen el micrófono del equipo. Se añadió el interruptor «Entrada de micrófono» y el diagnóstico puede detectar y reparar una entrada desactivada.
 

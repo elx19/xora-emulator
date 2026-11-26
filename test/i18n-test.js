@@ -235,5 +235,11 @@ test('traduce tarjetas de controladores y avisos dinámicos', () => {
   assert.equal(untranslated.length, 0, `quedaron textos nativos en controladores:\n${untranslated.join('\n')}`);
 });
 
+test('el cuadro nativo de limpieza usa botones en español', () => {
+  const main = fs.readFileSync(path.join(__dirname, '..', 'src', 'main.js'), 'utf8');
+  assert.match(main, /buttons:\s*\['Cancelar',\s*`Limpiar \$\{preview\.candidates\.length\} elemento/);
+  assert.doesNotMatch(main, /buttons:\s*\['取消',\s*`清理/);
+});
+
 console.log(`\nResultado: ${passed} aprobadas, ${failed} fallidas`);
 process.exit(failed ? 1 : 0);

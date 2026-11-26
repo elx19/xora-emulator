@@ -3,6 +3,7 @@
 const assert = require('assert');
 const { mergeInstalledApp } = require('../src/ui/library-state');
 const { normalizeInstallPath } = require('../src/core/installer');
+const { listSystemApps, mergeSystemApps, isProtectedSystemApp } = require('../src/core/system-apps');
 
 const installed = {
   package: 'com.xora.demo',
@@ -26,5 +27,16 @@ assert.strictEqual(normalizeInstallPath(['C:\\Apps\\demo.apks']), 'C:\\Apps\\dem
 assert.strictEqual(normalizeInstallPath({ filePath: 'C:\\Apps\\demo.xapk' }), 'C:\\Apps\\demo.xapk');
 assert.throws(() => normalizeInstallPath([]), /APK|archivo|selecciona/i);
 assert.throws(() => normalizeInstallPath('C:\\Apps\\demo.txt'), /APK|formato/i);
+
+const playStore = listSystemApps({ playImageReady: true })[0];
+assert.strictEqual(playStore.package, 'com.android.vending', 'Play Store debe usar su paquete oficial');
+assert.strictEqual(playStore.label, 'Google Play Store');
+assert.strictEqual(playStore.system, true, 'Play Store debe identificarse como aplicación del sistema');
+assert.strictEqual(playStore.protected, true, 'Play Store incluido no debe poder desinstalarse');
+assert.deepStrictEqual(listSystemApps({ playImageReady: false }), [], 'no se debe anunciar Play Store antes de preparar la imagen');
+assert.strictEqual(mergeSystemApps([], { playImageReady: true })[0].package, 'com.android.vending');
+assert.strictEqual(mergeSystemApps([{ package: 'com.android.vending', label: 'duplicada' }], { playImageReady: true }).length, 1);
+assert.strictEqual(isProtectedSystemApp('com.android.vending'), true);
+assert.strictEqual(isProtectedSystemApp('com.example.user'), false);
 
 console.log('✓ biblioteca e instalación: inserción, actualización y entrada de rutas');
