@@ -25,6 +25,23 @@ const SNAPSHOT_NAME = 'xora';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/** Construye comandos ADB siempre ligados al servidor privado de XORA. */
+function adbArgs(port, serial, args = []) {
+  const usePort = Number(port) > 0 ? Number(port) : 5044;
+  const out = ['-P', String(usePort)];
+  if (serial) out.push('-s', serial);
+  return out.concat(args);
+}
+
+/** Evita que un socket ADB externo reemplace el puerto aislado del runtime. */
+function adbEnv(port) {
+  const usePort = Number(port) > 0 ? Number(port) : 5044;
+  const env = { ...process.env, ANDROID_ADB_SERVER_PORT: String(usePort) };
+  delete env.ADB_SERVER_SOCKET;
+  delete env.ANDROID_ADB_SERVER_ADDRESS;
+  return env;
+}
+
 /**
  * Windows 上把 emulator/qemu 的退出码翻译成人话。
  * 0xC0000005（3221225477）是崩溃里最常见的那个：访问冲突，实测多由
@@ -965,10 +982,10 @@ class EmulatorEngine {
   async _resetAdbServer(adbPort) {
     let adb = 'adb';
     try { adb = this.provisioner.adbVersionPath() || 'adb'; } catch (_) { /* 用 PATH 里的 */ }
-    const env = { ...process.env, ANDROID_ADB_SERVER_PORT: String(adbPort) };
+    const env = adbEnv(adbPort);
     const run = (args, timeout) => new Promise((resolve) => {
       try {
-        execFile(adb, args, { timeout, windowsHide: true, env }, () => resolve());
+        execFile(adb, adbArgs(adbPort, '', args), { timeout, windowsHide: true, env }, () => resolve());
       } catch (_) { resolve(); }
     });
     await run(['kill-server'], 6000);
@@ -1056,10 +1073,10 @@ class EmulatorEngine {
     }
     if (!adb || !fs.existsSync(adb)) adb = 'adb';
     const port = Number(process.env.ANDROID_ADB_SERVER_PORT) || this.adbPort || 5044;
-    const env = { ...process.env, ANDROID_ADB_SERVER_PORT: String(port) };
+    const env = adbEnv(port);
     const sh = (cmd, timeout = 8000) => new Promise((resolve) => {
       try {
-        execFile(adb, ['-s', this.serial, 'shell', cmd], { timeout, windowsHide: true, env }, (e, out) => {
+        execFile(adb, adbArgs(port, this.serial, ['shell', cmd]), { timeout, windowsHide: true, env }, (e, out) => {
           resolve(e ? '' : String(out || ''));
         });
       } catch (_) { resolve(''); }
@@ -1138,10 +1155,10 @@ class EmulatorEngine {
     }
     if (!adb || !fs.existsSync(adb)) adb = 'adb';
     const port = Number(process.env.ANDROID_ADB_SERVER_PORT) || this.adbPort || 5044;
-    const env = { ...process.env, ANDROID_ADB_SERVER_PORT: String(port) };
+    const env = adbEnv(port);
     const sh = (cmd, timeout = 10000) => new Promise((resolve) => {
       try {
-        execFile(adb, ['-s', this.serial, 'shell', cmd], { timeout, windowsHide: true, env }, (e, out) => {
+        execFile(adb, adbArgs(port, this.serial, ['shell', cmd]), { timeout, windowsHide: true, env }, (e, out) => {
           resolve(e ? '' : String(out || ''));
         });
       } catch (_) { resolve(''); }
@@ -1171,7 +1188,7 @@ class EmulatorEngine {
     await sh('uiautomator dump /sdcard/ui.xml');
     const xml = await new Promise((resolve) => {
       try {
-        execFile(adb, ['-s', this.serial, 'shell', 'cat', '/sdcard/ui.xml'],
+        execFile(adb, adbArgs(port, this.serial, ['shell', 'cat', '/sdcard/ui.xml']),
           { timeout: 10000, windowsHide: true, env, maxBuffer: 8 * 1024 * 1024 },
           (e, out) => resolve(e ? '' : String(out || '')));
       } catch (_) { resolve(''); }
@@ -1597,8 +1614,8 @@ class EmulatorEngine {
     }
     if (adbPath) {
       await new Promise((resolve) => {
-        execFile(adbPath, ['-s', serial, 'emu', 'kill'],
-          { timeout: 10000, windowsHide: true }, () => resolve());
+        execFile(adbPath, adbArgs(this.adbPort, serial, ['emu', 'kill']),
+          { timeout: 10000, windowsHide: true, env: adbEnv(this.adbPort) }, () => resolve());
       });
     }
     // 等它自己走完「落盘 → 退出」的流程。以前固定等 6 秒就强杀，
@@ -1661,7 +1678,7 @@ class EmulatorEngine {
     if (!adbPath) return false;
     try {
       const { AdbClient } = require('./adb');
-      const probe = new AdbClient({ adbPath, serial: this.serial });
+      const probe = new AdbClient({ adbPath, serial: this.serial, serverPort: this.adbPort });
       const state = await probe.deviceState();
       const out = await probe.shell('getprop sys.boot_completed', { timeout: 6000 }).catch(() => '');
       return state === 'device' && String(out).trim() === '1';
@@ -1681,8 +1698,8 @@ class EmulatorEngine {
       return false;
     }
     return new Promise((resolve) => {
-      execFile(adbPath, ['-s', this.serial, 'emu', 'avd', 'snapshot', 'save', SNAPSHOT_NAME],
-        { timeout, windowsHide: true }, (err) => resolve(!err));
+      execFile(adbPath, adbArgs(this.adbPort, this.serial, ['emu', 'avd', 'snapshot', 'save', SNAPSHOT_NAME]),
+        { timeout, windowsHide: true, env: adbEnv(this.adbPort) }, (err) => resolve(!err));
     });
   }
 
@@ -1722,4 +1739,4 @@ class EmulatorEngine {
   }
 }
 
-module.exports = { EmulatorEngine, AVD_NAME, SNAPSHOT_NAME };
+module.exports = { EmulatorEngine, AVD_NAME, SNAPSHOT_NAME, adbArgs, adbEnv };

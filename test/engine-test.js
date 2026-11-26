@@ -258,6 +258,42 @@ function assert(cond, msg) { if (!cond) throw new Error(msg || '断言失败'); 
       'la ruta de -adb-path debe apuntar al ADB empaquetado');
   });
 
+  await test('cada cliente ADB fuerza el puerto dedicado del runtime', async () => {
+    const { AdbClient } = require('../src/core/adb');
+    const client = new AdbClient({
+      adbPath: path.join(TMP, 'runtime', 'platform-tools', 'adb.exe'),
+      serial: 'emulator-5554',
+      serverPort: 5057,
+    });
+    const args = client._args(['devices'], false);
+    assert(args[0] === '-P' && args[1] === '5057',
+      `ADB debe recibir -P 5057 antes del comando: ${args.join(' ')}`);
+    assert(args.includes('devices'), 'el comando original debe conservarse');
+    const env = client._adbEnv();
+    assert(env.ANDROID_ADB_SERVER_PORT === '5057', 'el entorno ADB debe usar el mismo puerto');
+    assert(!env.ADB_SERVER_SOCKET, 'no debe heredarse un socket ADB externo');
+  });
+
+  await test('las operaciones directas del emulador también aíslan el ADB', async () => {
+    const { adbArgs } = require('../src/core/emulator');
+    const args = adbArgs(5057, 'emulator-5554', ['shell', 'getprop', 'sys.boot_completed']);
+    assert(JSON.stringify(args) === JSON.stringify([
+      '-P', '5057', '-s', 'emulator-5554', 'shell', 'getprop', 'sys.boot_completed',
+    ]), `las operaciones directas deben usar el puerto dedicado: ${args.join(' ')}`);
+  });
+
+  await test('el cliente de Runtime se renueva cuando cambia el puerto ADB', async () => {
+    const { Runtime } = require('../src/core/engine');
+    const rt = new Runtime(TMP);
+    rt.adbPath = () => 'adb-interno';
+    rt.emulator.adbPort = 5057;
+    const first = rt.client('emulator-5554');
+    rt.emulator.adbPort = 5058;
+    const second = rt.client('emulator-5554');
+    assert(first !== second, 'no debe reutilizarse un cliente apuntando al puerto anterior');
+    assert(second.serverPort === 5058, 'el cliente nuevo debe usar el puerto vigente');
+  });
+
   await test('la instalación espera a que ADB esté en línea antes de enviar el APK', async () => {
     const { installWhenAdbReady } = require('../src/core/installer');
     let online = false;

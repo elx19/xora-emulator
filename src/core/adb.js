@@ -270,9 +270,14 @@ function parseStatList(text) {
 }
 
 class AdbClient {
-  constructor({ adbPath, serial }) {
+  constructor({ adbPath, serial, serverPort }) {
     this.adbPath = adbPath || 'adb';
     this.serial = serial || '';
+    // El runtime mantiene su propio servidor ADB. No confiar solo en
+    // ANDROID_ADB_SERVER_PORT: en Windows otro adb puede heredar/forzar el
+    // puerto 5037 y dejar esta conexión en `offline` o mezclar versiones.
+    const parsedPort = Number(serverPort || process.env.ANDROID_ADB_SERVER_PORT || 5044);
+    this.serverPort = Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : 5044;
     this._input = null;        // 常驻 `adb shell` 进程
     this._inputSeq = 0;
     this._waiters = new Map(); // id -> { resolve, reject, timer, token }
@@ -291,13 +296,17 @@ class AdbClient {
   }
 
   _args(args, withSerial = true) {
-    const a = [];
+    const a = ['-P', String(this.serverPort)];
     if (withSerial && this.serial) a.push('-s', this.serial);
     return a.concat(args);
   }
 
   _adbEnv() {
-    const env = { ...process.env, ANDROID_ADB_SERVER_PORT: process.env.ANDROID_ADB_SERVER_PORT || '5044' };
+    const env = { ...process.env, ANDROID_ADB_SERVER_PORT: String(this.serverPort) };
+    // Un socket heredado tiene precedencia sobre ANDROID_ADB_SERVER_PORT y
+    // puede apuntar a un servidor externo; el runtime debe ser autónomo.
+    delete env.ADB_SERVER_SOCKET;
+    delete env.ANDROID_ADB_SERVER_ADDRESS;
     // Play 商店镜像会强制 ADB 授权：host 的 adb server 与 guest 的 adbd 必须用同一把
     // adbkey。官方做法是 adb/emulator 共用 %USERPROFILE%\.android\adbkey{,.pub}，
     // emulator 启动时把 adbkey.pub 烤进 guest 的 /data/misc/adb/adb_keys。

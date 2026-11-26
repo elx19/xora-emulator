@@ -309,7 +309,14 @@ function planVariants(profile) {
   const safeGpu = gpus.find((g) => /software|swiftshader/.test(g))
     || gpus.find((g) => /swangle/.test(g))
     || 'software';
-  const ordered = [firstGpu, ...gpus.filter((g) => g !== firstGpu && /swiftshader|swangle/.test(g))].slice(0, 2);
+  // SwiftShader es el fallback más aislado del controlador del host. En
+  // Radeon antiguas `swangle` puede terminar en una pantalla negra aunque
+  // el proceso siga vivo, así que debe probarse antes que ese backend.
+  const ordered = [
+    firstGpu,
+    ...gpus.filter((g) => g !== firstGpu && /swiftshader/.test(g)),
+    ...gpus.filter((g) => g !== firstGpu && /swangle/.test(g)),
+  ].slice(0, 2);
   for (const gpu of ordered) {
     out.push({ ...profile, gpu, label: `${gpu} / ${profile.accel === 'auto' ? '硬件加速' : '软件模拟'}`, wipe: false, snapshot: true });
   }
@@ -498,6 +505,12 @@ const RULES = [
     re: /Running multiple emulators with the same AVD|AVD .*is already running|hardware-qemu\.ini\.lock/i,
     title: '上一次运行没有正常退出，残留了锁文件',
     hint: 'XORA limpiará los bloqueos restantes y volverá a intentarlo. Si se repite, comprueba que ningún otro emulador esté usando el mismo runtime.',
+  },
+  {
+    code: 'DATA_CORRUPTION',
+    re: /No fallback file found for: .*settings_system\.xml|SettingsState.*unterminated entity ref|Unable to get provider com\.android\.providers\.settings\.SettingsProvider/i,
+    title: 'Los datos de Android están dañados',
+    hint: 'El sistema no puede iniciar sus servicios. Usa «Restablecer datos de Android» en Configuración → Diagnóstico y reparación; se conservarán los APK locales, pero se perderán las aplicaciones instaladas y sus datos dentro del emulador.',
   },
   {
     code: 'CPU_FEATURE',

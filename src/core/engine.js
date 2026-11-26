@@ -132,10 +132,16 @@ class Runtime {
   client(serial) {
     const useSerial = serial || this.emuSerial;
     const adbPath = this.adbPath();
-    if (!this._client || this._client.serial !== useSerial || this._client.adbPath !== adbPath) {
+    const serverPort = this.emulator.adbPort;
+    if (!this._client || this._client.serial !== useSerial || this._client.adbPath !== adbPath
+      || this._client.serverPort !== serverPort) {
       // 换端口/换 adb 时别把旧的常驻 adb shell 留在后台占着连接
       if (this._client && this._client.disposeInput) this._client.disposeInput();
-      this._client = new AdbClient({ adbPath, serial: useSerial });
+      this._client = new AdbClient({
+        adbPath,
+        serial: useSerial,
+        serverPort,
+      });
     }
     return this._client;
   }
@@ -370,8 +376,15 @@ class Runtime {
       });
       const probe = async ({ serial }) => {
         if (!this.emulator.running()) return 'fatal';
-        if (!this._probeClient || this._probeClient.serial !== serial) {
-          this._probeClient = new AdbClient({ adbPath: this.adbPath(), serial });
+        const serverPort = this.emulator.adbPort;
+        if (!this._probeClient || this._probeClient.serial !== serial
+          || this._probeClient.adbPath !== this.adbPath()
+          || this._probeClient.serverPort !== serverPort) {
+          this._probeClient = new AdbClient({
+            adbPath: this.adbPath(),
+            serial,
+            serverPort,
+          });
         }
         const c = this._probeClient;
         try {

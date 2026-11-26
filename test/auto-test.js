@@ -82,6 +82,8 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     const v = doctor.planVariants(p);
     assert(v.length >= 3 && v.length <= 4, `重试次数应 3-4，实际 ${v.length}`);
     assert(v.some((x) => x.accel === 'off'), '缺少软件模拟兜底');
+    assert(v.some((x) => x.gpu === 'swiftshader'),
+      '现代运行时需要尝试 SwiftShader，避免 Radeon/驱动崩溃时卡在黑屏');
     // 最后一档只做「不加载快照 + 最小内存」，绝不允许 -wipe-data：
     // 磁盘写满时每一档都会失败，带 wipe 的话会把用户已装应用一起清掉（实测踩过）。
     assert(v[v.length - 1].snapshot === false, '最后一档必须跳过快照加载');
@@ -114,6 +116,9 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     assert(doctor.diagnose(['Cannot allocate memory for guest RAM']).code === 'MEMORY');
     assert(doctor.diagnose(['panic: AVD apkstart is already running']).code === 'AVD_LOCK');
     assert(doctor.diagnose(['non-ASCII path is not supported']).code === 'NON_ASCII');
+    assert(doctor.diagnose([
+      'SettingsProvider: No fallback file found for: /data/system/users/0/settings_system.xml',
+    ]).code === 'DATA_CORRUPTION');
     assert(doctor.diagnose(['random line']).code === 'UNKNOWN');
   });
 
