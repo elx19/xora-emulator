@@ -7,7 +7,7 @@
 
 ## 0. Comprobaciones previas
 
-- [ ] Existe `dist/store/XORA_0.6.5.0_x64.msix`.
+- [ ] Existe `dist/store/XORA_0.6.6.0_x64.msix`.
 - [ ] La identidad del paquete fue sustituida por los valores reales de Partner Center (el valor local de XORA es provisional).
 - [ ] La política de privacidad tiene una URL pública.
 
@@ -49,7 +49,7 @@ Después de compilar, comprueba que la identidad coincida carácter por carácte
 
 **Packages → Upload package**
 
-- **[Subir]** `dist/store/XORA_0.6.5.0_x64.msix`
+- **[Subir]** `dist/store/XORA_0.6.6.0_x64.msix`
 - El envío puede tardar entre 5 y 20 minutos según tu conexión; no cierres la página.
 - Cuando termine la validación aparecerá «Package accepted».
 
