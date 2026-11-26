@@ -2596,7 +2596,7 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     const { msixVersion } = require(path.join(root, 'build', 'msix.js'));
     const four = msixVersion(pkg.version);
     assert(/^\d+\.\d+\.\d+\.0$/.test(four), `MSIX 四段版本号格式不对：${four}`);
-    const artifact = `ApkStart_${four}_x64.msix`;
+    const artifact = `XORA_${four}_x64.msix`;
     for (const f of ['docs/store-listing.md', 'docs/store-msix.md', 'docs/store-upload-walkthrough.md']) {
       const t = fs.readFileSync(path.join(root, f), 'utf8');
       assert(t.includes(artifact), `${f} 里应引用当前版本的包名 ${artifact}`);

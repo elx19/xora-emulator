@@ -10,7 +10,7 @@
 - [x] Identidad visual XORA en la interfaz, splash, shell y recursos de distribución.
 - [x] Icono oficial integrado en tamaños de ventana, bandeja, ICO, Linux y tienda.
 - [x] Catálogo existente conservado con sustitución de marca a XORA sin reescribir toda la UI.
-- [x] Actualizador, provisionador y fuentes apuntando al repositorio `elx19/xora-emulator`.
+- [x] Actualizador, provisionador y fuentes apuntando al repositorio `elx19/xora-emulator` y a artefactos publicados con prefijo `XORA`.
 - [x] Perfiles de dispositivo: catálogo integrado, recomendación automática, aplicación y JSON validado.
 - [x] Módulo de rendimiento: modos de ahorro, equilibrado y máximo rendimiento con opciones persistentes.
 - [x] Panel inicial de controles: mando, asignaciones, teclado, mouse, DPI y perfiles guardados.

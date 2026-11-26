@@ -9,7 +9,7 @@ Documento de referencia para Partner Center. El instalador, el icono y el manifi
 | Nombre del producto | `XORA` |
 | Categoría | Developer tools → Utilities & tools |
 | Precio | Gratis |
-| Paquete técnico | `dist/store/ApkStart_0.6.4.0_x64.msix` |
+| Paquete técnico | `dist/store/XORA_0.6.4.0_x64.msix` |
 | Idioma principal | Español |
 | Idioma adicional | English (United States) |
 | Sitio del proyecto | https://github.com/elx19/xora-emulator |

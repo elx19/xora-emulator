@@ -41,9 +41,9 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           if (-not $tag.StartsWith('v')) { $tag = "v$tag" }
-          node build/zip.js dist/ApkStart-win64-portable "ApkStart-$tag-win64-portable.zip" --limit-mb 100
+          node build/zip.js dist/ApkStart-win64-portable "XORA-$tag-win64-portable.zip" --limit-mb 100
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Get-Item "ApkStart-$tag-win64-portable.zip" | Select-Object Name, Length
+          Get-Item "XORA-$tag-win64-portable.zip" | Select-Object Name, Length
 
       # 增量更新资产：清单 + 代码层 zip（只有 resources/app，几 MB）。
       # 客户端本机 Electron 版本一致时只下这两个小文件，不再每次重下 ~100MB 整包；
@@ -67,8 +67,8 @@ jobs:
           $tag = "${{ github.ref_name }}"
           if (-not $tag.StartsWith('v')) { $tag = "v$tag" }
           $ver = $tag.TrimStart('v')
-          $zip = "ApkStart-$tag-win64-portable.zip"
-          $securityManifest = "ApkStart-v$ver-update-manifest.json"
+          $zip = "XORA-$tag-win64-portable.zip"
+          $securityManifest = "XORA-v$ver-update-manifest.json"
           if ($env:XORA_UPDATE_PRIVATE_KEY) {
             node build/sign-update-manifest.js --asset $zip --version $ver --platform win32-x64 --channel stable --output $securityManifest --release-notes "https://github.com/elx19/xora-emulator/releases/tag/$tag"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -84,11 +84,11 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           if (-not $tag.StartsWith('v')) { $tag = "v$tag" }
-          $zip = "ApkStart-$tag-win64-portable.zip"
+          $zip = "XORA-$tag-win64-portable.zip"
           $ver = $tag.TrimStart('v')
-          $manifest = "ApkStart-v$ver-manifest.json"
-          $securityManifest = "ApkStart-v$ver-update-manifest.json"
-          $appzip = "ApkStart-v$ver-app.zip"
+          $manifest = "XORA-v$ver-manifest.json"
+          $securityManifest = "XORA-v$ver-update-manifest.json"
+          $appzip = "XORA-v$ver-app.zip"
           # 幂等：release 已存在（如重跑 / 重推 tag）就跳过 create，只上传资产。
           # 但说明要每次都回填：以前只在 create 时写 notes，导致已有 release 的 body
           # 永远停在自动生成的「Full Changelog」一行（0.6.1~0.6.4 就是这样丢的）。
@@ -145,13 +145,13 @@ jobs:
           $notes = ".github/release-notes-$tag.md"
           # 增量资产（清单 + 代码包）都很小，一起同步，国内用户更新也走增量
           $ver = $tag.TrimStart('v')
-          $manifest = "ApkStart-v$ver-manifest.json"
-          $appzip = "ApkStart-v$ver-app.zip"
+          $manifest = "XORA-v$ver-manifest.json"
+          $appzip = "XORA-v$ver-app.zip"
           $incArgs = @("--extra", $manifest, "--extra", $appzip)
           if (Test-Path $notes) {
-            node tools/publish-gitee.js $tag --zip "ApkStart-$tag-win64-portable.zip" --notes $notes @incArgs
+            node tools/publish-gitee.js $tag --zip "XORA-$tag-win64-portable.zip" --notes $notes @incArgs
           } else {
-            node tools/publish-gitee.js $tag --zip "ApkStart-$tag-win64-portable.zip" @incArgs
+            node tools/publish-gitee.js $tag --zip "XORA-$tag-win64-portable.zip" @incArgs
           }
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
@@ -236,7 +236,7 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           if (-not $tag.StartsWith('v')) { $tag = "v$tag" }
-          $zip = "ApkStart-runtime-$tag.zip"
+          $zip = "XORA-runtime-$tag.zip"
           if (-not (Test-Path "build\runtime\emulator\emulator.exe")) { Write-Error "build\runtime 不完整"; exit 1 }
           tar.exe -a -cf $zip -C "build\runtime" .
           if ($LASTEXITCODE -ne 0) { Write-Error "打包运行时失败"; exit 1 }
@@ -249,7 +249,7 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           if (-not $tag.StartsWith('v')) { $tag = "v$tag" }
-          $zip = "ApkStart-runtime-$tag.zip"
+          $zip = "XORA-runtime-$tag.zip"
           $ok = $false
           for ($i = 1; $i -le 3 -and -not $ok; $i++) {
             gh release upload $tag $zip --clobber

@@ -243,7 +243,7 @@ class Sources {
    * 而 `releases/latest` 这个网页跳转是走 CDN 的，不消耗 API 额度。
    *
    * 拿到 tag 之后资产名可以按发布约定拼出来：
-   *   ApkStart-<tag>-win64-portable.zip / ApkStart-<version>-Setup.exe / ApkStart-runtime-<tag>.zip
+   *   XORA-<tag>-win64-portable.zip / XORA-<version>-Setup.exe / XORA-runtime-<tag>.zip
    */
   async _releaseTagViaRedirect(id) {
     const s = SOURCES[id];
@@ -260,10 +260,10 @@ class Sources {
     const s = SOURCES[id];
     const ver = String(tag).replace(/^v/i, '');
     const names = [
-      `ApkStart-${tag}-win64-portable.zip`,
-      `ApkStart-${ver}-Setup.exe`,
-      `ApkStart-runtime-${tag}.zip`,
-      `ApkStart-v${ver}-update-manifest.json`,
+      `XORA-${tag}-win64-portable.zip`,
+      `XORA-${ver}-Setup.exe`,
+      `XORA-runtime-${tag}.zip`,
+      `XORA-v${ver}-update-manifest.json`,
     ];
     // GitHub 和 Gitee 都支持 /releases/download/<tag>/<文件名> 这种规范地址
     // （实测 Gitee 会 302 到 foruda.gitee.com 的附件地址，能正常下到完整字节），
@@ -370,7 +370,7 @@ class Sources {
         if (!key) continue;
         // Gitee 会把「源码包」自动挂成资产（v0.3.2.zip / v0.3.2.tar.gz），
         // 这些不是安装包，`\.zip$` 的匹配规则会把它当成更新包下载下来 —— 必须排除。
-        // 我们自己的发布资产统一以 ApkStart 开头，按这个前缀白名单更安全。
+        // Los artefactos propios usan el prefijo XORA; se conserva ApkStart solo para leer releases antiguas.
         if (!/^(?:ApkStart|XORA)/i.test(key)) continue;
         raw.push({
           name: key,

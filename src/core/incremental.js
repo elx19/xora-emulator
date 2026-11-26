@@ -2,13 +2,13 @@
 /**
  * 增量更新（代码层）的纯逻辑：清单解析、模式选择、本地/落盘文件校验。
  *
- * 背景：便携包 ~99MB，其中绝大部分是 Electron 外壳（ApkStart.exe 180MB 未压缩、
+ * 背景：便携包 ~99MB，其中绝大部分是 Electron 外壳（XORA.exe 180MB 未压缩、
  * dll、locales），这些只有升级 Electron 才会变；真正每次发版都变的是
  * `resources/app/**`（我们的 JS / 资源 / node_modules）。以前每次升级都要把
  * 整个 99MB 外壳重新下一遍。现在每次发版额外发布两个 tiny 资产：
- *   - `ApkStart-vX-manifest.json`：列出 app 层每个文件的 sha256 / size，以及
+ *   - `XORA-vX-manifest.json`：列出 app 层每个文件的 sha256 / size，以及
  *     这次发版依赖的 Electron 版本；
- *   - `ApkStart-vX-app.zip`：整个 app 层（通常几 MB）。
+ *   - `XORA-vX-app.zip`：整个 app 层（通常几 MB）。
  * 客户端只要本机 Electron 版本一致，就只下这两个小文件，逐文件校验后覆盖
  * `resources/app`；任何一步不满足就退回完整包，绝不让用户更新到坏状态。
  *

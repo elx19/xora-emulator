@@ -11,6 +11,8 @@ const publicFiles = [
   'package.json',
   'docs/XORA-PLAN.md',
   'docs/store-upload-walkthrough.md',
+  'docs/store-listing.md',
+  'docs/store-msix.md',
 ];
 
 const cjk = /[\u4e00-\u9fff]/u;

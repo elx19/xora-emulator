@@ -3,8 +3,8 @@
  * 在线更新：从 GitHub Releases（elx19/xora-emulator）取最新版本，下载并原地替换。
  *
  * 三个形态都要照顾到：
- *   - 安装版（NSIS）：下载 `ApkStart-x.y.z-Setup.exe`，静默安装（/S）；
- *   - 轻量版（便携 zip，运行时按需下载）：下载 `ApkStart-vX-win64-portable.zip`，
+ *   - 安装版（NSIS）：下载 `XORA-x.y.z-Setup.exe`，静默安装（/S）；
+ *   - 轻量版（便携 zip，运行时按需下载）：下载 `XORA-vX-win64-portable.zip`，
  *     解压后覆盖程序目录 —— 运行时目录（%APPDATA%\apkstart\runtime）与已装应用、
  *     快照全都在用户目录里，替换程序文件不会动它们；
  *   - 完整版（便携但带 runtime）：同轻量版，只是目录里多了 resources\runtime。
@@ -106,7 +106,7 @@ class Updater {
     this.channel = updateSettings.channel || 'stable';
     const merged = await this.sources.latest({ force: !!opts.force });
     const pick = (re) => merged.assets.find((a) => re.test(String(a.name || '')));
-    // 发行版里同时挂着「便携包」和「运行时整包」（ApkStart-runtime-*.zip）。
+    // 发行版里同时挂着「便携包」和「运行时整包」（XORA-runtime-*.zip）。
     // 兜底的 .zip 匹配必须把运行时整包排除掉：某次发布如果只有运行时整包、
     // 没有便携包，旧逻辑会把它当更新包解压进程序目录（多出 1.5GB 文件、程序也被换坏）。
     const isRuntimePack = (a) => inc.isAuxAsset((a && a.name) || '');

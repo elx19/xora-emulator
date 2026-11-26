@@ -69,10 +69,10 @@ ApkStart.exe --launch <包名>
 
 | 形态 | 文件名 | 什么时候选 |
 |---|---|---|
-| **商店版** | `ApkStart_<四段版本>_x64.msix` | 从 Microsoft Store 安装。内置完整运行时，装完不联网，更新交给商店 |
-| **完整便携版** | `ApkStart-v*-win64-full.zip`（约 830 MB，解压 ~1.3 GB） | 不想装、也不想等下载：解压即用，运行时全在包里 |
-| **安装版** | `ApkStart-v*-Setup.exe`（约 1.3 GB） | 想要桌面/开始菜单快捷方式和卸载项 |
-| **轻量便携版** | `ApkStart-v*-win64-portable.zip`（96 MiB，解压 ~227 MB） | 只想先试试，首次启动再联网下载运行时 |
+| **商店版** | `XORA_<versión de cuatro etapas>_x64.msix` | Instalar desde Microsoft Store. Runtime completo incluido. |
+| **Versión portátil completa** | `XORA-v*-win64-full.zip` | Descomprimir y usar sin descargar el runtime. |
+| **Instalador** | `XORA-v*-Setup.exe` | Incluye accesos directos y desinstalador. |
+| **Versión portátil ligera** | `XORA-v*-win64-portable.zip` | El runtime se prepara en el primer inicio. |
 
 > ⚠️ **务必用最新版（当前 0.6.4）**。旧版（0.5.x 及更早）要么没有内置运行时、每次启动去找/下 1.5 GB 运行时，要么默认用嵌入窗口——这正是「很慢、打不开、出来一个带旋转按钮的窗口」的典型来源。如果你是从旧版升级，请确认桌面图标指向的是新版程序目录。
 

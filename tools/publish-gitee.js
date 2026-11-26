@@ -13,7 +13,7 @@
  * 用法：
  *   GITEE_TOKEN=xxxx node tools/publish-gitee.js v0.3.3 D:/dist
  *     v0.3.3   要发布的 tag（必须是已推送到 Gitee 的 tag）
- *     D:/dist  目录里放 ApkStart-v0.3.3-win64-portable.zip（可选，也可用 --zip 指定）
+ *     D:/dist  目录里放 XORA-v0.3.3-win64-portable.zip（可选，也可用 --zip 指定）
  *
  *   node tools/publish-gitee.js v0.3.3 --zip D:/x.zip --notes notes.md
  *   node tools/publish-gitee.js v0.3.3 --zip D:/x.zip --extra D:/manifest.json --extra D:/app.zip

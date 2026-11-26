@@ -22,8 +22,8 @@ Primera publicación de XORA con la identidad y el flujo de actualización del p
 
 ## Artefactos
 
-- `ApkStart-v0.6.4-win64-portable.zip`: versión portátil de Windows.
-- `ApkStart-v0.6.4-update-manifest.json`: manifiesto firmado para el actualizador.
-- `ApkStart-v0.6.4-manifest.json` y `ApkStart-v0.6.4-app.zip`: actualización incremental.
+- `XORA-v0.6.4-win64-portable.zip`: versión portátil de Windows.
+- `XORA-v0.6.4-update-manifest.json`: manifiesto firmado para el actualizador.
+- `XORA-v0.6.4-manifest.json` y `XORA-v0.6.4-app.zip`: actualización incremental.
 
-El nombre técnico de los archivos de Windows conserva `ApkStart` por compatibilidad con el empaquetado; el producto, la interfaz y la publicación se identifican como **XORA**.
+Todos los artefactos publicados usan ahora la identidad **XORA**.

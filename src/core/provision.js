@@ -549,7 +549,7 @@ class Provisioner {
 
   /**
    * 解析「运行时整包」的下载地址。
-   * 资产名约定：ApkStart-runtime-<tag>.zip（由 .github/workflows/release.yml 产出，
+   * Convención actual: XORA-runtime-<tag>.zip (el workflow de Release lo produce;
    * 内容就是 build/runtime 的那一套：emulator/ + platform-tools/ + aehd/ + system-images/）。
    * GitHub 与 Gitee 两边都扫一遍，取版本号最高的那个；找不到就抛错，让上层退回
    * Google 官方分组件下载。
@@ -575,7 +575,7 @@ class Provisioner {
       if (!item.list) continue;
       for (const rel of item.list) {
         if (!rel || rel.draft) continue;
-        const hit = (rel.assets || []).find((x) => /^ApkStart-runtime-.*\.zip$/i.test(x.name || ''));
+        const hit = (rel.assets || []).find((x) => /^(?:XORA|ApkStart)-runtime-.*\.zip$/i.test(x.name || ''));
         if (!hit) continue;
         cands.push({
           url: hit.browser_download_url || hit.url,

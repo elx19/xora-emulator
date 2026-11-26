@@ -442,7 +442,7 @@ function main() {
 }
 
 function artifactName() {
-  return `ApkStart_${msixVersion(VERSION)}_x64.msix`;
+  return `XORA_${msixVersion(VERSION)}_x64.msix`;
 }
 
 function sign(file) {

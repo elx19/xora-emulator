@@ -8,8 +8,8 @@
  * 版本一致时就只下这两个小文件，覆盖 resources/app 即可完成升级。
  *
  * 产物（写到 --out 目录，默认当前目录）：
- *   ApkStart-v<版本>-manifest.json
- *   ApkStart-v<版本>-app.zip
+ *   XORA-v<versión>-manifest.json
+ *   XORA-v<versión>-app.zip
  *
  * 用法：node build/incremental.js <便携版目录> <tag> [--out 目录]
  */
@@ -73,8 +73,8 @@ async function build(portableDir, tag, outDir = process.cwd()) {
   if (!version) throw new Error('缺少版本号 / tag');
 
   fs.mkdirSync(outDir, { recursive: true });
-  const appName = `ApkStart-v${version}-app.zip`;
-  const manifestName = `ApkStart-v${version}-manifest.json`;
+  const appName = `XORA-v${version}-app.zip`;
+  const manifestName = `XORA-v${version}-manifest.json`;
   const appZip = path.join(outDir, appName);
   const manifestPath = path.join(outDir, manifestName);
 
@@ -105,7 +105,7 @@ async function build(portableDir, tag, outDir = process.cwd()) {
       size: fs.statSync(appZip).size,
       files,
     },
-    full: { asset: `ApkStart-v${version}-win64-portable.zip` },
+    full: { asset: `XORA-v${version}-win64-portable.zip` },
   };
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
 

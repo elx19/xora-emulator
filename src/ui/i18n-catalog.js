@@ -431,7 +431,7 @@
     "文件名": "Nombre del archivo",
     "什么时候选": "cuando elegir",
     "商店版": "Versión de la tienda",
-    "ApkStart_<四段版本>_x64.msix": "ApkStart_<versión de cuatro etapas>_x64.msix",
+    "ApkStart_<四段版本>_x64.msix": "XORA_<versión de cuatro etapas>_x64.msix",
     "从 Microsoft Store 安装。内置完整运行时，装完不联网，更新交给商店": "Instalar desde Microsoft Store. Tiempo de ejecución completo incorporado, no es necesario conectarse a Internet después de la instalación, las actualizaciones se entregan a la tienda",
     "完整便携版": "Versión portátil completa",
     "（约 830 MB，解压 ~1.3 GB）": "(~830 MB, ~1,3 GB descomprimidos)",

@@ -16,7 +16,7 @@ try {
     Write-Host '  [!] 读不到 package.json 的 version，退回按 0.5.3.0 找包' -ForegroundColor Yellow
     $ver = '0.5.3.0'
 }
-$msix = Join-Path $root ('dist\store\ApkStart_{0}_x64.msix' -f $ver)
+$msix = Join-Path $root ('dist\store\XORA_{0}_x64.msix' -f $ver)
 $guide = Join-Path $root 'docs\store-upload-walkthrough.md'
 $listing = Join-Path $root 'docs\store-listing.md'
 
