@@ -19,4 +19,3 @@ El manifiesto firmado contiene producto, versión, plataforma, canal, URL, tama�
 ## Datos
 
 El runtime base y los datos del usuario están separados. Actualizar XORA no borra aplicaciones, configuraciones ni instantáneas.
-

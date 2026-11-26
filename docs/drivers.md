@@ -25,4 +25,3 @@ No se permiten `-wipe-data`, cambios de ruta, tamaño de partición, ejecución 
 3. Valida e importa el JSON.
 4. Activa el controlador desde Diagnóstico.
 5. Reinicia Android y comprueba el resultado.
-

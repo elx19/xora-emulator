@@ -26,4 +26,3 @@ Este documento resume dónde vive cada parte del producto. Los nombres de archiv
 ## Validación
 
 `npm test` ejecuta pruebas de APK, runtime simulado, perfiles, complementos, idioma, identidad, manifiestos y actualización. `npm run test:ui` abre Electron y comprueba que todas las categorías de configuración se rendericen en español.
-

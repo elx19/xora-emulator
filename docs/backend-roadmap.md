@@ -16,4 +16,3 @@ Integrar otro producto obligaría a distribuir componentes incompatibles, duplic
 - Mantener una interfaz de backend preparada para pruebas, sin depender de MuMu, BlueStacks, LDPlayer, WSA ni productos de terceros.
 
 La prioridad del producto es que instalar un APK sea simple, verificable y ligero.
-

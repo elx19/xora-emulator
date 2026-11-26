@@ -28,4 +28,3 @@ Para probar un APK real se puede definir `XORA_TEST_APK`. El nombre heredado `AP
 ## Revisión antes de publicar
 
 Ejecuta `npm test`, `npm run test:ui` y `git diff --check`. Confirma que el paquete use XORA, que no haya secretos, que el manifiesto esté firmado y que el artefacto coincida con su SHA-512.
-

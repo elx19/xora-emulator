@@ -38,4 +38,3 @@ El runtime se inicia una sola vez y se mantiene preparado mientras haya una apli
 ## Seguridad y datos
 
 La asociación de archivos se registra solo para el usuario actual. Las rutas, nombres de paquetes, argumentos ADB y manifiestos externos se validan. No se ejecutan datos del usuario mediante `eval`, no se guardan credenciales de Google y los tokens de actualización no se incrustan en el instalador.
-

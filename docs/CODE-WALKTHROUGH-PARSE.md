@@ -12,4 +12,3 @@ Pruebas relacionadas:
 - `test/library-flow-test.js`: incorporación y actualización de aplicaciones.
 - `test/issue-hardening-test.js`: zip-slip, nombres y manifiestos.
 - `test/input-latency-test.js`: contrato de entrada de juegos.
-

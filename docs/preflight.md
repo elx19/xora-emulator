@@ -15,4 +15,3 @@ Antes del primer arranque, XORA revisa CPU, memoria, disco, virtualización, GPU
 La aplicación no puede activar una opción de BIOS ni instalar un controlador del kernel sin autorización. En la versión de Microsoft Store muestra la guía de Windows; en la versión instalable ofrece la acción elevada cuando el usuario la confirma.
 
 La comprobación no borra datos, aplicaciones ni snapshots. Los cambios se guardan en el perfil de XORA y se aplican al siguiente arranque.
-
