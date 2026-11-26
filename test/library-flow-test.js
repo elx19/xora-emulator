@@ -1,9 +1,11 @@
 'use strict';
 
 const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 const { mergeInstalledApp } = require('../src/ui/library-state');
 const { googlePlayIcon } = require('../src/ui/system-icons');
-const { normalizeInstallPath } = require('../src/core/installer');
+const { normalizeInstallPath, runtimeNeedsPreparation } = require('../src/core/installer');
 const { listSystemApps, mergeSystemApps, isProtectedSystemApp } = require('../src/core/system-apps');
 
 const installed = {
@@ -28,6 +30,26 @@ assert.strictEqual(normalizeInstallPath(['C:\\Apps\\demo.apks']), 'C:\\Apps\\dem
 assert.strictEqual(normalizeInstallPath({ filePath: 'C:\\Apps\\demo.xapk' }), 'C:\\Apps\\demo.xapk');
 assert.throws(() => normalizeInstallPath([]), /APK|archivo|selecciona/i);
 assert.throws(() => normalizeInstallPath('C:\\Apps\\demo.txt'), /APK|formato/i);
+
+assert.strictEqual(runtimeNeedsPreparation({
+  adb: { ok: true }, emulator: { ok: true }, sysimg: { ok: true },
+}), false, 'un runtime completo no debe bloquear la instalación');
+assert.strictEqual(runtimeNeedsPreparation({
+  adb: { ok: true }, emulator: { ok: false }, sysimg: { ok: true },
+}), true, 'la instalación debe preparar automáticamente un runtime incompleto');
+assert.strictEqual(runtimeNeedsPreparation(null), true, 'un diagnóstico ausente debe tratarse como runtime no preparado');
+
+const libraryHtml = fs.readFileSync(path.join(__dirname, '..', 'src', 'ui', 'index.html'), 'utf8');
+const libraryUi = fs.readFileSync(path.join(__dirname, '..', 'src', 'ui', 'app.js'), 'utf8');
+const mainProcess = fs.readFileSync(path.join(__dirname, '..', 'src', 'main.js'), 'utf8');
+assert.match(libraryHtml, /Selecciona un APK o arrástralo aquí/i, 'la pantalla vacía debe explicar la instalación directa');
+assert.match(libraryHtml, /id="dropzone"/, 'la biblioteca debe conservar una zona de arrastre');
+assert.doesNotMatch(libraryHtml, /把 APK 拖进来就能装/, 'la pantalla de instalación no debe mostrar chino');
+assert.match(mainProcess, /Preparando Android para instalar la aplicación/i, 'la instalación debe preparar el runtime automáticamente');
+assert.match(mainProcess, /async function prepareRuntimeForInstall/, 'la instalación debe tener una ruta de preparación propia');
+assert.match(mainProcess, /autoDeploy\(\{[\s\S]*?force: true/, 'la instalación debe poder preparar el runtime aunque el despliegue de fondo esté desactivado');
+assert.doesNotMatch(mainProcess, /if \(e\.needsSetup\) send\('ui:navigate', 'setup'\)/, 'un APK no debe expulsar al usuario al asistente técnico');
+assert.doesNotMatch(libraryUi, /正在安装 \$\{name\}/, 'la notificación de instalación no debe mostrar chino');
 
 const playStore = listSystemApps({ playImageReady: true })[0];
 assert.strictEqual(playStore.package, 'com.android.vending', 'Play Store debe usar su paquete oficial');

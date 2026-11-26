@@ -204,13 +204,13 @@ function renderGrid() {
   empty.classList.toggle('hidden', apps.length > 0);
 
   const emptyTitle = $('empty').querySelector('h2');
-  if (emptyTitle) emptyTitle.textContent = hasAny && apps.length === 0 ? 'No hay aplicaciones en este filtro' : 'Arrastra el APK para instalarlo';
+  if (emptyTitle) emptyTitle.textContent = hasAny && apps.length === 0 ? 'No hay aplicaciones en este filtro' : 'Selecciona un APK o arrástralo aquí';
 
   if (!hasAny) {
     const s = state.status;
     $('emptyHint').textContent = s && s.adbOk === false
-      ? '首次使用：打开右上角设置 → 运行时 → 一键完成，再回来安装应用即可。'
-      : '提示：所有应用共享同一个 Android 运行时，所以第二个应用的启动几乎是瞬时的。';
+      ? 'La primera instalación prepara automáticamente el runtime de Android; solo necesitas elegir el APK.'
+      : 'Todas las aplicaciones comparten el mismo runtime de Android, por eso las siguientes se abren más rápido.';
     grid.innerHTML = '';
     return;
   }
@@ -235,13 +235,13 @@ function renderGrid() {
       <div class="open-hint">${a.running ? esc(i18n.t('app.bringToFront')) : esc(i18n.t('app.open'))}</div>
     </div>
   `).join('') + `
-    <div class="card card-add" id="cardAdd" role="button" tabindex="0" title="拖入 APK 文件，或点击选择">
+    <div class="card card-add" id="cardAdd" role="button" tabindex="0" title="Arrastra un APK o haz clic para seleccionarlo">
       <div class="add-plus" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round"><path d="M12 6v12"/><path d="M6 12h12"/></svg>
       </div>
-      <div class="name">添加应用</div>
-      <div class="meta">拖入 APK 即可安装</div>
+      <div class="name">Añadir aplicación</div>
+      <div class="meta">Arrastra un APK para instalarlo</div>
     </div>
   `;
 }
@@ -1062,21 +1062,27 @@ async function installFiles(paths) {
 
   for (const p of paths) {
     const name = p.split(/[\\/]/).pop();
-    const t = toast({ title: `正在安装 ${name}`, body: '解析 APK…', progress: 8, sticky: true, spinner: true });
+    const t = toast({ title: `Instalando ${name}`, body: 'Analizando el APK…', progress: 8, sticky: true, spinner: true });
     installToast = t;
     let off = () => {};
+    let offProvision = () => {};
     try {
       off = api.on('install:progress', (pr) => {
         const base = { parse: 12, 'parse-done': 24, runtime: 38, install: 62, shortcut: 88, done: 100 }[pr.stage] || 50;
         const pct = pr.percent != null ? Math.min(60, Math.round((pr.percent / 100) * 60)) : base;
-        t.update({ title: pr.meta ? `正在安装 ${pr.meta.label}` : `正在安装 ${name}`, body: pr.message, progress: pct });
+        t.update({ title: pr.meta ? `Instalando ${pr.meta.label}` : `Instalando ${name}`, body: pr.message, progress: pct });
+      });
+      offProvision = api.on('provision:progress', (pr) => {
+        if (!pr || !pr.message || !state.installing) return;
+        const pct = pr.percent != null ? Math.min(60, Math.max(6, Math.round((pr.percent / 100) * 60))) : 38;
+        t.update({ title: `Preparando Android para ${name}`, body: pr.message, progress: pct });
       });
       const r = await api.installApk(p);
-      t.update({ title: `${r.app.label} 已安装`, body: r.app.shortcutPath ? '桌面快捷方式已创建，双击即可直接打开。' : '可在应用卡片右键创建桌面快捷方式。', progress: 100, type: 'ok' });
+      t.update({ title: `${r.app.label} instalada`, body: r.app.shortcutPath ? 'Se creó un acceso directo en el escritorio.' : 'Puedes crear un acceso directo desde el menú de la aplicación.', progress: 100, type: 'ok' });
       t.el.querySelector('.spinner')?.remove();
       setTimeout(t.dismiss, 3600);
       if (r.warnings && r.warnings.length) {
-        toast({ title: `${r.app.label} 兼容性提示`, body: r.warnings.join(' '), type: 'error', sticky: false });
+        toast({ title: `${r.app.label}: aviso de compatibilidad`, body: r.warnings.join(' '), type: 'error', sticky: false });
       }
       ok++;
     } catch (e) {
@@ -1086,10 +1092,12 @@ async function installFiles(paths) {
       // 错误提示统一由下面的 install:error 监听器负责（带文件名与中文原因），
       // 这里不再重复弹一条。
       try { off(); } catch (_) { /* ignore */ }
+      try { offProvision(); } catch (_) { /* ignore */ }
       t.dismiss();
       if (installToast === t) installToast = null;
     } finally {
       try { off(); } catch (_) { /* ignore */ }
+      try { offProvision(); } catch (_) { /* ignore */ }
     }
   }
 
@@ -1634,7 +1642,7 @@ function fillSettings(s) {
   if ($('setAutoRotate')) $('setAutoRotate').value = d.autoRotate === false ? 'off' : 'on';
   if ($('setTabletMode')) $('setTabletMode').value = d.tabletMode === false ? 'off' : 'on';
   $('setPortrait').value = d.portrait || '900x1600';
-  // XORA 0.6.9 usa la ventana integrada por defecto; el modo nativo solo se activa
+  // XORA 0.6.10 usa la ventana integrada por defecto; el modo nativo solo se activa
   // cuando el usuario lo elige explícitamente en Configuración.
   if ($('setWindowEmbed')) $('setWindowEmbed').value = d.windowEmbed === true ? 'embed' : 'detached';
   $('portraitField').hidden = $('setDisplayMode').value === 'fullscreen';
@@ -3141,7 +3149,7 @@ function bindEvents() {
       .map((f) => { try { return api.pathForFile(f); } catch (_) { return null; } })
       .filter((p) => p && /\.(apk|apks|xapk)$/i.test(p));
     if (paths.length) installFiles(paths);
-    else toast({ title: '只能拖入 .apk 文件', type: 'error' });
+    else toast({ title: 'Arrastra un archivo APK, APKS o XAPK', body: 'También puedes usar el botón «Instalar APK».', type: 'error' });
   });
 
   // 主进程事件
@@ -3149,9 +3157,9 @@ function bindEvents() {
     // 报错了就别再让「正在安装…」那条一直转圈（可能来自双击 APK 的另一条链路）
     if (installToast) { try { installToast.dismiss(); } catch (_) { /* ignore */ } installToast = null; }
     const name = p && p.file ? String(p.file).split(/[\\/]/).pop() : '';
-    const raw = (p && p.message) || '未知错误';
+    const raw = (p && p.message) || 'Error desconocido';
     toast({
-      title: name ? `安装失败：${name}` : '安装失败',
+      title: name ? `No se pudo instalar: ${name}` : 'No se pudo instalar',
       body: friendlyInstallErrorText(raw),
       type: 'error',
     });

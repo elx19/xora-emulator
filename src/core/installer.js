@@ -27,6 +27,16 @@ function normalizeInstallPath(input) {
   return value;
 }
 
+/**
+ * La instalación de un APK individual no debe depender de que el usuario
+ * haya recorrido antes el asistente de configuración. Si falta cualquiera
+ * de los componentes básicos, el flujo de instalación debe preparar el
+ * runtime automáticamente y mostrar el progreso en la misma ventana.
+ */
+function runtimeNeedsPreparation(env) {
+  return !env || !env.adb?.ok || !env.emulator?.ok || !env.sysimg?.ok;
+}
+
 /** APK 只有 ARM 原生库（国产 App 绝大多数如此） */
 function isArmOnly(meta) {
   return !!(meta && meta.abis && meta.abis.length && !meta.abis.some((a) => /x86/i.test(a)));
@@ -720,4 +730,6 @@ class Installer {
   }
 }
 
-module.exports = { Installer, accentOf, parseBundle, normalizeInstallPath };
+module.exports = {
+  Installer, accentOf, parseBundle, normalizeInstallPath, runtimeNeedsPreparation,
+};

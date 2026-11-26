@@ -106,7 +106,7 @@
   <section class="toolbar library-toolbar">
     <div class="search">
       <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="search" type="text" placeholder="搜索已安装应用" autocomplete="off" />
+      <input id="search" type="text" placeholder="Buscar aplicaciones instaladas" autocomplete="off" />
     </div>
     <div class="toolbar-right">
       <button class="btn outline addon-btn" id="btnAddons" type="button">
@@ -151,8 +151,8 @@
           <rect x="40" y="100" width="80" height="8" rx="4" fill="#eef1f4"/>
         </svg>
       </div>
-      <h2>把 APK 拖进来就能装</h2>
-      <p>Al terminar la instalación se creará un acceso directo en el escritorio. Haz doble clic para abrir la app en una ventana independiente.<br/>Si registras la asociación .apk, también puedes instalar un APK desde el Explorador de archivos con XORA.</p>
+      <h2>Selecciona un APK o arrástralo aquí</h2>
+      <p>La instalación es directa: elige un archivo o suéltalo en XORA. El runtime de Android se prepara automáticamente y no necesitas configurar bibliotecas ni emuladores.</p>
       <button class="btn primary lg" id="btnInstall2">Elegir archivo APK</button>
       <p class="hint" id="emptyHint"></p>
     </div>
@@ -161,7 +161,7 @@
   <footer class="statusbar">
     <div class="status-left">
       <span class="dot" id="statusDot"></span>
-      <span id="statusText">正在检查运行时…</span>
+      <span id="statusText">Comprobando el runtime…</span>
       <button class="status-chip" id="envChip" hidden></button>
     </div>
     <div class="status-right">
@@ -342,15 +342,15 @@
   </div>
 </div>
 
-<!-- 安装进度 -->
+<!-- Progreso de instalación -->
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- 拖放遮罩 -->
+<!-- Zona de arrastre -->
 <div class="dropzone" id="dropzone">
   <div class="dropzone-inner">
     <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg>
-    <strong>松手开始安装</strong>
-    <span>支持单个或多个 .apk 文件</span>
+    <strong>Suelta el archivo para instalarlo</strong>
+    <span>Admite uno o varios archivos APK, APKS o XAPK</span>
   </div>
 </div>
 

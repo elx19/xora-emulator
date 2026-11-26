@@ -9,7 +9,7 @@ const path = require('path');
 
 const store = require('./core/store');
 const { Runtime } = require('./core/engine');
-const { Installer, normalizeInstallPath } = require('./core/installer');
+const { Installer, normalizeInstallPath, runtimeNeedsPreparation } = require('./core/installer');
 const { Sharer } = require('./core/sharer');
 const { parseApk } = require('./core/apk');
 const { drawAppIcon } = require('./core/png');
@@ -710,8 +710,12 @@ async function toggleDisplayMode() {
 
 /** 首次运行把 adb / emulator / 系统镜像一次装完，不再分 1~5 步 */
 let deploying = false;
-async function autoDeploy({ force = false } = {}) {
-  if (deploying || !store.getSettings().autoDeploy) return { ok: false, error: 'skipped' };
+async function autoDeploy({ force = false, onProgress = null } = {}) {
+  if (deploying) return { ok: false, error: 'already-in-progress', inProgress: true };
+  // El botón «Instalar APK» es una acción explícita del usuario: aunque haya
+  // desactivado el despliegue automático de fondo, esa instalación debe poder
+  // preparar el runtime sin mandarlo a recorrer un asistente técnico.
+  if (!force && !store.getSettings().autoDeploy) return { ok: false, error: 'skipped' };
   // 下载失败冷却：以前只要 checkEnv() 还缺组件，每次启动 ApkStart 都会重新
   // 拉一遍 1.5GB 的运行时包，用户看到的就是「一直重复下载」。
   // 失败后记一个时间戳，30 分钟内不再自动重试；用户手动点「一键部署」时
@@ -724,7 +728,9 @@ async function autoDeploy({ force = false } = {}) {
   }
   deploying = true;
   const progress = (p) => {
-    send('provision:progress', { ...p, component: p.component || 'all' });
+    const payload = { ...p, component: p.component || 'all' };
+    send('provision:progress', payload);
+    if (typeof onProgress === 'function') onProgress(payload);
     // 同步推送到开机动画窗口
     if (typeof splashProgress === 'function') splashProgress(p);
   };
@@ -1219,6 +1225,49 @@ function buildTray() {
 let installBusy = null;   // 正在安装的文件路径：双击 APK 连点会走 second-instance，不能并发装
 let lastInstallErr = { msg: '', at: 0 };
 
+/**
+ * Preparación transparente para una instalación iniciada por el usuario.
+ * El runtime puede descargarse o repararse en segundo plano, pero la UI
+ * recibe el mismo canal de progreso que la instalación para no parecer
+ * bloqueada durante el primer arranque.
+ */
+async function prepareRuntimeForInstall(onProgress) {
+  let env = await runtime.provisioner.checkEnv().catch(() => null);
+  if (!runtimeNeedsPreparation(env)) return { ok: true, skipped: true };
+
+  onProgress({ stage: 'runtime', message: 'Preparando Android para instalar la aplicación…', percent: 4 });
+  const result = await autoDeploy({
+    force: true,
+    onProgress: (p) => onProgress({
+      stage: 'runtime',
+      message: p.message || 'Preparando el runtime de Android…',
+      percent: p.percent,
+    }),
+  });
+  if (!result.ok) {
+    // Si ya había una preparación en curso, damos una oportunidad breve para
+    // que termine antes de informar un error prematuro al usuario.
+    if (result.inProgress) {
+      onProgress({ stage: 'runtime', message: 'Esperando a que termine la preparación de Android…' });
+      const started = Date.now();
+      while (deploying && Date.now() - started < 15 * 60 * 1000) {
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+      env = await runtime.provisioner.checkEnv().catch(() => null);
+      if (!runtimeNeedsPreparation(env)) return { ok: true, waited: true };
+    }
+    throw new Error(result.error && result.error !== 'already-in-progress'
+      ? `No se pudo preparar Android automáticamente: ${result.error}`
+      : 'La preparación de Android no terminó. Comprueba la conexión y el espacio libre e inténtalo de nuevo.');
+  }
+  env = await runtime.provisioner.checkEnv().catch(() => null);
+  if (runtimeNeedsPreparation(env)) {
+    throw new Error('Android todavía no está listo. XORA no puede instalar el APK hasta completar la preparación.');
+  }
+  return result;
+}
+
 async function runInstall(filePath) {
   filePath = normalizeInstallPath(filePath);
   showWindow();
@@ -1234,6 +1283,7 @@ async function runInstall(filePath) {
   installBusy = filePath;
   send('install:start', { file: filePath });
   try {
+    await prepareRuntimeForInstall((p) => send('install:progress', p));
     const result = await installer.install(filePath, (p) => send('install:progress', p));
     send('install:done', result);
     // 新建的桌面图标要让资源管理器立刻刷新，否则用户会以为「没创建快捷方式」
@@ -1242,7 +1292,6 @@ async function runInstall(filePath) {
     return result;
   } catch (e) {
     send('install:error', { message: e.message, file: filePath });
-    if (e.needsSetup) send('ui:navigate', 'setup');
     // 同一条错误 8 秒内只弹一次系统通知：连续重试时不会在右下角刷屏
     const now = Date.now();
     if (e.message !== lastInstallErr.msg || now - lastInstallErr.at > 8000) {
