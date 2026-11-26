@@ -1,12 +1,14 @@
 'use strict';
 /**
- * 本地持久化：应用清单 + 设置
- * 数据目录：%APPDATA%\apkstart（MSIX/商店版见下面的 STORE_BUILD 说明）
+ * Persistencia local: aplicaciones y configuración.
+ * Las rutas nuevas usan la identidad XORA; las rutas antiguas se migran de
+ * forma segura en el primer arranque.
  */
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { safeFilePart } = require('./pkgname');
+const identity = require('./identity');
 
 /**
  * 是不是 Microsoft Store（MSIX / APPX）打包版？
@@ -17,7 +19,7 @@ const { safeFilePart } = require('./pkgname');
  *   1. 我们从 %APPDATA%\apkstart 里 spawn 出来的 emulator/adb/qemu 若没有包身份，
  *      按真路径去找文件会「文件不存在」；
  *   2. 用户点「打开数据目录」看到的是空目录。
- * 所以商店版直接把数据目录放到 AppData **之外**（%USERPROFILE%\ApkStart），
+ * 所以商店版直接把数据目录放到 AppData **之外**（%USERPROFILE%\XORA），
  * 完全不进虚拟化范围，父子进程看到的是同一份真实文件。
  *
  * process.windowsStore 由 Electron 在 MSIX/APPX 环境下注入（普通 node 下是 undefined）。
@@ -26,15 +28,26 @@ const STORE_BUILD = (() => {
   try { return !!require('electron').app?.isPackaged && !!process.windowsStore; } catch (_) { return false; }
 })();
 
-const DATA_DIR = STORE_BUILD
-  ? path.join(os.homedir(), 'ApkStart', 'data')
-  : path.join(process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'), 'apkstart');
+const IDENTITY_PATHS = identity.paths({ storeBuild: STORE_BUILD });
+const DATA_DIR = IDENTITY_PATHS.dataDir;
 const ICON_DIR = path.join(DATA_DIR, 'icons');
 const APK_DIR = path.join(DATA_DIR, 'apks');
 const APPS_FILE = path.join(DATA_DIR, 'apps.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 
+// No se elimina nada: copiamos únicamente archivos que todavía no existen en
+// XORA y dejamos la carpeta anterior intacta para poder volver atrás.
+const DATA_MIGRATION = identity.migrateLegacyData({
+  dataDir: DATA_DIR,
+  legacyDataDirs: IDENTITY_PATHS.legacyDataDirs,
+});
+identity.migrateLegacyShared({
+  sharedDir: IDENTITY_PATHS.sharedDir,
+  legacySharedDirs: IDENTITY_PATHS.legacySharedDirs,
+});
+
 const DEFAULT_SETTINGS = {
+  identityVersion: 2,
   adbPath: '',
   device: '127.0.0.1:5555',
   /**
@@ -102,9 +115,9 @@ const DEFAULT_SETTINGS = {
     deepTrim: false,         // 深度裁剪系统后台包（Play 商店/向导等），默认不动系统
     // balanced=让出前台 | performance=qemu Normal | game=qemu High + 低延迟输入
   priorityMode: 'balanced',
-    // 预热：启动 ApkStart 后在后台把安卓环境引导好，第一次点应用几乎不用等。
-    // 代价是常驻约 1GB 内存（和 WSA / 应用宝电脑版一样的取舍），可随时关掉。
-    prewarm: true,
+    // No mantener Android residente sin necesidad: reduce RAM/CPU en reposo.
+    // El usuario puede activarlo si prefiere priorizar el tiempo de apertura.
+    prewarm: false,
     // 多窗口（B 方案）：允许同时打开多个应用、各自独立窗口。默认关闭，
     // 保持「开新停旧」的单窗口行为；开启后靠墓碑机制回收后台，资源可控。
     multiWindow: false,
@@ -156,7 +169,7 @@ const DEFAULT_SETTINGS = {
     downloadConnections: 8,
     // 更新/下载的源选择。auto = 同时问 GitHub 与 Gitee、并对每个下载地址实测
     // 128KB 速度，谁快用谁；也可以强制只走某一边（企业网络只放行一个域名时有用）。
-    sourcePreference: 'auto',
+    sourcePreference: 'github',
     // 自动尝试公共 GitHub 加速镜像（ghfast / gh-proxy）。关掉后只用直连 + 自定义前缀。
     // 这两个是第三方服务，只是转发公开的 release 文件，不涉及账号信息。
     autoMirror: true,
@@ -164,8 +177,8 @@ const DEFAULT_SETTINGS = {
     // 想用 Gitee 作为更新源就在这里填一个只读 token；留空则只用 GitHub + 镜像。
     giteeToken: '',
   },
-  sharedDir: path.join(os.homedir(), 'ApkStartShared'),
-  deviceSharedDir: '/sdcard/ApkStartShared',
+  sharedDir: IDENTITY_PATHS.sharedDir,
+  deviceSharedDir: IDENTITY_PATHS.deviceSharedDir,
   autoConnect: true,
   createShortcutOnInstall: true,
   createStartMenuShortcut: true, // 开始菜单快捷方式 = 让 Windows 搜索能搜到应用
@@ -282,9 +295,47 @@ const store = {
   DATA_DIR, ICON_DIR, APK_DIR,
   // 商店（MSIX）打包版标记：main.js 据此关掉自更新、跳过需要管理员权限的内核驱动安装
   STORE_BUILD,
+  DATA_MIGRATION,
 
   getSettings() {
-    const s = deepMerge(DEFAULT_SETTINGS, readJson(SETTINGS_FILE, {}));
+    const rawSettings = readJson(SETTINGS_FILE, {});
+    const s = deepMerge(DEFAULT_SETTINGS, rawSettings);
+    const rawEngine = rawSettings.engine || {};
+    const rawRuntime = rawSettings.runtime || {};
+    let shouldPersistIdentity = false;
+    let normalizedDisplay = rawSettings.display;
+    // La migración de identidad también corrige valores heredados que
+    // mantenían el sistema en chino, precalentaban Android todo el tiempo o
+    // consultaban fuentes alternativas. XORA prioriza español, bajo consumo
+    // y GitHub como servidor oficial.
+    if (/^zh(?:-|$)/i.test(String(s.engine.locale || ''))) s.engine.locale = 'es-ES';
+    s.engine.prewarm = false;
+    s.runtime.sourcePreference = 'github';
+    // Google Play dejó de ser un complemento opcional: la imagen oficial de
+    // XORA es la base única y ya incluye Play Store y Servicios de Google.
+    // Corrige instalaciones anteriores que guardaban compatImage=false para
+    // que la interfaz y el runtime siempre trabajen con esa imagen.
+    s.runtime.compatImage = true;
+    // Las rutas compartidas también forman parte de la identidad del
+    // producto. Si una instalación anterior las guardó con el nombre viejo,
+    // conserva los archivos y actualiza solo la referencia persistida.
+    if (identity.isLegacySharedPath(rawSettings.sharedDir)) {
+      identity.migrateLegacyShared({
+        sharedDir: IDENTITY_PATHS.sharedDir,
+        legacySharedDirs: IDENTITY_PATHS.legacySharedDirs,
+      });
+      s.sharedDir = IDENTITY_PATHS.sharedDir;
+    }
+    if (rawSettings.deviceSharedDir === '/sdcard/ApkStartShared') {
+      s.deviceSharedDir = IDENTITY_PATHS.deviceSharedDir;
+    }
+    shouldPersistIdentity = rawSettings.identityVersion !== 2
+      || rawEngine.locale !== s.engine.locale
+      || rawEngine.prewarm !== s.engine.prewarm
+      || rawRuntime.sourcePreference !== s.runtime.sourcePreference
+      || rawRuntime.compatImage !== s.runtime.compatImage
+      || rawSettings.sharedDir !== s.sharedDir
+      || rawSettings.deviceSharedDir !== s.deviceSharedDir;
     /**
      * 0.5.6 起没有第三方底座了：老配置里的 mode=mumu / fydeos / attach，
      * 或者手改出来的任何其它值，一律当 builtin 处理，并把残留的第三方字段删掉。
@@ -320,18 +371,29 @@ const store = {
      * 却以为「默认设置没改」。判定基准只认「有没有主动选过」，其它标记都不算数。
      */
     try {
-      const raw = readJson(SETTINGS_FILE, {});
+      const raw = rawSettings;
       const d = (raw && raw.display) || {};
       if (d.windowEmbedChosen !== true && d.windowEmbed !== false) {
         s.display.windowEmbed = false;
         s.display.windowEmbedMigrated2 = true;
-        // 立刻回写，保证配置文件本身也回到原生；用户其它字段原样保留。
-        writeJson(SETTINGS_FILE, {
-          ...raw,
-          display: { ...d, windowEmbed: false, windowEmbedMigrated2: true },
-        });
+        normalizedDisplay = { ...d, windowEmbed: false, windowEmbedMigrated2: true };
+        shouldPersistIdentity = true;
       }
     } catch (_) { /* 迁移失败不影响启动，保持读到的值 */ }
+
+    if (shouldPersistIdentity) {
+      try {
+        writeJson(SETTINGS_FILE, {
+          ...rawSettings,
+          identityVersion: 2,
+          engine: { ...rawEngine, locale: s.engine.locale, prewarm: s.engine.prewarm },
+          runtime: { ...rawRuntime, sourcePreference: s.runtime.sourcePreference, compatImage: s.runtime.compatImage },
+          sharedDir: s.sharedDir,
+          deviceSharedDir: s.deviceSharedDir,
+          ...(normalizedDisplay ? { display: normalizedDisplay } : {}),
+        });
+      } catch (_) { /* la configuración en memoria sigue siendo válida */ }
+    }
 
     return s;
   },

@@ -24,7 +24,7 @@ El renderizado prioriza la GPU real del equipo (NVIDIA, AMD o Intel) y cambia au
 
 El diagnóstico de aplicaciones ARM, capas de traducción y detección antiemulador ahora explica la causa con claridad. Se mantienen los perfiles de dispositivo, los modos de consumo, la configuración de mando, teclado, mouse y DPI, además de las actualizaciones incrementales verificadas.
 
-Google Play, Google Play Juegos y los Servicios de Google son complementos opcionales. XORA funciona sin ellos y no los activa ni redistribuye por defecto.
+La imagen oficial de Android 14 incluye Google Play Store y los Servicios de Google por defecto para que puedas iniciar sesión y descargar aplicaciones. Google Play Juegos y otros complementos adicionales siguen siendo opcionales.
 
 ## Descripción breve
 
@@ -38,7 +38,7 @@ Incluye perfiles para PC básica, portátil, PC de alto rendimiento, teléfono, 
 
 El runtime Android y los datos de tus aplicaciones se mantienen separados. Las actualizaciones verifican la firma y el hash del paquete antes de instalarse, y conservan los datos del usuario durante el proceso.
 
-Google Play, Google Play Juegos y los Servicios de Google se ofrecen como complementos opcionales. XORA funciona sin ellos cuando una aplicación no los necesita. La instalación de complementos requiere archivos aportados por el usuario y compatibles con su licencia.
+La imagen predeterminada incluye Google Play Store y los Servicios de Google. Google Play Juegos y otros componentes adicionales se ofrecen como complementos opcionales. La distribución de la imagen y cualquier complemento debe cumplir las licencias aplicables.
 
 ## Funciones principales
 
@@ -48,7 +48,7 @@ Google Play, Google Play Juegos y los Servicios de Google se ofrecen como comple
 - Modos de ahorro, equilibrado y máximo rendimiento.
 - Telemetría local de CPU, memoria, GPU, temperatura y FPS cuando el runtime expone esos datos.
 - Configuración de mando, teclado, mouse, DPI, sensibilidad y bloqueo del cursor.
-- Complementos opcionales para Google Play y Servicios de Google.
+- Google Play Store y Servicios de Google incluidos en la imagen predeterminada; Play Juegos como complemento opcional.
 - Diagnóstico guiado de virtualización, controladores, red, almacenamiento y runtime.
 - Actualizaciones firmadas, hash SHA-512 y recuperación ante errores.
 - Interfaz, ayuda y notificaciones en español.
@@ -59,7 +59,7 @@ Windows 10 2004 (compilación 19041) o posterior, 64 bits. Se recomiendan 8 GB d
 
 ## Notas para certificación
 
-XORA es una aplicación de escritorio que ejecuta aplicaciones Android aportadas por el usuario. El runtime se distribuye con el paquete completo o se prepara mediante los canales de actualización del proyecto. XORA no activa Google Play por defecto ni redistribuye APK propietarios de Google.
+XORA es una aplicación de escritorio que ejecuta aplicaciones Android aportadas por el usuario. El runtime se distribuye con el paquete completo o se prepara mediante los canales de actualización del proyecto. La imagen predeterminada usa el paquete oficial `google_apis_playstore`; la publicación de los artefactos queda condicionada al cumplimiento de sus licencias y políticas.
 
 El primer inicio puede tardar mientras prepara archivos locales. La aplicación no necesita una cuenta de XORA para funcionar. Los datos de usuario se guardan en el equipo y no se envían a un servidor de telemetría sin consentimiento explícito.
 
@@ -73,4 +73,4 @@ Run Android apps on Windows with independent windows, automatic profiles and con
 
 XORA is a simple, lightweight Android emulator for Windows. Import an APK, choose a device profile and open the app in its own window. Adjust performance, controller mappings, keyboard, mouse, DPI and display settings from one clear interface.
 
-Google Play and Google services are optional add-ons. XORA works without them and does not enable or redistribute them by default. Updates verify the manifest signature and SHA-512 hash before installation.
+Google Play Store and Google services are included in the default Android image so users can sign in and download apps. Google Play Games and other additional components remain optional. Updates verify the manifest signature and SHA-512 hash before installation.

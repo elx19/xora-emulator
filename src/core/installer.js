@@ -14,6 +14,19 @@ const { iconToIco, writeShortcut, removeShortcut, safeFileName, shortcutExt } = 
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+function normalizeInstallPath(input) {
+  const candidate = Array.isArray(input) ? input[0]
+    : (input && typeof input === 'object' ? (input.filePath || input.path) : input);
+  if (typeof candidate !== 'string' || !candidate.trim()) {
+    throw new Error('Selecciona un archivo APK para instalar');
+  }
+  const value = candidate.trim();
+  if (!/\.(apk|apks|xapk)$/i.test(value)) {
+    throw new Error('El archivo debe tener formato APK, APKS o XAPK');
+  }
+  return value;
+}
+
 /** APK 只有 ARM 原生库（国产 App 绝大多数如此） */
 function isArmOnly(meta) {
   return !!(meta && meta.abis && meta.abis.length && !meta.abis.some((a) => /x86/i.test(a)));
@@ -43,7 +56,7 @@ async function runningHasArm(client) {
  */
 async function parseBundle(filePath) {
   const zip = new ZipFile(filePath);
-  const dir = path.join(os.tmpdir(), 'apkstart-bundle', crypto.createHash('sha1')
+  const dir = path.join(os.tmpdir(), 'xora-bundle', crypto.createHash('sha1')
     .update(filePath).digest('hex').slice(0, 12));
   const cleanup = () => { try { fs.rmSync(dir, { recursive: true, force: true }); } catch (_) { /* ignore */ } };
   try {
@@ -172,6 +185,7 @@ class Installer {
   }
 
   async install(filePath, onProgress = () => {}) {
+    filePath = normalizeInstallPath(filePath);
     onProgress({ stage: 'parse', message: '正在解析 APK…' });
     let meta;
     let bundle = null;
@@ -706,4 +720,4 @@ class Installer {
   }
 }
 
-module.exports = { Installer, accentOf, parseBundle };
+module.exports = { Installer, accentOf, parseBundle, normalizeInstallPath };

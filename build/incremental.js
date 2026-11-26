@@ -66,7 +66,7 @@ function zipApp(exe, srcDir, outZip, rootDir) {
 async function build(portableDir, tag, outDir = process.cwd()) {
   const portable = path.resolve(portableDir);
   const appDir = path.join(portable, 'resources', 'app');
-  if (!fs.existsSync(path.join(portable, 'ApkStart.exe'))) throw new Error('便携版目录缺少 ApkStart.exe');
+  if (!fs.existsSync(path.join(portable, 'XORA.exe'))) throw new Error('La carpeta portátil no contiene XORA.exe');
   if (!fs.existsSync(path.join(appDir, 'package.json'))) throw new Error('便携版目录缺少 resources/app/package.json');
 
   const version = String(tag || '').replace(/^v/i, '');

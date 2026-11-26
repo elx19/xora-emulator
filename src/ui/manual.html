@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ApkStart 产品使用手册与问题解决方案</title>
+<title>XORA — Manual de uso y solución de problemas</title>
 <style>
 :root{--bg:#ffffff;--fg:#1f2328;--mut:#57606a;--line:#d0d7de;--code:#eff1f3;--accent:#0969da;--accent-soft:#ddf4ff;--warn:#9a6700;--warn-bg:#fff8c5;--head:#f6f8fa;--tbl:#f6f8fa}
 *{box-sizing:border-box}
@@ -45,235 +45,165 @@ tbody tr:nth-child(even){background:#fbfcfd}
 </head>
 <body>
 <div class="wrap">
-<aside><h2>目录</h2>
-<input id="tocSearch" type="search" placeholder="筛选目录（Ctrl+F 全文搜索）" autocomplete="off" />
-<div id="tocList"><a class="toc-l2" href="#目录">目录</a>
-<a class="toc-l2" href="#1-30-秒看懂-apkstart">1. 30 秒看懂 ApkStart</a>
-<a class="toc-l2" href="#2-安装与首次启动">2. 安装与首次启动</a>
-<a class="toc-l3" href="#2-1-选择适合你的版本">2.1 选择适合你的版本</a>
-<a class="toc-l3" href="#2-2-首次启动会发生什么">2.2 首次启动会发生什么</a>
-<a class="toc-l2" href="#3-日常使用">3. 日常使用</a>
-<a class="toc-l3" href="#3-1-安装应用">3.1 安装应用</a>
-<a class="toc-l3" href="#3-2-打开应用">3.2 打开应用</a>
-<a class="toc-l3" href="#3-3-窗口与显示">3.3 窗口与显示</a>
-<a class="toc-l3" href="#3-4-快捷键">3.4 快捷键</a>
-<a class="toc-l3" href="#3-5-文件互通-windows-安卓">3.5 文件互通（Windows ↔ 安卓）</a>
-<a class="toc-l3" href="#3-6-设置页导航">3.6 设置页导航</a>
-<a class="toc-l3" href="#3-7-在线更新">3.7 在线更新</a>
-<a class="toc-l2" href="#4-理解三个核心概念-看懂报错的关键">4. 理解三个核心概念（看懂报错的关键）</a>
-<a class="toc-l3" href="#4-1-运行时-系统镜像">4.1 运行时 / 系统镜像</a>
-<a class="toc-l3" href="#4-2-硬件加速">4.2 硬件加速</a>
-<a class="toc-l3" href="#4-3-arm-转译层">4.3 ARM 转译层</a>
-<a class="toc-l2" href="#5-遇到问题先做这一步-体检与自动检测">5. 遇到问题先做这一步：体检与自动检测</a>
-<a class="toc-l3" href="#5-1-本机体检-自动配置">5.1 本机体检 · 自动配置</a>
-<a class="toc-l3" href="#5-2-自动检测-自动-debug">5.2 自动检测（自动 debug）</a>
-<a class="toc-l3" href="#5-3-导出诊断报告">5.3 导出诊断报告</a>
-<a class="toc-l3" href="#5-4-内置使用手册与自动教程">5.4 内置使用手册与自动教程</a>
-<a class="toc-l2" href="#6-常见问题解决方案">6. 常见问题解决方案</a>
-<a class="toc-l3" href="#6-1-提示-未启用硬件加速-开机很慢">6.1 提示「未启用硬件加速」 / 开机很慢</a>
-<a class="toc-l3" href="#6-2-安装失败-install_failed_">6.2 安装失败（INSTALL_FAILED_*）</a>
-<a class="toc-l3" href="#6-3-系统镜像没有-arm-转译层-arm-应用装不上或闪退">6.3 系统镜像没有 ARM 转译层 / ARM 应用装不上或闪退</a>
-<a class="toc-l3" href="#6-4-adb-未授权-允许-usb-调试">6.4 adb 未授权（允许 USB 调试）</a>
-<a class="toc-l3" href="#6-5-双击图标没反应-一直转圈-出现带旋转按钮的窗口">6.5 双击图标没反应 / 一直转圈 / 出现带旋转按钮的窗口</a>
-<a class="toc-l3" href="#6-6-其它启动类问题速查表">6.6 其它启动类问题速查表</a>
-<a class="toc-l3" href="#6-7-应用没有声音-声音很小">6.7 应用没有声音 / 声音很小</a>
-<a class="toc-l3" href="#6-8-商店版启动失败-0xc0000135-dll-加载失败">6.8 商店版启动失败 / 0xC0000135（DLL 加载失败）</a>
-<a class="toc-l3" href="#6-9-应用用不到麦克风-无法语音通话录音">6.9 应用用不到麦克风 / 无法语音通话录音</a>
-<a class="toc-l3" href="#6-10-独显-核显渲染-显卡偏好">6.10 独显 / 核显渲染（显卡偏好）</a>
-<a class="toc-l2" href="#7-命令行参考">7. 命令行参考</a>
-<a class="toc-l2" href="#8-数据与目录说明">8. 数据与目录说明</a>
-<a class="toc-l2" href="#9-获取帮助与反馈">9. 获取帮助与反馈</a></div>
+<aside><h2>Índice</h2>
+<input id="tocSearch" type="search" placeholder="Filtrar el índice (Ctrl+F busca todo)" autocomplete="off" />
+<div id="tocList"><a class="toc-l2" href="#índice">Índice</a>
+<a class="toc-l2" href="#1-xora-en-30-segundos">1. XORA en 30 segundos</a>
+<a class="toc-l2" href="#2-instalación-y-primer-inicio">2. Instalación y primer inicio</a>
+<a class="toc-l3" href="#2-1-elige-la-edición-adecuada">2.1 Elige la edición adecuada</a>
+<a class="toc-l3" href="#2-2-qué-ocurre-la-primera-vez">2.2 Qué ocurre la primera vez</a>
+<a class="toc-l3" href="#2-3-requisitos-prácticos">2.3 Requisitos prácticos</a>
+<a class="toc-l2" href="#3-uso-diario">3. Uso diario</a>
+<a class="toc-l3" href="#3-1-instalar-una-aplicación">3.1 Instalar una aplicación</a>
+<a class="toc-l3" href="#3-2-abrir-detener-y-desinstalar">3.2 Abrir, detener y desinstalar</a>
+<a class="toc-l3" href="#3-3-ventana-y-orientación">3.3 Ventana y orientación</a>
+<a class="toc-l3" href="#3-4-archivos-compartidos">3.4 Archivos compartidos</a>
+<a class="toc-l3" href="#3-5-google-play-y-cuenta-de-google">3.5 Google Play y cuenta de Google</a>
+<a class="toc-l3" href="#3-6-manual-integrado-y-tutoriales-automáticos">3.6 Manual integrado y tutoriales automáticos</a>
+<a class="toc-l2" href="#4-conceptos-principales">4. Conceptos principales</a>
+<a class="toc-l3" href="#4-1-runtime-e-imagen-del-sistema">4.1 Runtime e imagen del sistema</a>
+<a class="toc-l3" href="#4-2-aceleración-y-renderizado">4.2 Aceleración y renderizado</a>
+<a class="toc-l3" href="#4-3-compatibilidad-arm-y-antiemulador">4.3 Compatibilidad ARM y antiemulador</a>
+<a class="toc-l2" href="#5-comprobación-del-equipo-y-diagnóstico">5. Comprobación del equipo y diagnóstico</a>
+<a class="toc-l3" href="#5-1-diagnóstico-inicial">5.1 Diagnóstico inicial</a>
+<a class="toc-l3" href="#5-2-diagnóstico-automático">5.2 Diagnóstico automático</a>
+<a class="toc-l3" href="#5-3-informe-de-diagnóstico">5.3 Informe de diagnóstico</a>
+<a class="toc-l2" href="#6-soluciones-habituales">6. Soluciones habituales</a>
+<a class="toc-l3" href="#6-1-aceleración-de-hardware-y-arranque-lento">6.1 Aceleración de hardware y arranque lento</a>
+<a class="toc-l3" href="#6-2-fallos-de-instalación">6.2 Fallos de instalación</a>
+<a class="toc-l3" href="#6-3-aplicaciones-arm-y-detección-del-emulador">6.3 Aplicaciones ARM y detección del emulador</a>
+<a class="toc-l3" href="#6-4-autorización-adb">6.4 Autorización ADB</a>
+<a class="toc-l3" href="#6-5-xora-no-abre-una-aplicación">6.5 XORA no abre una aplicación</a>
+<a class="toc-l3" href="#6-6-tabla-rápida-de-fallos">6.6 Tabla rápida de fallos</a>
+<a class="toc-l3" href="#6-7-la-aplicación-no-tiene-sonido">6.7 La aplicación no tiene sonido</a>
+<a class="toc-l3" href="#6-8-fallo-de-inicio-de-la-versión-de-microsoft-store">6.8 Fallo de inicio de la versión de Microsoft Store</a>
+<a class="toc-l3" href="#6-9-el-micrófono-no-está-disponible">6.9 El micrófono no está disponible</a>
+<a class="toc-l3" href="#6-10-preferencia-de-gpu">6.10 Preferencia de GPU</a>
+<a class="toc-l2" href="#7-referencia-de-comandos">7. Referencia de comandos</a>
+<a class="toc-l2" href="#8-datos-y-carpetas">8. Datos y carpetas</a>
+<a class="toc-l2" href="#9-ayuda-y-comentarios">9. Ayuda y comentarios</a></div>
 </aside>
 <main>
-<h1 id="apkstart-产品使用手册与问题解决方案">ApkStart 产品使用手册与问题解决方案</h1>
-<blockquote>版本：v0.6.4 · 平台：Windows 10/11 x64 · 更新：2026-11-22  ApkStart 是一个 Windows 上的安卓应用运行器：<strong>让安卓应用像 Windows 原生软件一样安装、出现在桌面、双击即用。</strong> 本手册先教你怎么用，再按「症状」给出可照做的解决方案。所有步骤都对应软件里真实存在的按钮和菜单。</blockquote>
+<h1 id="xora-manual-de-uso-y-solución-de-problemas">XORA — Manual de uso y solución de problemas</h1>
+<blockquote>Versión: v0.6.4 · Plataforma: Windows 10/11 x64 · Actualizado: 2026-11-26  XORA ejecuta aplicaciones Android en ventanas independientes. Importa un APK, deja que el runtime se prepare y abre la aplicación con doble clic. Esta guía explica el uso diario, el rendimiento, los controles y las soluciones más habituales.</blockquote>
 <hr/>
-<h2 id="目录">目录</h2>
-<ol><li><a href="#1-30-秒看懂-apkstart">30 秒看懂 ApkStart</a></li><li><a href="#2-安装与首次启动">安装与首次启动</a></li><li><a href="#3-日常使用">日常使用</a></li><li><a href="#4-理解三个核心概念看懂报错的关键">理解三个核心概念（看懂报错的关键）</a></li><li><a href="#5-遇到问题先做这一步体检与自动检测">遇到问题先做这一步：体检与自动检测</a></li><li><a href="#6-常见问题解决方案">常见问题解决方案</a></li></ol>
-<ul><li><a href="#61-提示未启用硬件加速--开机很慢">6.1 提示「未启用硬件加速」 / 开机很慢</a></li><li><a href="#62-安装失败install_failed_">6.2 安装失败（INSTALL_FAILED_*）</a></li><li><a href="#63-系统镜像没有-arm-转译层--arm-应用装不上或闪退">6.3 系统镜像没有 ARM 转译层 / ARM 应用装不上或闪退</a></li><li><a href="#64-adb-未授权允许-usb-调试">6.4 adb 未授权（允许 USB 调试）</a></li><li><a href="#65-双击图标没反应--一直转圈--出现带旋转按钮的窗口">6.5 双击图标没反应 / 一直转圈 / 出现带旋转按钮的窗口</a></li><li><a href="#66-其它启动类问题速查表">6.6 其它启动类问题速查表</a></li><li><a href="#67-应用没有声音--声音很小">6.7 应用没有声音 / 声音很小</a></li><li><a href="#68-商店版启动失败--0xc0000135dll-加载失败">6.8 商店版启动失败 / 0xC0000135（DLL 加载失败）</a></li><li><a href="#69-应用用不到麦克风--无法语音通话录音">6.9 应用用不到麦克风 / 无法语音通话录音</a></li><li><a href="#610-独显--核显渲染显卡偏好">6.10 独显 / 核显渲染（显卡偏好）</a></li></ul>
-<ol><li><a href="#7-命令行参考">命令行参考</a></li><li><a href="#8-数据与目录说明">数据与目录说明</a></li><li><a href="#9-获取帮助与反馈">获取帮助与反馈</a></li></ol>
+<h2 id="índice">Índice</h2>
+<ol><li><a href="#xora-en-30-segundos">XORA en 30 segundos</a></li><li><a href="#instalación-y-primer-inicio">Instalación y primer inicio</a></li><li><a href="#uso-diario">Uso diario</a></li><li><a href="#conceptos-principales">Conceptos principales</a></li><li><a href="#comprobación-del-equipo-y-diagnóstico">Comprobación del equipo y diagnóstico</a></li><li><a href="#soluciones-habituales">Soluciones habituales</a></li></ol>
+<ul><li><a href="#61-aceleración-de-hardware-y-arranque-lento">6.1 Aceleración de hardware</a></li><li><a href="#62-fallos-de-instalación">6.2 Fallos de instalación</a></li><li><a href="#63-aplicaciones-arm-y-detección-del-emulador">6.3 Aplicaciones ARM y detección del emulador</a></li><li><a href="#64-autorización-adb">6.4 Autorización ADB</a></li><li><a href="#65-xora-no-abre-una-aplicación">6.5 XORA no abre una aplicación</a></li><li><a href="#66-tabla-rápida-de-fallos">6.6 Tabla rápida de fallos</a></li><li><a href="#67-la-aplicación-no-tiene-sonido">6.7 La aplicación no tiene sonido</a></li><li><a href="#68-fallo-de-inicio-de-la-versión-de-microsoft-store">6.8 Fallo de inicio de la versión de Microsoft Store</a></li><li><a href="#69-el-micrófono-no-está-disponible">6.9 El micrófono no está disponible</a></li><li><a href="#610-preferencia-de-gpu">6.10 Preferencia de GPU</a></li></ul>
+<ol><li><a href="#referencia-de-comandos">Referencia de comandos</a></li><li><a href="#datos-y-carpetas">Datos y carpetas</a></li><li><a href="#ayuda-y-comentarios">Ayuda y comentarios</a></li></ol>
 <hr/>
-<h2 id="1-30-秒看懂-apkstart">1. 30 秒看懂 ApkStart</h2>
-<pre><code>桌面图标（真实应用图标 .lnk）
-      │ 双击
-      ▼
-ApkStart.exe --launch &lt;包名&gt;
-      │ 安卓运行时没开？→ 自动拉起（Android 14 模拟器，随包内置或首次下载）
-      ▼
-按系统解析出的启动入口打开应用（不是 APK 里写死的主 Activity）
-      ▼
-模拟器窗口 = 应用窗口（改标题、换图标、竖屏比例、全屏居中）</code></pre>
-<p><strong>它的特点</strong></p>
-<ul><li>🖱️ <strong>双击 .apk 即安装</strong>：在资源管理器里注册文件关联后，双击 APK → 自动解析 → 安装 → 生成桌面图标。</li><li>🧩 <strong>每个应用一个桌面图标</strong>：图标从 APK 内部离线提取，双击图标 = 直接进应用。</li><li>🪟 <strong>应用就是一个窗口</strong>：原生渲染，全屏铺满屏幕高度并居中，窗口模式可拖动缩放，每个应用单独记忆尺寸。</li><li>🔍 <strong>能被 Windows 搜到</strong>：桌面 + 开始菜单（<code>程序\ApkStart\</code>）双快捷方式。</li><li>📁 <strong>数据互通</strong>：<code>%USERPROFILE%\ApkStartShared</code> ↔ 安卓内 <code>/sdcard/ApkStartShared</code> 双向同步。</li><li>🪶 <strong>自带运行时</strong>：不依赖你机器上装的 MuMu / 雷电 / WSA 等任何模拟器。</li></ul>
-<blockquote>注：本项目为早期版本，作者业余时间维护，开源免费、无广告。遇到问题是正常的，本手册就是为此准备的。</blockquote>
+<h2 id="1-xora-en-30-segundos">1. XORA en 30 segundos</h2>
+<pre><code>Icono de una aplicación en el escritorio
+          │ doble clic
+          ▼
+XORA.exe --launch &lt;paquete&gt;
+          │ si Android está detenido, XORA inicia el runtime
+          ▼
+La aplicación se abre usando la actividad que declara el sistema
+          ▼
+Ventana Android independiente con tamaño, orientación e icono propios</code></pre>
+<p>Características principales:</p>
+<ul><li>Instala uno o varios APK desde la ventana, mediante arrastrar y soltar o desde el Explorador de archivos.</li><li>Genera accesos directos con el icono de cada aplicación.</li><li>Mantiene un único runtime Android para iniciar las aplicaciones siguientes con mayor rapidez.</li><li>Incluye perfiles para PC básica, portátil, PC de alto rendimiento, teléfono y tableta.</li><li>La imagen Android predeterminada incluye Google Play Store y Servicios de Google. Google Play Juegos es opcional.</li><li>No depende de MuMu, BlueStacks, LDPlayer, WSA ni de otro emulador instalado en el equipo.</li></ul>
 <hr/>
-<h2 id="2-安装与首次启动">2. 安装与首次启动</h2>
-<h3 id="2-1-选择适合你的版本">2.1 选择适合你的版本</h3>
-<p>两个源内容一致，国内建议用 Gitee：</p>
-<ul><li>GitHub: <code>github.com/elx19/xora-emulator/releases</code></li><li>Usa únicamente los canales oficiales de XORA para obtener actualizaciones.</li></ul>
-<div class="tw"><table><thead><tr><th>形态</th><th>文件名</th><th>什么时候选</th></tr></thead><tbody><tr><td><strong>商店版</strong></td><td><code>ApkStart_&lt;四段版本&gt;_x64.msix</code></td><td>从 Microsoft Store 安装。内置完整运行时，装完不联网，更新交给商店</td></tr><tr><td><strong>完整便携版</strong></td><td><code>ApkStart-v*-win64-full.zip</code>（约 830 MB，解压 ~1.3 GB）</td><td>不想装、也不想等下载：解压即用，运行时全在包里</td></tr><tr><td><strong>安装版</strong></td><td><code>ApkStart-v*-Setup.exe</code>（约 1.3 GB）</td><td>想要桌面/开始菜单快捷方式和卸载项</td></tr><tr><td><strong>轻量便携版</strong></td><td><code>ApkStart-v*-win64-portable.zip</code>（96 MiB，解压 ~227 MB）</td><td>只想先试试，首次启动再联网下载运行时</td></tr></tbody></table></div>
-<blockquote>⚠️ <strong>务必用最新版（当前 0.6.4）</strong>。旧版（0.5.x 及更早）要么没有内置运行时、每次启动去找/下 1.5 GB 运行时，要么默认用嵌入窗口——这正是「很慢、打不开、出来一个带旋转按钮的窗口」的典型来源。如果你是从旧版升级，请确认桌面图标指向的是新版程序目录。</blockquote>
-<h3 id="2-2-首次启动会发生什么">2.2 首次启动会发生什么</h3>
-<ol><li><strong>（仅轻量版）下载运行时</strong>：adb、Android Emulator、Android 14 系统镜像，官方源实测 10+ MB/s，8 线程分块 + 断点续传。完整版 / 商店版跳过此步。</li><li><strong>首次展开镜像</strong>：xz 镜像展开到 <code>%APPDATA%\apkstart\system-images</code>（约 20 秒，只做一次）。</li><li><strong>首次造 <code>/data</code></strong>：ApkStart 自己生成带加密和 SELinux 标签的 ext4 用户数据（官方镜像里只是 1 MB 占位）。</li><li><strong>自动开机</strong>：之后点应用只剩一次 <code>am start</code>，冷启动约 23 秒，命中快照约 10 秒。</li></ol>
-<blockquote>首次启动慢是正常的，属"一次性成本"。之后再用就是秒进。</blockquote>
+<h2 id="2-instalación-y-primer-inicio">2. Instalación y primer inicio</h2>
+<h3 id="2-1-elige-la-edición-adecuada">2.1 Elige la edición adecuada</h3>
+<p>Descarga XORA desde el repositorio privado y el canal oficial configurado en la aplicación. Comprueba que el nombre del producto sea XORA y que el manifiesto de actualización sea válido.</p>
+<div class="tw"><table><thead><tr><th>Edición</th><th>Archivo</th><th>Uso recomendado</th></tr></thead><tbody><tr><td>Microsoft Store</td><td><code>XORA_&lt;versión&gt;_x64.msix</code></td><td>Instalación integrada y actualizaciones de la Store.</td></tr><tr><td>Instalador</td><td><code>XORA-v*-Setup.exe</code></td><td>Accesos directos, menú Inicio y desinstalador.</td></tr><tr><td>Portátil completa</td><td><code>XORA-v*-win64-full.zip</code></td><td>Uso sin descargar el runtime durante el primer inicio.</td></tr><tr><td>Portátil ligera</td><td><code>XORA-v*-win64-portable.zip</code></td><td>Probar la interfaz; prepara el runtime al iniciarse.</td></tr></tbody></table></div>
+<h3 id="2-2-qué-ocurre-la-primera-vez">2.2 Qué ocurre la primera vez</h3>
+<ol><li>XORA comprueba la virtualización, la GPU, la memoria, el almacenamiento y los componentes del runtime.</li><li>La edición ligera descarga o la edición completa expande Android Emulator, ADB y la imagen oficial de Android 14 <code>google_apis_playstore</code> x86_64.</li><li>Se crea una partición de datos independiente para conservar aplicaciones, sesiones y configuraciones.</li><li>El runtime inicia Android y comprueba que el sistema y el gestor de paquetes estén listos.</li><li>Google Play Store y Servicios de Google quedan disponibles en la imagen predeterminada. Al abrir Play Store puedes iniciar sesión con tu cuenta de Google.</li></ol>
+<p>El primer arranque puede tardar más que los siguientes porque crea los datos y prepara el snapshot. No cierres XORA mientras el asistente indique que está trabajando.</p>
+<h3 id="2-3-requisitos-prácticos">2.3 Requisitos prácticos</h3>
+<ul><li>Windows 10 2004 o posterior, 64 bits.</li><li>4 GB de RAM como mínimo; se recomiendan 8 GB o más.</li><li>Al menos 4 GB libres para una instalación básica y más espacio si se instalarán juegos grandes.</li><li>Virtualización activada en BIOS/UEFI y Windows Hypervisor Platform o AEHD cuando el equipo lo permita.</li><li>Controlador gráfico actualizado. XORA puede usar GPU integrada, dedicada o el modo elegido por Windows.</li></ul>
 <hr/>
-<h2 id="3-日常使用">3. 日常使用</h2>
-<h3 id="3-1-安装应用">3.1 安装应用</h3>
-<p>三种方式任选：</p>
-<ul><li><strong>双击 APK 文件</strong>（先注册关联：设置 → 系统集成 → 关联 .apk 文件）；</li><li>主界面里选「安装应用」；</li><li>命令行：<code>ApkStart.exe &lt;路径\to.apk&gt;</code>。</li></ul>
-<p>支持 <code>.apks</code> / <code>.xapk</code> 拆分包（自动用 <code>install-multiple</code>）。装完自动生成桌面 + 开始菜单快捷方式。</p>
-<h3 id="3-2-打开应用">3.2 打开应用</h3>
-<p>双击桌面图标即可。所有应用共用同一个运行时，所以<strong>第二个应用几乎瞬时启动</strong>。</p>
-<h3 id="3-3-窗口与显示">3.3 窗口与显示</h3>
-<div class="tw"><table><thead><tr><th>操作</th><th>方法</th></tr></thead><tbody><tr><td>全屏 / 窗口切换</td><td><code>F11</code> 或右键托盘菜单。全屏只放大窗口、不改画面比例</td></tr><tr><td>旋转横竖屏</td><td><code>Ctrl+Alt+R</code>（全局）或标题栏旋转按钮；方向会被这个应用记住</td></tr><tr><td>自动全屏</td><td>设置 → 显示与窗口 → 自动全屏（配合"强制方向"效果最好）</td></tr><tr><td>强制横屏/竖屏</td><td>设置 → 显示与窗口 → 屏幕方向</td></tr></tbody></table></div>
-<blockquote>只有"面板方向和应用方向不一致"的那一次才会重启运行时（约 40 秒，标题栏会给提示），同方向的应用之后都秒进。</blockquote>
-<h3 id="3-4-快捷键">3.4 快捷键</h3>
-<div class="tw"><table><thead><tr><th>按键</th><th>作用</th></tr></thead><tbody><tr><td><code>F11</code></td><td>全屏 / 窗口模式切换</td></tr><tr><td><code>Ctrl+Alt+R</code></td><td>旋转当前应用横竖屏</td></tr><tr><td><code>Ctrl+R</code></td><td>壳窗口内旋转（原生窗口模式下请用 <code>Ctrl+Alt+R</code>）</td></tr></tbody></table></div>
-<h3 id="3-5-文件互通-windows-安卓">3.5 文件互通（Windows ↔ 安卓）</h3>
-<p>本机 <code>%USERPROFILE%\ApkStartShared</code> 与安卓内 <code>/sdcard/ApkStartShared</code> 秒级双向同步。 入口：设置 → 集成与文件 → 文件互通（可"立即同步"或"打开目录"）。</p>
-<h3 id="3-6-设置页导航">3.6 设置页导航</h3>
-<p>从 0.6.0 起分八类，顶部有搜索框（输入"横屏""内存""代理"等关键词，跨分类命中）：</p>
-<div class="tw"><table><thead><tr><th>分类</th><th>主要内容</th></tr></thead><tbody><tr><td>常用与安装</td><td>运行时与环境、一键完成、开机自启、磁盘占用与清理</td></tr><tr><td>显示与窗口</td><td>显示模式、自动全屏、屏幕方向、平板排版、窗口承载方式</td></tr><tr><td>操作与输入</td><td>鼠标键位、键盘映射</td></tr><tr><td>性能与资源</td><td>资源策略、显卡偏好（独显/核显）、麦克风、画质、数据分区、系统语言、快照、开机预热</td></tr><tr><td>网络与下载</td><td>更新与下载源、加速镜像、下载线程数</td></tr><tr><td>诊断与修复</td><td>本机体检、驱动/兼容补丁、自动检测</td></tr><tr><td>集成与文件</td><td>桌面与应用、文件互通、系统集成</td></tr><tr><td>更新与关于</td><td>软件更新、关于</td></tr><tr><td>实验室</td><td>Windows 原生多窗口多开（实验性）、后台保留数</td></tr></tbody></table></div>
-<blockquote><strong>实验室 · 多开（实验性）</strong>：打开后，新应用不再强制关闭上一个，多个应用可驻留后台、随时切回且保留登录态。受限于安卓运行时只有一个模拟器窗口，同一时刻仍只有一个应用画面在前台显示，并非真正并排多窗口；开启会增加内存占用。默认关闭，追求稳定可忽略它。</blockquote>
-<h3 id="3-7-在线更新">3.7 在线更新</h3>
-<p>设置 → 更新与关于 → 检查更新，或托盘右键 → 检查更新。更新链路现测现选最快的源（GitHub / Gitee / 镜像），分块并行下载，失败自动换源。更新不会丢运行时、已装应用和快照。</p>
-<p>新版便携版支持<strong>增量更新</strong>：每次发版会额外发布一份「代码清单」和一个只含程序代码的小包（几 MB，整个安装包约 100 MB）。如果你的 Electron 外壳版本没变，更新只下载这个小包、逐个文件校验后替换程序代码，几秒就好；外壳版本变了、清单缺失或任何校验不通过，会自动退回下载完整包，不会把程序更新坏。商店版仍由 Microsoft Store 负责更新。</p>
-<blockquote>说明：只有用「检查更新」从 GitHub / Gitee 装便携版的用户走增量；从微软商店装的走 Store 通道。增量对已装应用、安卓数据、运行时和快照都没有影响。</blockquote>
+<h2 id="3-uso-diario">3. Uso diario</h2>
+<h3 id="3-1-instalar-una-aplicación">3.1 Instalar una aplicación</h3>
+<p>Puedes usar cualquiera de estas opciones:</p>
+<ul><li>Arrastra un archivo <code>.apk</code> a XORA.</li><li>Pulsa <strong>Instalar APK</strong> y selecciona el archivo.</li><li>Registra la asociación <code>.apk</code> en Configuración → Integración y archivos y abre el APK desde el Explorador.</li><li>Usa la opción de instalación múltiple para paquetes compatibles <code>.apks</code> o <code>.xapk</code>.</li></ul>
+<p>XORA valida el paquete, la firma, la arquitectura y el espacio disponible antes de enviarlo al runtime. Si la aplicación es ARM, consulta la sección 6.3.</p>
+<h3 id="3-2-abrir-detener-y-desinstalar">3.2 Abrir, detener y desinstalar</h3>
+<p>En <strong>Biblioteca</strong>, busca una aplicación y usa <strong>Abrir</strong>, <strong>Detener</strong>, <strong>Desinstalar</strong>, <strong>Reparar</strong> o <strong>Crear acceso directo</strong>. Una aplicación recién instalada se marca en la biblioteca y el contador se actualiza sin reiniciar XORA.</p>
+<h3 id="3-3-ventana-y-orientación">3.3 Ventana y orientación</h3>
+<ul><li><strong>Ventana vertical:</strong> permite cambiar el tamaño y conserva el tamaño de cada aplicación.</li><li><strong>Pantalla completa:</strong> llena la pantalla y mantiene la proporción de Android.</li><li><strong>Seguir la aplicación:</strong> adapta la orientación a la declaración de la aplicación.</li><li><strong>Forzar vertical u horizontal:</strong> usa la opción correspondiente en Configuración → Pantalla y ventanas.</li><li><strong>Rotar:</strong> usa el botón de la barra de la aplicación o <code>Ctrl+Alt+R</code>.</li><li><strong>Pantalla completa:</strong> usa <code>F11</code> o el menú de la bandeja.</li></ul>
+<p>Si la aplicación solicita una orientación distinta, XORA puede reiniciar el runtime una vez para aplicar el panel correcto. Las siguientes aplicaciones con la misma orientación no necesitan repetir el cambio.</p>
+<h3 id="3-4-archivos-compartidos">3.4 Archivos compartidos</h3>
+<p>La carpeta de Windows <code>%USERPROFILE%\XORAShared</code> se sincroniza con <code>/sdcard/XORAShared</code> cuando la integración de archivos está activa. Configuración → Integración y archivos permite cambiar la carpeta, sincronizar ahora y abrirla.</p>
+<h3 id="3-5-google-play-y-cuenta-de-google">3.5 Google Play y cuenta de Google</h3>
+<p>Google Play Store y Servicios de Google vienen incluidos en la imagen predeterminada. Abre Play Store desde Android, inicia sesión y descarga tus aplicaciones. XORA no solicita ni guarda tu contraseña de Google.</p>
+<p>Google Play Juegos, aplicaciones de Google adicionales y paquetes de reparación se gestionan por separado en <strong>Complementos</strong>. No instales APK de fuentes desconocidas ni reemplaces un servicio del sistema que ya funcione.</p>
+<h3 id="3-6-manual-integrado-y-tutoriales-automáticos">3.6 Manual integrado y tutoriales automáticos</h3>
+<p>Abre el manual con el botón <strong>Ayuda</strong> o desde Configuración → Actualizaciones y acerca de. El diagnóstico puede abrir automáticamente el capítulo relacionado con el problema. También puedes usar el botón <strong>Tutorial</strong> de cada resultado de diagnóstico.</p>
 <hr/>
-<h2 id="4-理解三个核心概念-看懂报错的关键">4. 理解三个核心概念（看懂报错的关键）</h2>
-<p>大部分"诡异问题"，根源都在下面三样东西之一。花一分钟看懂，后面排查就顺了。</p>
-<h3 id="4-1-运行时-系统镜像">4.1 运行时 / 系统镜像</h3>
-<p>ApkStart 不是在模拟一个"空安卓"，而是加载一个<strong>完整的 Android 14 系统镜像</strong>当底座。 0.6.3 只有<strong>一个通用镜像</strong>（Google Play x86_64），x86 和 ARM 应用都靠它跑——不再像老版本那样分"AOSP 镜像 / 兼容镜像"两套。</p>
-<ul><li>镜像缺失 / 损坏 / 与旧用户数据不兼容 → 开机失败、卡在引导、反复重启。</li><li>用户数据（<code>/data</code>）是薄差分层，系统镜像全机共享一份。</li></ul>
-<h3 id="4-2-硬件加速">4.2 硬件加速</h3>
-<p>模拟器要跑得快，需要 CPU 虚拟化加速。Windows 上只有两条路：</p>
-<div class="tw"><table><thead><tr><th>方式</th><th>是什么</th><th>谁需要管理员</th><th>装完要重启吗</th></tr></thead><tbody><tr><td><strong>WHPX</strong></td><td>Windows 自带功能"Windows 虚拟机监控程序平台"（HypervisorPlatform）</td><td>开此功能时</td><td>要</td></tr><tr><td><strong>AEHD</strong></td><td>Google 自家内核驱动</td><td>装驱动时</td><td>不用</td></tr></tbody></table></div>
-<p><strong>没有加速也能跑</strong>（纯软件模拟 TCG），只是开机慢到几分钟、画面易掉帧——这是"慢"，不是"启动失败"。ApkStart 会自动回退，并且按"渲染后端 → 加速方式 → 内存/冷启动"最多 4 组参数自动重试。</p>
-<blockquote>别把 <strong>VirtualMachinePlatform</strong>（WSL2 用的）当成加速开关。模拟器要的是 <strong>HypervisorPlatform</strong>。只开前者，<code>emulator -accel-check</code> 依然说不可用。</blockquote>
-<h3 id="4-3-arm-转译层">4.3 ARM 转译层</h3>
-<p>绝大多数国产安卓应用只提供 <strong>ARM 原生库</strong>（arm64-v8a / armeabi-v7a），而系统镜像是 <strong>x86_64</strong> 的——需要一个"翻译层"把 ARM 指令转给 x86 CPU。0.6.3 的通用镜像内置了新版 <code>ndk_translation</code> 翻译层，所以装 ARM 应用通常无需任何设置。</p>
-<ul><li>首次遇到 ARM 应用时，若翻译层组件还没就位，ApkStart 会自动补齐兼容镜像并重启运行时重试（见 6.3）。</li><li>老镜像（API 30）对新版翻译层有兼容问题（如字节系应用触发 <code>DoBadTrampoline</code> SIGABRT），Android 14 镜像已修复。</li></ul>
+<h2 id="4-conceptos-principales">4. Conceptos principales</h2>
+<h3 id="4-1-runtime-e-imagen-del-sistema">4.1 Runtime e imagen del sistema</h3>
+<p>El runtime contiene Android Emulator, ADB, el sistema Android y los componentes gráficos. La partición de datos se mantiene separada, por lo que actualizar la imagen no debe borrar tus aplicaciones.</p>
+<p>La imagen predeterminada es Android 14 x86_64 con Google Play Store, Servicios de Google y una capa de compatibilidad para aplicaciones ARM. El tamaño del runtime puede ser grande, pero se descarga una sola vez y se reutiliza.</p>
+<h3 id="4-2-aceleración-y-renderizado">4.2 Aceleración y renderizado</h3>
+<p>Con virtualización y aceleración gráfica, XORA usa menos CPU y arranca más rápido. El modo automático prioriza <code>host</code> para NVIDIA, AMD e Intel y cambia a una alternativa compatible si el controlador falla.</p>
+<p>En Configuración → Rendimiento y recursos puedes elegir sistema predeterminado, GPU dedicada o GPU integrada. Si el cambio no se aplica inmediatamente, reinicia Android.</p>
+<h3 id="4-3-compatibilidad-arm-y-antiemulador">4.3 Compatibilidad ARM y antiemulador</h3>
+<p>Android x86_64 usa la capa de traducción incluida para ejecutar bibliotecas ARM. Si una aplicación exige funciones de hardware, integridad o antiemulador, puede negarse a ejecutarse aunque el runtime funcione correctamente. Ese caso es una restricción de la aplicación, no necesariamente un fallo de XORA.</p>
 <hr/>
-<h2 id="5-遇到问题先做这一步-体检与自动检测">5. 遇到问题先做这一步：体检与自动检测</h2>
-<p>在翻本手册之前，先让软件自己查一遍——大多数问题它能自动修。</p>
-<h3 id="5-1-本机体检-自动配置">5.1 本机体检 · 自动配置</h3>
-<p>位置：设置 → 诊断与修复 → <strong>开始体检</strong></p>
-<ul><li>查什么：CPU 虚拟化（VT-x/SVM）是否开、Hyper-V/虚拟机监控程序平台是否可用、显卡/显存/驱动、内存、系统版本、<code>emulator -accel-check</code>、AEHD 驱动。</li><li>点「<strong>应用推荐配置</strong>」自动写安全项：内存 / 核心数 / 渲染分辨率 / 画质 / 无加速时强制软件模拟，并固化成一份本机驱动，以后自动套用。</li><li>结果分级：<code>ok</code>（正常）/ <code>warn</code>（能用但建议优化）/ <code>bad</code>（不处理跑不起来）。每条都有颜色和说明。</li></ul>
-<p>需要你亲自做的只有两类：</p>
-<ul><li><strong>BIOS 虚拟化</strong>：重启进 BIOS → 打开 Intel VT-x / AMD SVM → Enabled（这一步软件无法代劳）。</li><li><strong>Windows 功能 / 加速驱动</strong>：见 6.1。</li></ul>
-<h3 id="5-2-自动检测-自动-debug">5.2 自动检测（自动 debug）</h3>
-<p>位置：设置 → 诊断与修复 →「自动检测 · 智能诊断」</p>
-<p>后台每 10 分钟把机器查一遍，按六类列问题，每条可<strong>一键处理</strong>（重启运行时、清锁、清孤儿进程、作废快照、清理磁盘、重置安卓网络……），修完自动复检：</p>
-<div class="tw"><table><thead><tr><th>分类</th><th>覆盖的问题</th></tr></thead><tbody><tr><td>运行时</td><td>上次启动失败的真实原因、引导卡死、残留锁文件、孤儿模拟器进程、快照空壳、没有硬件加速</td></tr><tr><td>设备连接</td><td>adb 未授权、offline、运行时在跑但 adb 看不到设备</td></tr><tr><td>存储</td><td>磁盘余量、数据分区配置与实际不符、共享目录不可写</td></tr><tr><td>设置</td><td>屏幕方向与物理面板冲突、独立窗口下自动全屏不生效</td></tr><tr><td>网络/日志</td><td>安卓侧没网、下载源不通、最近日志里的错误</td></tr></tbody></table></div>
-<blockquote>两条原则：探测失败不会被当成问题（拿不到状态就报"不知道"，绝不瞎报）；同一个老问题不重复打扰。</blockquote>
-<h3 id="5-3-导出诊断报告">5.3 导出诊断报告</h3>
-<p>位置：设置 → 诊断与修复 → <strong>导出诊断报告</strong>（或系统集成页同名按钮）</p>
-<p>报告是纯文本，含本机配置、自动选中的启动参数、日志和诊断结论。反馈问题时附上它，能大幅加快定位。</p>
-<h3 id="5-4-内置使用手册与自动教程">5.4 内置使用手册与自动教程</h3>
-<p>从 0.6.3 起，本手册已经<strong>嵌入软件</strong>：主界面标题栏的「?」按钮、设置 → 关于里的「打开使用手册」都能直接打开，可搜索、滚动、打印/存 PDF。打开时会自动定位到与当前故障相关的章节。</p>
-<p>自动检测/修复也会把教程送到你面前：</p>
-<ul><li>自动检测发现问题时，问题条目右侧有「教程」按钮，点开直达对应章节；</li><li>硬件加速、安装失败、ARM 转译层、adb 授权、无声音等问题<strong>自动修复失败后，会自动弹出相应教程</strong>，不用再来这里翻；</li><li>同一个教程在一次运行里只自动弹一次，不会反复打断你。</li></ul>
-<blockquote>手动打开：标题栏 <code>?</code> 按钮。想临时关掉自动弹出，可在自动检测设置里关闭通知，教程仍可从问题条目的「教程」按钮打开。</blockquote>
+<h2 id="5-comprobación-del-equipo-y-diagnóstico">5. Comprobación del equipo y diagnóstico</h2>
+<h3 id="5-1-diagnóstico-inicial">5.1 Diagnóstico inicial</h3>
+<p>Ve a Configuración → Diagnóstico y reparación y pulsa <strong>Comprobar</strong>. XORA revisa:</p>
+<ul><li>Virtualización, Hypervisor Platform y AEHD.</li><li>GPU, controlador, memoria y temperatura.</li><li>ADB, Android Emulator, imagen del sistema y partición de datos.</li><li>Red del runtime, DNS, almacenamiento y archivos compartidos.</li><li>Estado de Play Store y Servicios de Google cuando la imagen está lista.</li></ul>
+<p>El resultado diferencia entre correcto, advertencia, error y estado desconocido. Un dato que no se puede comprobar no se presenta como correcto de forma artificial.</p>
+<h3 id="5-2-diagnóstico-automático">5.2 Diagnóstico automático</h3>
+<p>El diagnóstico automático revisa el equipo periódicamente. Puede encontrar autorización ADB pendiente, procesos huérfanos, bloqueos, snapshot inválido, disco lleno, conflicto de orientación, red desconectada, sonido desactivado o micrófono bloqueado.</p>
+<p>Cada resultado incluye una explicación, un botón de reparación cuando es seguro y un enlace al capítulo correspondiente de este manual.</p>
+<h3 id="5-3-informe-de-diagnóstico">5.3 Informe de diagnóstico</h3>
+<p>Pulsa <strong>Exportar informe de diagnóstico</strong> para generar un archivo de texto. El informe incluye versiones, configuración técnica, parámetros de arranque y errores recientes, pero excluye contraseñas y tokens.</p>
 <hr/>
-<h2 id="6-常见问题解决方案">6. 常见问题解决方案</h2>
-<h3 id="6-1-提示-未启用硬件加速-开机很慢">6.1 提示「未启用硬件加速」 / 开机很慢</h3>
-<p><strong>症状</strong>：设置/诊断里提示"当前没有硬件加速""硬件加速不可用"；开机慢到几分钟，画面掉帧。</p>
-<p><strong>先明确</strong>：这通常是"慢"，不是"打不开"。ApkStart 已自动回退软件模拟。想要流畅才需要开加速。</p>
-<p><strong>按版本处理：</strong></p>
-<ul><li><strong>安装版 / 便携版</strong>：设置 → 诊断与修复 → 本机体检 → 找到「未启用硬件加速」→ 点<strong>修复</strong>。会弹一次 UAC，自动开启 WHPX；若开不起来（系统不支持或你点了否），会自动改装 AEHD 驱动。</li><li><strong>微软商店（MSIX）版</strong>：商店应用<strong>不能自行提权</strong>，点「修复」会打开「启用或关闭 Windows 功能」对话框：</li></ul>
-<p>1. 勾选 <strong>「Windows 虚拟机监控程序平台」（HypervisorPlatform）</strong>； 2. 确定后<strong>重启电脑</strong>一次。</p>
-<p>也可以用<strong>管理员 PowerShell</strong> 执行：</p>
-<p>``<code>powershell dism /online /enable-feature /featurename:HypervisorPlatform /all /norestart dism /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart </code>``</p>
-<blockquote>两个坑：① 别只开 VirtualMachinePlatform，那不是模拟器要的加速；② 若 BIOS 里 VT-x/SVM 没开，先按 5.1 进 BIOS 打开，否则系统功能开了也没用。 显卡驱动超过 3 年的，去厂商官网更新；但 ApkStart 不会自动装驱动（装错更糟）。某些老显卡/核显需要走兼容补丁，见设置 → 诊断与修复 → 驱动 · 兼容补丁。</blockquote>
+<h2 id="6-soluciones-habituales">6. Soluciones habituales</h2>
+<h3 id="6-1-aceleración-de-hardware-y-arranque-lento">6.1 Aceleración de hardware y arranque lento</h3>
+<p>Si aparece una advertencia de emulación por software:</p>
+<ol><li>Abre Configuración → Diagnóstico y reparación.</li><li>Comprueba si la virtualización aparece desactivada.</li><li>Activa Intel VT-x o AMD SVM en BIOS/UEFI si es necesario.</li><li>En Windows activa Windows Hypervisor Platform y reinicia.</li><li>Ejecuta de nuevo la comprobación y aplica la configuración recomendada.</li></ol>
+<p>Sin aceleración XORA todavía puede iniciar Android, pero el arranque, los juegos y la respuesta gráfica serán más lentos. No fuerces la GPU si el diagnóstico informa que el controlador se cierra.</p>
+<h3 id="6-2-fallos-de-instalación">6.2 Fallos de instalación</h3>
+<ul><li><code>INSTALL_FAILED_INSUFFICIENT_STORAGE</code>: libera espacio en la partición de datos o aumenta su tamaño.</li><li><code>INSTALL_FAILED_VERSION_DOWNGRADE</code>: desinstala la versión superior o instala una versión más reciente.</li><li><code>INSTALL_PARSE_FAILED_*</code>: verifica que el APK esté completo y firmado.</li><li><code>INSTALL_FAILED_NO_MATCHING_ABIS</code>: la aplicación usa una arquitectura no disponible; continúa con 6.3.</li><li>Firma incompatible: desinstala la versión anterior solo si puedes perder sus datos.</li></ul>
+<p>No desactives la validación del paquete ni instales un APK modificado para saltarte un error de firma.</p>
+<h3 id="6-3-aplicaciones-arm-y-detección-del-emulador">6.3 Aplicaciones ARM y detección del emulador</h3>
+<p>Si la aplicación se cierra con <code>NO_MATCHING_ABIS</code>, <code>DoBadTrampoline</code>, <code>libndk_translation</code> o errores de integridad:</p>
+<ol><li>Confirma que el runtime use la imagen oficial Android 14 <code>google_apis_playstore</code>.</li><li>Reinicia Android para que la capa de traducción se cargue desde el inicio.</li><li>Ejecuta el diagnóstico y repara la imagen si el archivo está incompleto.</li><li>Si la aplicación detecta un emulador, revisa sus requisitos de seguridad o contacta con el desarrollador.</li></ol>
+<p>Una comprobación antiemulador o anti depuración puede bloquear una aplicación deliberadamente. Cambiar de imagen no siempre lo resuelve y puede borrar la sesión si se restablecen los datos.</p>
+<h3 id="6-4-autorización-adb">6.4 Autorización ADB</h3>
+<p>Si el diagnóstico muestra <strong>Android sin autorización</strong>:</p>
+<ol><li>Mira la ventana de Android y pulsa <strong>Permitir</strong> en el aviso de depuración USB.</li><li>Marca <strong>Permitir siempre desde este equipo</strong>.</li><li>Si el aviso no aparece, reinicia el runtime.</li><li>Como último recurso, restablece los datos de Android desde Configuración. Esto elimina las aplicaciones instaladas dentro del runtime.</li></ol>
+<p>No borres manualmente las claves de Windows como primera medida: puede impedir que Android reconozca una autorización anterior.</p>
+<h3 id="6-5-xora-no-abre-una-aplicación">6.5 XORA no abre una aplicación</h3>
+<p>Comprueba que el runtime esté listo, que la aplicación aparezca en Biblioteca y que exista espacio libre. Después:</p>
+<ul><li>Detén la aplicación y vuelve a abrirla.</li><li>Ejecuta Diagnóstico y reparación.</li><li>Revisa orientación, snapshot y aceleración.</li><li>Usa Reparar para reinstalar la aplicación conservando la biblioteca.</li><li>Exporta el informe si el problema se repite.</li></ul>
+<h3 id="6-6-tabla-rápida-de-fallos">6.6 Tabla rápida de fallos</h3>
+<div class="tw"><table><thead><tr><th>Síntoma</th><th>Acción recomendada</th></tr></thead><tbody><tr><td>Ventana negra</td><td>Comprueba GPU, controlador y aceleración.</td></tr><tr><td>Arranque detenido</td><td>Espera el primer inicio; luego revisa ADB y snapshot.</td></tr><tr><td>Android sin red</td><td>Ejecuta Reparar red y revisa VPN o firewall.</td></tr><tr><td>Disco lleno</td><td>Limpia archivos recuperables o aumenta la partición.</td></tr><tr><td>Aplicación sin teclado</td><td>Activa Mapeo de teclado y revisa el perfil.</td></tr><tr><td>Mando sin respuesta</td><td>Comprueba que Windows lo detecte y vuelve a Detectar mando.</td></tr><tr><td>Play Store no abre</td><td>Confirma que la imagen sea <code>google_apis_playstore</code> y que la fecha/hora sean correctas.</td></tr></tbody></table></div>
+<h3 id="6-7-la-aplicación-no-tiene-sonido">6.7 La aplicación no tiene sonido</h3>
+<ol><li>Comprueba que el volumen de Android no esté en silencio.</li><li>Revisa Configuración → Rendimiento y recursos → Sonido.</li><li>Comprueba que el servicio de audio de Windows esté en ejecución.</li><li>Reinicia el runtime después de cambiar el audio.</li></ol>
+<p>El sonido y el micrófono son controles independientes. XORA solo usa <code>-no-audio</code> cuando ambos están desactivados.</p>
+<h3 id="6-8-fallo-de-inicio-de-la-versión-de-microsoft-store">6.8 Fallo de inicio de la versión de Microsoft Store</h3>
+<p>El código <code>0xC0000135</code> indica que un proceso no pudo cargar una DLL. <strong>No significa automáticamente que falte VC++, que el antivirus haya borrado un archivo o que debas reinstalar todo.</strong></p>
+<ol><li>Ejecuta Diagnóstico y reparación.</li><li>Revisa la arquitectura x64, las dependencias del paquete y el registro de Windows.</li><li>Si la instalación es de Microsoft Store, usa Reparar o Restablecer desde Configuración de Windows.</li><li>Si el problema continúa, exporta el informe y conserva el código exacto.</li></ol>
+<h3 id="6-9-el-micrófono-no-está-disponible">6.9 El micrófono no está disponible</h3>
+<ol><li>Abre Configuración → Rendimiento y recursos.</li><li>Activa <strong>Entrada de micrófono</strong>.</li><li>Comprueba los permisos de micrófono de Windows para XORA.</li><li>Selecciona un dispositivo de entrada predeterminado en Windows.</li><li>Reinicia Android y ejecuta el diagnóstico.</li></ol>
+<p>La configuración predeterminada mantiene el micrófono habilitado. Desactivarlo ahorra recursos, pero impide llamadas, dictado y grabación.</p>
+<h3 id="6-10-preferencia-de-gpu">6.10 Preferencia de GPU</h3>
+<p>En Configuración → Rendimiento y recursos selecciona <strong>Sistema predeterminado</strong>, <strong>GPU dedicada</strong> o <strong>GPU integrada</strong>. Windows guarda la preferencia por proceso. El cambio puede requerir reiniciar Android y no puede superar una limitación del controlador.</p>
 <hr/>
-<h3 id="6-2-安装失败-install_failed_">6.2 安装失败（INSTALL_FAILED_*）</h3>
-<p><strong>症状</strong>：装应用时报错，文案通常以"安装失败："开头，末尾带一个 <code>INSTALL_*</code> 错误码。</p>
-<p>ApkStart 会把英文原始错误翻译成中文。对照下表处理：</p>
-<div class="tw"><table><thead><tr><th>错误码</th><th>含义</th><th>怎么办</th></tr></thead><tbody><tr><td><code>INSTALL_FAILED_NO_MATCHING_ABIS</code></td><td>应用只提供 ARM 库，当前镜像没有 ARM 转译层</td><td><strong>通常自动处理</strong>：ApkStart 切换兼容镜像并重试。详见 <a href="#63-系统镜像没有-arm-转译层--arm-应用装不上或闪退">6.3</a></td></tr><tr><td><code>INSTALL_FAILED_OLDER_SDK</code></td><td>应用要求更高 Android 版本</td><td>需更高系统镜像；当前为 Android 14（API 34），极少触发</td></tr><tr><td><code>INSTALL_PARSE_FAILED_NO_CERTIFICATES</code></td><td>APK 无有效签名</td><td>APK 损坏或非正规包，重新获取安装包</td></tr><tr><td><code>INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES</code> / <code>INSTALL_FAILED_UPDATE_INCOMPATIBLE</code></td><td>与已装版本签名不一致</td><td>先卸载旧版再装</td></tr><tr><td><code>INSTALL_FAILED_VERSION_DOWNGRADE</code></td><td>设备上已装更高版本</td><td>不能降级覆盖，装更高版本或先卸载</td></tr><tr><td><code>INSTALL_FAILED_INSUFFICIENT_STORAGE</code></td><td>运行时磁盘空间不足</td><td>清理磁盘，或把运行时数据目录改到空间充足的盘（设置 → 系统集成）</td></tr><tr><td><code>INSTALL_FAILED_INVALID_APK</code></td><td>APK 损坏/不完整</td><td>可能下载未完成，重新下载</td></tr><tr><td><code>INSTALL_FAILED_INVALID_URI</code></td><td>APK 路径含特殊字符/中文</td><td>把 APK 移到纯英文路径再装</td></tr><tr><td><code>INSTALL_FAILED_ALREADY_EXISTS</code></td><td>已存在同名且签名不同</td><td>先卸载</td></tr><tr><td><code>INSTALL_FAILED_DEPRECATED_SDK_VERSION</code></td><td>面向很老 Android 的应用</td><td><strong>自动处理</strong>：ApkStart 用官方绕过参数重试</td></tr><tr><td><code>INSTALL_FAILED_TEST_ONLY</code></td><td>测试专用包</td><td><strong>自动处理</strong>：自动加测试包参数重试</td></tr><tr><td><code>INSTALL_FAILED_MISSING_SHARED_LIBRARY</code></td><td>依赖的设备特性/厂商库不存在</td><td>应用依赖特定厂商环境，模拟器无法提供</td></tr><tr><td><code>INSTALL_FAILED_USER_RESTRICTION</code></td><td>系统限制安装</td><td>重启运行时后重试</td></tr><tr><td><code>INSTALL_FAILED_CONFLICTING_PROVIDER</code></td><td>与已有应用 ContentProvider 冲突</td><td>卸载冲突应用</td></tr><tr><td><code>INSTALL_FAILED_INTERNAL_ERROR</code></td><td>系统内部错误（多为空间不足或没开机完成）</td><td>重启运行时，等开机完成后重试</td></tr></tbody></table></div>
-<blockquote>若报的是上表之外的原始英文，直接按 5.3 导出诊断报告反馈。</blockquote>
+<h2 id="7-referencia-de-comandos">7. Referencia de comandos</h2>
+<p>Los accesos directos usan el ejecutable instalado de XORA. Los ejemplos siguientes son orientativos:</p>
+<pre><code>XORA.exe &lt;ruta\aplicacion.apk&gt;
+XORA.exe --launch &lt;nombre.del.paquete&gt;
+XORA.exe --diagnostics</code></pre>
+<p>No ejecutes comandos con rutas recibidas de terceros sin comprobarlas. Para las operaciones normales, usa la interfaz y el proceso principal validado de XORA.</p>
 <hr/>
-<h3 id="6-3-系统镜像没有-arm-转译层-arm-应用装不上或闪退">6.3 系统镜像没有 ARM 转译层 / ARM 应用装不上或闪退</h3>
-<p><strong>症状</strong>：安装时报 <code>INSTALL_FAILED_NO_MATCHING_ABIS</code>，文案写着"应用只提供 ARM 原生库……当前系统镜像没有 ARM 转译层"；或应用装上后一启动就闪退，日志出现 <code>DoBadTrampoline</code>、<code>libndk_translation</code>、<code>UnsatisfiedLinkError</code>、<code>...so not found</code>。</p>
-<p><strong>原理</strong>：0.6.3 用<strong>一个通用 Android 14 镜像</strong>同时支持 x86 和 ARM，翻译层已内置。老版本需要手动切换镜像，那个「通用兼容镜像（自动管理）」开关现在<strong>仅用于旧配置兼容，正常无需手动动</strong>。</p>
-<p><strong>ApkStart 会自动做什么：</strong></p>
-<ol><li>安装时若报 <code>NO_MATCHING_ABIS</code>，自动切换兼容镜像 → 重启运行时 → 把已装应用从本地 APK 备份重新灌回去 → 重新安装（见日志"正在切换到兼容镜像并重启运行时…"）。</li><li>若应用启动崩溃且日志明确指向 ARM 翻译层（如 <code>DoBadTrampoline</code>），自动切到 Android 14 兼容镜像重试（日志"检测到 ARM 翻译层崩溃，正在自动切换兼容镜像…"）。</li></ol>
-<p><strong>你需要做的：</strong></p>
-<ul><li><strong>耐心等</strong>：切换镜像会重启运行时，一次约 40 秒到 1 分钟，期间可能看到提示窗口。</li><li><strong>确认镜像已就位</strong>：设置 → 常用与安装 → 运行时，看「通用兼容镜像（自动管理）」状态；若显示未下载，点「下载兼容镜像」（约 1.5 GB），完成后<strong>重启运行时</strong>生效。</li><li><strong>仍是闪退</strong>：少数应用自带更深的反模拟检测（强制校验真实传感器、基带等），无法在模拟器里运行；这类应用会给出中文说明，属于限制，不是故障。</li></ul>
-<p><strong>看到「红色『安装失败』+ 文案却说『正在自动切换兼容镜像后重试』」怎么办？</strong></p>
-<p>这是旧版的一个显示错误：镜像文件明明在磁盘上，但复用到一台没开翻译层的旧运行时，切换重试被跳过、直接报了失败，提示文案却照旧说"正在重试"。<strong>你用的不是最新代码，请升级到 0.6.4 的最新构建</strong>（本手册对应的版本已修复：安装前先探测当前运行时的真实翻译能力，不再只看镜像文件在不在；<code>NO_MATCHING_ABIS</code> 一定触发切换+重启+清旧快照后重装；二次仍失败会如实告知，不再谎称"正在重试"）。升级后再装一次即可。</p>
-<blockquote>实测：红果免费短剧（com.phoenix.read，arm64-v8a-only）在 Android 14 镜像 + 新版翻译层下可正常安装、进入推荐流并播放视频。当前运行时 <code>ro.product.cpu.abilist</code> = <code>x86_64,arm64-v8a</code>，翻译层已生效。</blockquote>
+<h2 id="8-datos-y-carpetas">8. Datos y carpetas</h2>
+<ul><li>Datos de XORA: <code>%APPDATA%\xora</code> o la carpeta de datos indicada por la instalación.</li><li>Aplicaciones y metadatos: subcarpetas administradas por XORA, no las edites manualmente.</li><li>Runtime: componentes Android y la imagen del sistema.</li><li>Datos de Android: aplicaciones, sesiones, caché y snapshots.</li><li>Carpeta compartida: <code>%USERPROFILE%\XORAShared</code>.</li><li>Informes y registros: accesibles desde Diagnóstico y reparación.</li></ul>
+<p>No borres la carpeta de datos mientras Android esté ejecutándose. Usa las acciones de limpieza de XORA para conservar los archivos necesarios y proteger las aplicaciones.</p>
 <hr/>
-<h3 id="6-4-adb-未授权-允许-usb-调试">6.4 adb 未授权（允许 USB 调试）</h3>
-<p><strong>症状</strong>：诊断里报"adb 未授权"或"安卓调试授权未完成"，<code>adb devices</code> 显示 <code>unauthorized</code>，应用一直起不来。</p>
-<p><strong>正确做法（按顺序）：</strong></p>
-<ol><li>看屏幕上有没有一个模拟器窗口弹着 <strong>「允许 USB 调试？」</strong> 对话框——去那个窗口点<strong>允许</strong>，并勾选 <strong>「一律允许使用这台计算机进行调试」</strong>，之后就不会再问。</li><li>若窗口点不动或一直不出现：设置 → 运行时 → <strong>重置安卓数据 / 清空安卓数据</strong>后重试（会清掉已装应用，APK 文件都在，会自动重装，不影响系统本身）。</li></ol>
-<blockquote>⚠️ <strong>千万不要去删 <code>%USERPROFILE%\.android\adbkey</code></strong>。实测那是反向操作：Android 只在 <code>adb_keys</code> 文件不存在时才写入新公钥；你换了新私钥，系统里存的旧公钥仍然生效，两者对不上，会永远授权不了。</blockquote>
-<blockquote>命令行排查：ApkStart 的 adb 服务跑在<strong>专用端口 5044</strong>（和你自己的 5037 完全隔开）： ``<code>powershell $env:ANDROID_ADB_SERVER_PORT = 5044 adb devices    # 应看到 emulator-5554 </code>`<code> 不要对 5555 端口手动 </code>adb connect`——Play 镜像会弹"允许 USB 调试"盖在应用上，看起来像程序坏了。</blockquote>
-<hr/>
-<h3 id="6-5-双击图标没反应-一直转圈-出现带旋转按钮的窗口">6.5 双击图标没反应 / 一直转圈 / 出现带旋转按钮的窗口</h3>
-<p>这类问题几乎都指向<strong>运行入口或窗口接管</strong>。按下面顺序查。</p>
-<p><strong>① 确认你用的是新版程序</strong></p>
-<ul><li>看日志 <code>%APPDATA%\ApkStart\logs\app.log</code> 开头：<code>start v0.6.4</code> 才对。若显示 <code>v0.5.x</code>，说明桌面/开始菜单图标指向了旧版目录。</li><li>旧版（0.5.x）没有内置运行时、默认嵌入窗口 → "很慢 + 带旋转按钮的壳窗口"。换成 0.6.4，并把快捷方式指到新版 <code>ApkStart.exe</code>。</li></ul>
-<p><strong>② 开机时长要有预期</strong></p>
-<p>冷启动约 23~48 秒、换向重启约 50 秒是正常范围。这期间图标点了像"没反应"，其实在后台开机。<strong>不要连点多次</strong>：连点会让第二个实例接管模拟器，而第一个实例退出时的收尾可能把模拟器一起关掉，导致失败（0.6.3 已加 <code>owner.pid</code> 保护，但排队等待仍看起来像没反应）。点一次，等它起来。</p>
-<p><strong>③ 原生窗口没接管 → 退回带旋转按钮的嵌入窗口</strong></p>
-<p>若日志出现 <code>attach failed</code>、<code>emu:0</code>，说明窗口代理没找到模拟器窗口，程序退回嵌入模式（就是你看到的带标题栏+旋转按钮的壳窗口）。</p>
-<ul><li>从目录联接 / 非标准路径启动时容易触发；0.6.3 已让代理解析真实路径再匹配。若仍出现，附日志反馈。</li></ul>
-<p><strong>④ 重置安卓数据（最后手段）</strong></p>
-<p>设置 → 常用与安装 → <strong>重置安卓数据</strong>（有二次确认）。会清掉已装应用和数据，但保留系统本身，应用清单保留、点开会自动重装。适用于数据分区损坏、<code>/data</code> 挂不上导致的各种打不开。</p>
-<hr/>
-<h3 id="6-6-其它启动类问题速查表">6.6 其它启动类问题速查表</h3>
-<p>这些运行时错误 ApkStart 大多<strong>已自动处理</strong>；下表说明它做了什么、以及你还能做什么。若自动处理无效，按 5.3 导出诊断报告。</p>
-<div class="tw"><table><thead><tr><th>诊断标题</th><th>自动处理</th><th>你还能做</th></tr></thead><tbody><tr><td>硬件加速不可用</td><td>回退软件模拟</td><td>按 6.1 开启加速</td></tr><tr><td>内存分配失败</td><td>下调内存与核心数</td><td>关闭占内存的程序</td></tr><tr><td>模拟器端口被占用</td><td>自动换空闲端口</td><td>退出其它模拟器（夜神/MuMu/蓝叠）或重启</td></tr><tr><td>残留锁文件 / "Running multiple emulators with the same AVD"</td><td>自动清 AVD 锁并重试</td><td>确认没有别的模拟器在用同一运行时</td></tr><tr><td>系统镜像缺失/损坏/与旧数据不兼容</td><td>用干净用户数据重新开机</td><td>设置 → 运行时删镜像重下</td></tr><tr><td>快速启动快照损坏</td><td>丢弃旧快照走冷启动</td><td>下次正常退出会重建；或关掉快照</td></tr><tr><td>运行时组件被删/缺 VC++ 运行库</td><td>—</td><td>把 ApkStart 加杀毒白名单后重新解压；安装微软 VC++ 2015-2022 运行库</td></tr><tr><td>磁盘空间不足</td><td>—</td><td>把运行时目录改到空间充足的盘；关掉快照/调小数据分区</td></tr><tr><td>路径含中文/特殊字符</td><td>自动改用短路径</td><td>把 ApkStart 移到纯英文目录（如 <code>C:\ApkStart</code>）</td></tr><tr><td>CPU 缺少指令集（AVX/SSE4）</td><td>—</td><td>多为警告仍可开机；否则换支持 VT-x/AVX 的机器或旧版引擎</td></tr><tr><td>当前运行时不接受该 GPU 模式</td><td>按引擎版本重选可用的 GPU 模式</td><td>—</td></tr><tr><td>显卡/未知错误</td><td>多组参数自动重试</td><td>更新显卡驱动；或写兼容补丁；仍不行导出诊断报告</td></tr></tbody></table></div>
-<p><strong>桌面图标显示成 ApkStart 的图标 / 空白图标</strong>：设置 → 系统集成 → <strong>重建快捷方式</strong>（按当前应用清单重写桌面和开始菜单的快捷方式，连同图标和任务栏身份一起修）。若快捷方式被挪过位置导致路径失效，也要重建。</p>
-<hr/>
-<h3 id="6-7-应用没有声音-声音很小">6.7 应用没有声音 / 声音很小</h3>
-<p><strong>症状</strong>：安卓应用里视频、提示音完全没声；或 Windows 其它软件有声、只有 ApkStart 里的应用没声。</p>
-<p><strong>先分清</strong>：如果系统本身也没声音，先去解决 Windows 音频；只有 ApkStart 里的应用没声才按下面查。</p>
-<ol><li><strong>Windows 音量与输出设备</strong>：点任务栏音量图标，确认没有静音、音量不为 0，输出设备选的是你正在用的耳机/音箱。打开「音量合成器」，看 ApkStart / 安卓运行时那一行是不是被单独静音或拉到 0。</li><li><strong>应用内音量</strong>：有些应用第一次进入会把媒体音量设成 0，在应用自己的设置或安卓侧音量键里调大。B 站/抖音等还可能在应用内单独关了自动播放声音。</li><li><strong>ApkStart 的声音开关</strong>：设置 → 性能与资源 → <strong>安卓声音</strong>必须勾选。自动检测会检查这一项；若发现被关掉，会在「设置 → 诊断与修复」里报出来，点「处理」即可一键打开。<strong>改完必须重启一次安卓运行时</strong>（声音与麦克风都关掉时才会以 <code>-no-audio</code> 启动，运行中改了不会立刻出声）。</li><li><strong>Windows 音频服务</strong>：按 <code>Win+R</code> 输入 <code>services.msc</code>，找到 <strong>Windows Audio</strong>，确认状态为「正在运行」、启动类型为「自动」。若被禁用了，右键启动；这也会被 0.6.3 的自动检测发现并提示。管理员 PowerShell 可执行 <code>net start Audiosrv</code>。</li><li><strong>蓝牙耳机 / 多输出设备</strong>：切到蓝牙耳机后 Windows 有时不会把已运行的程序迁过去。断开重连耳机，或重启一次安卓运行时。</li><li><strong>还是没声</strong>：在「设置 → 诊断与修复 → 导出诊断报告」后反馈；报告会带上声音开关与音频服务状态，能直接定位到底是配置、系统服务还是应用本身的问题。</li></ol>
-<blockquote>自动修复失败时，软件会自动打开这一节。如果你关掉了自动检测通知，也可以从自动检测问题条目的「教程」按钮或标题栏 <code>?</code> 手动进来。</blockquote>
-<hr/>
-<h3 id="6-8-商店版启动失败-0xc0000135-dll-加载失败">6.8 商店版启动失败 / 0xC0000135（DLL 加载失败）</h3>
-<p><strong>症状</strong>：点开应用后一直转圈或直接退出，诊断报告里出现退出码 <code>0xC0000135</code>（十进制 <code>3221225781</code>）。多见于<strong>从微软商店安装</strong>的版本。</p>
-<p><strong>先纠正一个常见误判</strong>：<code>0xC0000135</code> 只表示「某个 DLL 没加载成功」，<strong>不等于</strong>一定是缺 VC++ 运行库、也不等于一定是杀毒软件删了文件。同一个退出码背后有三种可能，别只按第一种反复重装：</p>
-<ol><li><strong>商店（MSIX）版的路径限制</strong>：商店版装在只读的 <code>C:\Program Files\WindowsApps\...</code> 目录里。安卓运行时从这个目录拉起 <code>qemu</code> 等子进程时，子进程按相对路径找 DLL，可能被容器的路径重定向 / 环境隔离打断，找不到依赖就退出 <code>0xC0000135</code>。这是商店版特有、且无法靠重装 VC++ 解决的问题。</li><li><strong>确实缺少 VC++ 运行库</strong>：安卓运行时（Qt6 / qemu）依赖微软 VC++ 2015-2022（x64）。设置 → 诊断与修复里若明确报「缺少 VC++ 运行库（x64）」，那是<strong>实测 dll 文件不存在</strong>，可以点「处理」一键安装。</li><li><strong>杀毒软件隔离了运行时文件</strong>：运行时目录里的 dll 被隔离 / 删除，也会报这个码。把 ApkStart 的安装目录和运行时数据目录加入杀毒白名单，再重新安装一次。</li></ol>
-<p><strong>按顺序排查</strong>：</p>
-<ol><li><strong>看诊断是不是真的缺 VC++</strong>：如果设置里报的是「缺少 VC++ 运行库（x64）」这一条，点它的一键修复。装完重启电脑再试。<strong>不要</strong>因为退出码是 <code>0xC0000135</code> 就去重装——先确认这一条确实报了。</li><li><strong>确认没报 VC++、却仍失败 → 多半是商店版路径问题</strong>：这是当前最可能的原因。依次试：</li></ol>
-<ul><li>完全退出 ApkStart（托盘图标 → 退出），重新打开；</li><li>检查杀毒软件的「受控文件夹访问 / 勒索软件防护」，把 ApkStart 加入白名单后重启；</li><li>若仍不行，用<strong>便携版</strong>（GitHub / Gitee 仓库 Releases 里的 <code>ApkStart-win64-portable</code>）放到纯英文目录（如 <code>C:\ApkStart</code>）运行——便携版不装在 WindowsApps 下，能直接绕开这个限制。</li></ul>
-<ol><li><strong>想拿到确切的失败 DLL 名</strong>（进阶）：反馈问题时，最有价值的是告诉开发者到底缺的是哪个 dll。可在事件查看器 → Windows 日志 → 应用程序里找 ApkStart / emulator 的 <code>Application Error</code>，看 <code>FaultingModuleName</code> 字段；或在「设置 → 诊断与修复 → 导出诊断报告」后把报告一起反馈。</li><li><strong>adb 也崩溃怎么办</strong>：若事件日志里另有 <code>adb.exe</code> 报 <code>0xC0000409</code>，那是另一条独立问题（设备连接异常），不是 emulator 退出的直接原因，可先按上面 1–3 处理启动，adb 问题在反馈时单独说明。</li></ol>
-<blockquote>这一节会自动弹出：当启动失败 / 修复失败被判定为 DLL 类问题时，软件会直接打开到这里。也可随时从自动检测条目的「教程」按钮或标题栏 <code>?</code> 手动进入。</blockquote>
-<hr/>
-<h3 id="6-9-应用用不到麦克风-无法语音通话录音">6.9 应用用不到麦克风 / 无法语音通话录音</h3>
-<p><strong>症状</strong>：应用里的语音消息、通话、录音、扫一扫语音等失效，提示「没有麦克风 / 录音设备不可用」。</p>
-<ol><li><strong>ApkStart 的麦克风开关</strong>：设置 → 性能与资源 → <strong>麦克风输入</strong>必须勾选。默认开启；若被关掉，自动检测会在「设置 → 诊断与修复」里报「麦克风输入已在设置里关闭」，点「处理」一键打开并重启运行时。<strong>改完必须重启一次安卓运行时</strong>（开关决定模拟器是否向安卓暴露录音设备）。</li><li><strong>Windows 麦克风权限</strong>：<code>设置 → 隐私和安全性 → 麦克风</code>，确认「允许应用访问麦克风」和「允许桌面应用访问麦克风」都已打开——安卓运行在桌面应用里，这一项没开会导致系统层面拿不到麦克风。</li><li><strong>确认 Windows 能录音</strong>：用系统自带的「语音记录器」录一段，确认麦克风本身和输入设备（耳机麦克风 / 摄像头麦克风 / 独立麦）工作正常、没有静音。</li><li><strong>输入设备选对</strong>：如果插了多个麦克风，在 Windows「声音设置 → 输入」里把要用的那个设为默认设备，模拟器会用系统默认输入设备。</li><li><strong>声音与麦克风的关系</strong>：只有「安卓声音」和「麦克风输入」<strong>两个都关掉</strong>时，模拟器才会完全关闭音频子系统以省 CPU；只要开着一个，另一项就能正常工作。</li></ol>
-<blockquote>麦克风被关掉时，应用侧只是「查不到录音设备」，不会有明显报错。自动检测负责把这件事主动报给你；也可以从标题栏 <code>?</code> 手动进入这一节。</blockquote>
-<hr/>
-<h3 id="6-10-独显-核显渲染-显卡偏好">6.10 独显 / 核显渲染（显卡偏好）</h3>
-<p><strong>症状</strong>：电脑明明有独立显卡，应用画面却发卡、掉帧；或笔记本发热耗电严重，想用核显省电。</p>
-<p>ApkStart 的安卓画面用 <code>-gpu host</code> 走硬件渲染，真正调用电脑的显卡。0.6.4 起默认让所有显卡（NVIDIA / AMD / Intel）都优先走 host，不再像旧版那样把 AMD/Intel 一律降到软件渲染——那等于主动放弃显卡。若 host 在这台机器上崩溃，会自动降级到软件后端，不影响使用。</p>
-<p><strong>指定用哪块显卡</strong>：电脑同时有独显和核显时，Windows 有时会把模拟器分到核显。设置 → 性能与资源 → <strong>显卡偏好</strong>可以明确指定：</p>
-<div class="tw"><table><thead><tr><th>选项</th><th>适用</th></tr></thead><tbody><tr><td>系统默认（推荐）</td><td>让 Windows 按电源/负载自己选，多数机器最省心</td></tr><tr><td>独显优先</td><td>游戏、视频、需要高帧率；更耗电发热</td></tr><tr><td>核显优先</td><td>轻应用、挂机、笔记本省电；性能弱一些</td></tr></tbody></table></div>
-<ul><li>这一项通过 Windows 的「图形性能偏好」（UserGpuPreferences）对模拟器进程生效，<strong>仅 Windows 10 1803 及以上有效</strong>，老系统会自动忽略、不影响启动。</li><li>选完在<strong>下一次启动安卓运行时</strong>生效；设置页会显示当前是否已生效。</li><li>AMD 老驱动上 host 偶有崩溃：可更新显卡驱动；仍不行可在「设置 → 诊断与修复 → 驱动 · 兼容补丁」启用自带的 AMD 核显 swangle 示例补丁，把渲染固定到更稳的后端。</li></ul>
-<hr/>
-<h2 id="7-命令行参考">7. 命令行参考</h2>
-<pre><code>ApkStart.exe                          打开主界面
-ApkStart.exe &lt;路径\to.apk&gt;            安装 APK
-ApkStart.exe --launch &lt;包名&gt;          直接启动应用（桌面快捷方式用的就是这条）</code></pre>
-<hr/>
-<h2 id="8-数据与目录说明">8. 数据与目录说明</h2>
-<div class="tw"><table><thead><tr><th>用途</th><th>位置</th></tr></thead><tbody><tr><td>运行时（adb / emulator / 镜像）</td><td>随包内置，或 <code>%APPDATA%\apkstart\runtime</code>（轻量版）</td></tr><tr><td>展开后的系统镜像</td><td><code>%APPDATA%\apkstart\system-images</code></td></tr><tr><td>AVD / 已装应用 / 快照</td><td><code>%APPDATA%\apkstart\avd</code></td></tr><tr><td>应用图标</td><td><code>%APPDATA%\apkstart\icons\&lt;包名&gt;.ico</code></td></tr><tr><td>设置与清单</td><td><code>%APPDATA%\ApkStart\settings.json</code> / <code>apps.json</code></td></tr><tr><td>运行日志 / 诊断报告</td><td><code>%APPDATA%\ApkStart\logs\</code></td></tr><tr><td>Windows ↔ 安卓共享目录</td><td><code>%USERPROFILE%\ApkStartShared</code> ↔ <code>/sdcard/ApkStartShared</code></td></tr></tbody></table></div>
-<blockquote>「重置安卓数据」只清用户数据层，系统镜像和 APK 文件保留；更新应用不会丢运行时、已装应用和快照。  建议 C 盘保留充足空间：镜像展开 + 数据分区 + 快照合计可达数 GB。空间不足会引发Installing/开机失败。</blockquote>
-<hr/>
-<h2 id="9-获取帮助与反馈">9. 获取帮助与反馈</h2>
-<p>反馈问题时请附上三样东西，能大幅加快定位：</p>
-<ol><li><strong>诊断报告</strong>：设置 → 诊断与修复 → 导出诊断报告；</li><li><strong>app.log 最后 20 行</strong>：<code>%APPDATA%\ApkStart\logs\app.log</code>；</li><li><strong>你的版本与形态</strong>：如"商店版 0.6.4"或"完整便携版 0.6.4"。</li></ol>
-<ul><li>GitHub：&lt;https://github.com/elx19/xora-emulator&gt;（Issues / Releases）</li><li>El código y las actualizaciones oficiales se publican en el repositorio de XORA.</li></ul>
-<hr/>
-<p>*本手册对应 v0.6.4，随版本更新。若界面文案与此处略有出入，以软件内实际显示为准。*</p>
+<h2 id="9-ayuda-y-comentarios">9. Ayuda y comentarios</h2>
+<p>Antes de solicitar ayuda, ejecuta el diagnóstico y adjunta el informe sin contraseñas ni tokens. Indica la versión de XORA, la edición instalada, el perfil activo, el modelo de GPU y el código de error exacto.</p>
+<p>El canal de soporte y las notas de versión se encuentran en el repositorio oficial de XORA. Las actualizaciones válidas se verifican mediante firma RSA-SHA256 y hash SHA-512 antes de instalarse.</p>
 </main>
 </div>
-<div class="btnbar"><button onclick="window.print()">打印 / 存为 PDF</button></div>
-<script src="i18n-catalog.js"></script>
+<div class="btnbar"><button onclick="window.print()">Imprimir / guardar como PDF</button></div>
 <script src="i18n.js"></script>
 <script>
 (function () {
@@ -284,7 +214,8 @@ ApkStart.exe --launch &lt;包名&gt;          直接启动应用（桌面快捷�
     var q = input.value.trim().toLowerCase();
     links.forEach(function (a) { a.hidden = !!q && a.textContent.toLowerCase().indexOf(q) < 0; });
   });
-  // 自动教程按锚点打开时，把命中的目录项滚进视野
+  // Cuando una solución abre un ancla, desplaza la entrada correspondiente
+  // del índice hasta que quede visible.
   if (location.hash) {
     var hit = document.getElementById(decodeURIComponent(location.hash.slice(1)));
     if (hit) setTimeout(function () { hit.scrollIntoView({ block: 'start' }); }, 80);

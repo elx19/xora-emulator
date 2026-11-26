@@ -39,6 +39,12 @@ assert.match(releaseWorkflow, /XORA_UPDATE_PRIVATE_KEY/,
   'el workflow de Release debe usar el secreto de firma de XORA');
 assert.match(releaseWorkflow, /build\/sign-update-manifest\.js/,
   'el workflow debe generar el manifiesto firmado');
+assert.match(releaseWorkflow, /\^\(ApkStart\|apkstart\)-/,
+  'el workflow solo debe retirar activos con la identidad histórica');
+assert.doesNotMatch(releaseWorkflow, /Where-Object \{ \$_.name -match '\^XORA-'/,
+  'el workflow no debe borrar los activos nuevos de XORA');
+assert.match(read('tools/publish-gitee.js'), /\^\(ApkStart\|apkstart\)-/,
+  'Gitee solo debe limpiar activos con la identidad histórica');
 assert.match(read('src/main.js'), /const APP_AUMID = 'XORA';/);
 
 const icon = fs.readFileSync(path.join(root, 'src/ui/assets/xora-icon.png'));

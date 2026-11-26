@@ -6,4 +6,4 @@ El renderizado usa primero la GPU real del equipo (NVIDIA, AMD o Intel) y cambia
 
 El diagnóstico de aplicaciones ARM, capas de traducción y detección antiemulador ahora explica la causa con claridad. Se mantienen los perfiles de dispositivo, los modos de consumo, la configuración de mando, teclado, mouse y DPI, además de las actualizaciones incrementales verificadas.
 
-Google Play, Google Play Juegos y los Servicios de Google son complementos opcionales. XORA funciona sin ellos y no los activa ni redistribuye por defecto.
+La imagen oficial de Android 14 incluye Google Play Store y los Servicios de Google por defecto para que puedas iniciar sesión y descargar aplicaciones. Google Play Juegos y otros complementos adicionales siguen siendo opcionales.

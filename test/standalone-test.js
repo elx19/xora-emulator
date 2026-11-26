@@ -214,12 +214,11 @@ function touch(dir, rel, bytes = 8) {
     assert(/assertStandalone\(appDir/.test(src), 'msix.js 未接入守卫');
   });
 
-  test('打包只带 build/runtime（Google 运行时），没有别的模拟器目录', () => {
+  test('el instalador ligero no incrusta otro emulador y descarga el runtime desde GitHub', () => {
     const yml = read('electron-builder.yml');
-    const block = yml.slice(yml.indexOf('extraResources:'));
-    const head = block.slice(0, block.indexOf('win:'));
-    assert(!/mumu|ldplayer|bluestacks/i.test(head), 'extraResources 里出现了第三方模拟器');
-    assert(/build\/runtime/.test(head), 'extraResources 没有内置运行时');
+    assert(!/extraResources\s*:/i.test(yml), 'el instalador ligero todavía incluye extraResources');
+    assert(/GitHub/i.test(yml), 'no documenta la descarga desde GitHub');
+    assert(!/mumu|ldplayer|bluestacks/i.test(yml), 'electron-builder incluye un emulador de terceros');
   });
 
   console.log(`\n结果：${passed} 通过，${failed} 失败\n`);

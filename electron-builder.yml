@@ -6,7 +6,8 @@ directories:
   output: dist/release
   buildResources: build
 
-# 只带运行需要的文件，源码目录整块进包（无 asar：窗口代理要用真实的 .ps1 路径）
+# Solo incluye lo necesario para ejecutar XORA. El código entra sin asar porque
+# el proxy de ventanas necesita rutas reales para los scripts .ps1.
 asar: false
 files:
   - src/**/*
@@ -14,26 +15,22 @@ files:
   - LICENSE
   - "!**/*.map"
   - "!**/node_modules/**"
-  # 运行时解压 .xz 镜像用（NAPI 预编译，无 ABI 问题）
+  # Descomprime las imágenes .xz del runtime con el módulo NAPI precompilado.
   - "node_modules/@napi-rs/lzma/**"
   - "node_modules/@napi-rs/lzma-win32-x64-msvc/**"
   - "!node_modules/@napi-rs/lzma/*.md"
   - "!node_modules/@napi-rs/lzma/*.ts"
   - "!node_modules/@napi-rs/lzma/browser-entry.*"
 
-# 只保留中英文界面语言（Electron locales 从 41MB 降到 ~3MB）
+# Solo conserva los idiomas de interfaz incluidos por XORA; así Electron ocupa
+# unos 3 MB en lugar de cargar todos sus locales.
 electronLanguages:
   - es-ES
   - en-US
 
-# 完整运行时（emulator + platform-tools + 系统镜像），由 build/prepare-runtime.js 生成。
-# 打进包里之后首次启动不再需要任何下载。
-extraResources:
-  - from: build/runtime
-    to: runtime
-    filter:
-      - "**/*"
-      - "!.prepared"
+# El instalador normal es ligero. El runtime pesado se descarga desde el
+# Release oficial de GitHub durante el primer uso y queda fuera del instalador.
+# Para una distribución completamente desconectada usa electron-builder-full.yml.
 
 win:
   target:
@@ -41,29 +38,30 @@ win:
       arch:
         - x64
   icon: src/ui/assets/xora-icon.png
-  # 安装到当前用户目录，不写系统盘、不要求管理员权限
+  # Instala para el usuario actual, sin escribir en carpetas del sistema ni
+  # solicitar permisos de administrador.
   requestedExecutionLevel: asInvoker
 
-# ---------------- 微软商店（MSIX） ----------------
-# appx 目标不在默认构建列表里：它只有出商店包时才用（npm run build:appx），
-# 平时 npm run build:exe 仍然只出 NSIS 安装包。
+# ---------------- Microsoft Store (MSIX) ----------------
+# El objetivo appx solo se usa para el paquete de la tienda
+# (npm run build:appx); npm run build:exe genera únicamente el instalador NSIS.
 #
-# identityName / publisher 必须逐字等于 Partner Center →
-#   Product management → Product identity 里的
-#   Package/Identity/Name 与 Package/Identity/Publisher。
-# 下面这两个值是 2026-11-16 从 Partner Center 抄下来的确认值；
-# 换产品身份时改这里（或设 APKSTART_MSIX_IDENTITY / APKSTART_MSIX_PUBLISHER）。
-# 注意：占位 Publisher 打出来的包只能用于本地测试；发布前必须使用 XORA
-# 在 Partner Center 中登记的真实 Identity/Publisher 值。
+# identityName / publisher deben coincidir exactamente con los valores de
+# Partner Center → Product management → Product identity.
+# Estos valores se confirmaron el 2026-11-16;
+# Para cambiar la identidad del producto, modifica estos valores o usa las
+# variables XORA_MSIX_IDENTITY / XORA_MSIX_PUBLISHER.
+# El publisher de ejemplo solo sirve para pruebas locales. Antes de publicar,
+# usa la identidad real registrada para XORA en Partner Center.
 appx:
   identityName: XORA.Emulator
   publisher: "CN=XORA"
   publisherDisplayName: XORA
   displayName: XORA
   applicationId: XORA
-  # 全信任桌面应用唯一必需的能力。不要加 unvirtualizedResources /
-  # broadFileSystemAccess —— Store 基本不批，而且本应用靠「数据目录挪到
-  # %USERPROFILE%\ApkStart」绕开了 AppData 写重定向，不需要它们。
+  # Capacidad mínima para una aplicación de escritorio de confianza total. No se
+  # añaden unvirtualizedResources ni broadFileSystemAccess: el directorio de
+  # datos vive en %USERPROFILE%\XORA y evita la redirección de AppData.
   capabilities:
     - runFullTrust
   languages:
@@ -73,36 +71,33 @@ appx:
   maxVersionTested: 10.0.22621.0
 
 nsis:
-  # 不再是「一键装到 C 盘默认目录」：改为标准向导，允许用户选择安装位置
-  # （装到非系统盘可减轻 C 盘压力；运行时数据目录另在设置里单独指定）。
+  # El asistente permite elegir la ubicación de instalación. El runtime y sus
+  # datos se almacenan aparte y pueden moverse desde Configuración.
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
   displayLanguageSelector: false
-  # always：即使桌面上已有同名 .lnk 也重建一次。
-  # 默认的 true 只在「不存在」时才创建，某些机器上（安全软件拦截、桌面被
-  # OneDrive 重定向、旧版残留了指向已删目录的坏快捷方式）会出现装完没图标，
-  # 或者图标还指着旧 exe。always 保证每次安装后都指向当前安装目录。
+  # always vuelve a crear el acceso directo para que siempre apunte al ejecutable
+  # actual, incluso si quedó un enlace roto de una instalación anterior.
   createDesktopShortcut: always
   createStartMenuShortcut: true
   artifactName: XORA-${version}-Setup.exe
-  # 卸载前先结束仍在运行的运行时进程，避免文件被锁导致无法删除
-  # （火绒等粉碎工具删不掉，多半是 qemu/adb 进程还驻留）。
+  # Cierra el runtime antes de desinstalar para que los archivos no queden
+  # bloqueados por QEMU o ADB.
   include: build/installer.nsh
-  # 安装包本身已含完整运行时（emulator + 系统镜像 .gz），装完首次启动
-  # 自动把镜像展开到用户目录，之后不再联网下载任何东西。
+  # El instalador ligero no incluye el runtime pesado. XORA lo descarga desde
+  # el Release firmado de GitHub durante el primer uso. Para una instalación
+  # sin conexión existe electron-builder-full.yml.
 
-# 压缩级别：normal（zlib）。镜像本身已是 xz/gz，NSIS 这层只压 Electron 的 dll，
-# normal 与 maximum 体积差别很小，但 maximum(LZMA) 会让打安装包慢十几分钟。
-# 注：CI 用 PowerShell 跑 npx 时，行内 -c.compression=xxx 会被拆参、被当成配置文件路径，
-# 因此压缩级别统一在这里设置，不在 workflow 里用 -c 行内覆盖。
+# Compresión normal (zlib). El runtime ya está comprimido; aquí solo se
+# comprimen las DLL de Electron. Mantenerlo en este archivo evita problemas de
+# PowerShell al pasar opciones inline desde CI.
 compression: normal
 
 # ---------------- Linux / FydeOS ----------------
-# 这一段原来写在 package.json 的 "build" 字段里。electron-builder 26 的 schema
-# 已经不再接受 linux.desktop 那个形状，导致任何一次构建（包括 Windows）都在
-# 配置校验阶段直接失败。统一搬到这个文件、用 --config electron-builder.yml
-# 显式指定，就不会再被 package.json 里的旧配置抢走。
+# La configuración vive aquí para mantener un único esquema compatible con
+# electron-builder 26 y evitar que una configuración antigua de package.json
+# interfiera en las compilaciones de Windows.
 linux:
   target:
     - AppImage

@@ -48,7 +48,7 @@ const COMMON_ADB_PATHS = [
 ];
 
 /**
- * 把 pm install 的原始失败原因翻译成用户能看懂的中文。
+ * Convierte el error de pm install en una explicación clara en español.
  * 保留原始错误码在末尾，便于搜索排查。
  */
 function friendlyInstallError(raw) {
@@ -56,40 +56,39 @@ function friendlyInstallError(raw) {
   const tag = code ? code[0] : '';
   const table = {
     INSTALL_FAILED_NO_MATCHING_ABIS:
-      '安装失败：这个应用只提供 ARM 原生库（多数国产应用如此），'
-      + '当前系统镜像没有 ARM 转译层。ApkStart 会自动切换到内置新版翻译层的兼容镜像并重试。',
+      'Instalación fallida: la aplicación solo incluye bibliotecas ARM y el runtime actual no tiene traducción ARM. '
+      + 'XORA cambiará a la imagen compatible y volverá a intentarlo.',
     INSTALL_FAILED_OLDER_SDK:
-      '安装失败：应用要求的 Android 版本高于当前运行时（需更高系统镜像）。',
+      'Instalación fallida: la aplicación requiere una versión de Android superior a la del runtime actual.',
     INSTALL_PARSE_FAILED_NO_CERTIFICATES:
-      '安装失败：APK 没有有效签名，无法安装。',
+      'Instalación fallida: el APK no tiene una firma válida.',
     INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES:
-      '安装失败：与已安装版本签名不一致，请先卸载旧版再装。',
+      'Instalación fallida: la firma no coincide con la versión instalada; desinstala la versión anterior.',
     INSTALL_FAILED_VERSION_DOWNGRADE:
-      '安装失败：设备上已安装更高版本，不能降级覆盖。',
+      'Instalación fallida: el dispositivo ya tiene una versión superior y no permite volver atrás.',
     INSTALL_FAILED_INSUFFICIENT_STORAGE:
-      '安装失败：运行时磁盘空间不足，请清理后重试。',
+      'Instalación fallida: no hay espacio suficiente en el disco del runtime.',
     INSTALL_FAILED_INVALID_APK:
-      '安装失败：APK 文件损坏或不完整（可能下载未完成），请重新获取。',
-    INSTALL_FAILED_INVALID_URI: '安装失败：APK 路径含特殊字符，请把文件移到纯英文路径后重试。',
-    INSTALL_FAILED_ALREADY_EXISTS: '安装失败：已存在同名应用且签名不同，请先卸载。',
-    INSTALL_FAILED_UPDATE_INCOMPATIBLE: '安装失败：与已安装版本签名不一致，请先卸载旧版。',
+      'Instalación fallida: el APK está dañado o incompleto; vuelve a descargarlo.',
+    INSTALL_FAILED_INVALID_URI: 'Instalación fallida: la ruta del APK contiene caracteres especiales; muévelo a una ruta sencilla.',
+    INSTALL_FAILED_ALREADY_EXISTS: 'Instalación fallida: ya existe una aplicación con otra firma; desinstálala primero.',
+    INSTALL_FAILED_UPDATE_INCOMPATIBLE: 'Instalación fallida: la firma no coincide con la versión instalada; desinstala la versión anterior.',
     INSTALL_FAILED_DEPRECATED_SDK_VERSION:
-      '安装失败：这是面向很老 Android 版本的应用（targetSdk 过低），Android 14 默认禁止安装。'
-      + 'ApkStart 会自动用官方绕过参数重试。',
-    INSTALL_FAILED_TEST_ONLY: '安装失败：这是仅供测试的应用包，已自动加上测试包参数重试。',
-    INSTALL_FAILED_MISSING_SHARED_LIBRARY: '安装失败：应用依赖的设备特性（如特定厂商库）在当前运行时不存在。',
-    INSTALL_FAILED_USER_RESTRICTION: '安装失败：系统限制了安装，请重启运行时后重试。',
-    INSTALL_FAILED_CONFLICTING_PROVIDER: '安装失败：与已有应用的 ContentProvider 冲突，请卸载冲突应用。',
-    INSTALL_FAILED_INTERNAL_ERROR: '安装失败：系统内部错误（常见于存储空间不足或开机未完成），请重启运行时后重试。',
+      'Instalación fallida: la aplicación apunta a una versión antigua de Android y Android 14 la bloquea. XORA volverá a intentarlo con el parámetro compatible.',
+    INSTALL_FAILED_TEST_ONLY: 'Instalación fallida: es un paquete de prueba; XORA volverá a intentarlo con el parámetro correspondiente.',
+    INSTALL_FAILED_MISSING_SHARED_LIBRARY: 'Instalación fallida: el runtime no ofrece una biblioteca o característica que la aplicación necesita.',
+    INSTALL_FAILED_USER_RESTRICTION: 'Instalación fallida: Android restringe la instalación; reinicia el runtime y vuelve a intentarlo.',
+    INSTALL_FAILED_CONFLICTING_PROVIDER: 'Instalación fallida: hay un conflicto con otra aplicación instalada.',
+    INSTALL_FAILED_INTERNAL_ERROR: 'Instalación fallida: Android informó un error interno; reinicia el runtime y vuelve a intentarlo.',
   };
   const msg = table[tag];
-  return msg ? `${msg}（${tag}）` : `安装失败：${raw}`;
+  return msg ? `${msg} (${tag})` : `Instalación fallida: ${raw}`;
 }
 
 /**
  * 反模拟 / 安全校验关键词：应用主动检测到模拟器或转译环境后退出。
  * 这类是应用自身的限制（校验传感器、基带、SafetyNet/Play Integrity 等），
- * 不是 ApkStart 的故障，也不要谎称「切换镜像就能解决」——0.6.3 只有一份带
+ * No es un fallo de XORA y cambiar la imagen no siempre lo resuelve: la versión actual usa una sola
  * 翻译层的通用镜像，没有第二套可切。必须在文案里如实说清并指向手册 6.3。
  */
 const ANTI_EMULATOR_RE = /anti[-_ ]?emulat|emulator.?detect|检测到.{0,6}(模拟|虚拟|调试)|反模拟|反仿真|反调试|anti[-_ ]?debug|safetynet|play.?integrity|cts.?profile|hook.?detect/i;
@@ -98,26 +97,28 @@ const ANTI_EMULATOR_RE = /anti[-_ ]?emulat|emulator.?detect|检测到.{0,6}(模�
 function friendlyLaunchError(raw, pkg) {
   const t = String(raw || '');
   if (ANTI_EMULATOR_RE.test(t)) {
-    return `${pkg || '应用'} 检测到模拟器 / 转译环境后主动退出（反模拟、反调试或安全校验），`
-      + '属于应用自身限制，不是故障；ApkStart 无法绕过，详见内置手册 6.3。';
+    return `${pkg || 'La aplicación'} detectó un emulador o una capa de traducción y se cerró `
+      + 'por una comprobación antiemulación, antidepuración o de seguridad. '
+      + 'Es una limitación de la aplicación, no un fallo de XORA; consulta el manual 6.3.';
   }
   if (/DoBadTrampoline|libndk_translation|houdini|SIGABRT.*arm/i.test(t)) {
-    return `${pkg || '应用'} 启动后崩溃：应用与 ARM 翻译层不兼容`
-      + '（常见于反调试 / 反模拟检测或 native hook 冲突）。'
-      + '若运行时尚未启用兼容镜像会自动切换重试一次；已启用仍崩溃则属于应用兼容性限制，'
-      + '不是故障，详见内置手册 6.3。';
+    return `${pkg || 'La aplicación'} se cerró al iniciar: no es compatible con la capa de traducción ARM. `
+      + 'Si la capa aún no estaba activa, XORA intentará una imagen compatible una vez; '
+      + 'si ya estaba activa, suele ser una limitación de compatibilidad. Consulta el manual 6.3.';
   }
   if (/UnsatisfiedLinkError|dlopen failed|couldn't find "lib|\.so.*not found/i.test(t)) {
-    return `${pkg || '应用'} 启动后崩溃：缺少设备原生库（应用可能只提供 ARM 版本）。`
-      + '若运行时尚未启用 ARM 翻译层会自动切换兼容镜像重试；已启用仍崩溃多为应用限制，详见内置手册 6.3。';
+    return `${pkg || 'La aplicación'} se cerró al iniciar porque faltan bibliotecas nativas `
+      + '(es posible que solo incluya una versión ARM). Revisa la compatibilidad en el manual 6.3.';
   }
   if (/ClassNotFoundException|NoClassDefFoundError|AndroidRuntime/i.test(t)) {
-    return `${pkg || '应用'} 启动即崩溃（应用内部异常，可能与模拟器环境或缺少 Google 服务有关）。`;
+    return `${pkg || 'La aplicación'} se cerró al iniciar por un error interno. `
+      + 'También puede faltar un componente de Google requerido por la aplicación.';
   }
   if (/java\.lang\.SecurityException|Permission Denial/i.test(t)) {
-    return `${pkg || '应用'} 启动失败：系统拒绝了启动请求（权限或签名问题）。`;
+    return `${pkg || 'La aplicación'} no pudo iniciar: Android rechazó la solicitud `
+      + '(permisos o firma incompatible).';
   }
-  return `${pkg || '应用'} 未能启动${t ? `：${t.slice(0, 240)}` : '（进程未存活）'}`;
+  return `${pkg || 'La aplicación'} no pudo iniciar${t ? `: ${t.slice(0, 240)}` : ' porque el proceso no quedó activo'}`;
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -162,7 +163,7 @@ const LAUNCHER_CACHE = new Map();
 function stageApk(apkPath) {
   const p = String(apkPath || '');
   if (/^[\x20-\x7e]*$/.test(p) && p.length < 200) return { path: p, staged: false };
-  const dir = path.join(os.tmpdir(), 'apkstart-install');
+  const dir = path.join(os.tmpdir(), 'xora-install');
   fs.mkdirSync(dir, { recursive: true });
   const name = `${crypto.createHash('sha1').update(p).digest('hex').slice(0, 12)}.apk`;
   const target = path.join(dir, name);
@@ -838,7 +839,7 @@ class AdbClient {
 
   /** 导出应用数据（Windows/调试版可用 run-as；否则走 adb backup 兜底） */
   async exportAppData(pkg, localTarPath) {
-    const remote = `/sdcard/apkstart-tmp-${pkg}.tar`;
+  const remote = `/sdcard/xora-tmp-${pkg}.tar`;
     const cmd = `run-as ${pkg} tar -cf ${remote} . 2>/dev/null || (cd /data/data/${pkg} && tar -cf ${remote} .)`;
     await this.shell(cmd);
     await this.pull(remote, localTarPath);
@@ -1147,7 +1148,7 @@ class AdbClient {
    * "Failed to set property"），真正生效靠 emulator 启动时的 -prop 注入。
    * 这里做的是能做的部分：把应用级 locale 和时区设好，让界面立刻中文、时间正确。
    */
-  async ensureChineseLocale(locale = 'zh-CN') {
+  async ensureLocale(locale = 'es-ES') {
     const cmds = [
       'settings put system system_locales ' + locale,
       'setprop persist.sys.timezone Asia/Shanghai',

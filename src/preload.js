@@ -178,6 +178,8 @@ contextBridge.exposeInMainWorld('apkstart', {
     setEnabled: (on) => invoke('keymap:setEnabled', on),
     isEnabled: () => invoke('keymap:isEnabled'),
     applyPreset: (pkg, presetId) => invoke('keymap:applyPreset', pkg, presetId),
+    latency: () => invoke('keymap:latency'),
+    resetLatency: () => invoke('keymap:latencyReset'),
   },
 
   pathForFile: (file) => webUtils.getPathForFile(file),

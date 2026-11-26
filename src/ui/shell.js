@@ -79,7 +79,12 @@ setInterval(() => {
       next.push({ key, pressed });
       const previous = gamepadSnapshot.find((item) => item.key === key)?.pressed || false;
       if (pressed !== previous && buttonIndex < GAMEPAD_BUTTONS.length) {
-        api.shell.gamepadEvent({ button: GAMEPAD_BUTTONS[buttonIndex], pressed }).catch(() => {});
+        api.shell.gamepadEvent({
+          button: GAMEPAD_BUTTONS[buttonIndex],
+          pressed,
+          deviceId: pad.id || 'Mando compatible',
+          sampleAt: Date.now(),
+        }).catch(() => {});
       }
     });
   });

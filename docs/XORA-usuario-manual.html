@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XORA — Manual de uso y solución de problemas</title>
+<style>
+:root{--bg:#ffffff;--fg:#1f2328;--mut:#57606a;--line:#d0d7de;--code:#eff1f3;--accent:#0969da;--accent-soft:#ddf4ff;--warn:#9a6700;--warn-bg:#fff8c5;--head:#f6f8fa;--tbl:#f6f8fa}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--fg);background:var(--bg)}
+.wrap{display:flex;max-width:1180px;margin:0 auto}
+aside{position:sticky;top:0;height:100vh;overflow:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--line);padding:24px 18px;background:var(--head)}
+aside h2{font-size:15px;margin:0 0 14px;letter-spacing:.5px}
+aside a{display:block;color:var(--mut);text-decoration:none;padding:3px 8px;border-radius:6px;font-size:13.5px;line-height:1.45}
+aside a:hover{background:var(--accent-soft);color:var(--accent)}
+#tocSearch{width:100%;margin-bottom:12px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;font:13px/1.4 inherit;background:#fff;color:var(--fg)}
+#tocSearch:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+.toc-l3{padding-left:22px!important;font-size:12.5px!important;color:#8c959f!important}
+main{flex:1;min-width:0;padding:40px 48px 80px}
+h1{font-size:30px;margin:0 0 8px;padding-bottom:16px;border-bottom:2px solid var(--line)}
+h2{font-size:23px;margin:42px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--line);scroll-margin-top:16px}
+h3{font-size:18px;margin:30px 0 12px;scroll-margin-top:16px}
+h4{font-size:16px;margin:22px 0 8px}
+p{margin:12px 0}
+a{color:var(--accent)}
+code{background:var(--code);padding:2px 6px;border-radius:6px;font:13.5px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
+pre{background:var(--code);padding:16px 18px;border-radius:8px;overflow:auto;border:1px solid var(--line)}
+pre code{background:none;padding:0}
+blockquote{margin:16px 0;padding:10px 16px;border-left:4px solid var(--warn);background:var(--warn-bg);color:#633c01;border-radius:0 8px 8px 0}
+blockquote p{margin:0}
+ul,ol{margin:12px 0;padding-left:26px}
+li{margin:5px 0}
+hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.tw{overflow:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+th{background:var(--tbl);font-weight:600;white-space:nowrap}
+tbody tr:nth-child(even){background:#fbfcfd}
+.btnbar{position:fixed;right:22px;bottom:22px;display:flex;gap:8px}
+.btnbar button{border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:8px;padding:9px 14px;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.btnbar button:hover{border-color:var(--accent);color:var(--accent)}
+@media (max-width:880px){aside{display:none}main{padding:24px 20px 60px}h1{font-size:25px}}
+@media print{aside,.btnbar{display:none}main{padding:0;max-width:none}h2{page-break-after:avoid}table,pre,blockquote{page-break-inside:avoid}a{color:inherit;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<aside><h2>Índice</h2>
+<input id="tocSearch" type="search" placeholder="Filtrar el índice (Ctrl+F busca todo)" autocomplete="off" />
+<div id="tocList"><a class="toc-l2" href="#índice">Índice</a>
+<a class="toc-l2" href="#1-xora-en-30-segundos">1. XORA en 30 segundos</a>
+<a class="toc-l2" href="#2-instalación-y-primer-inicio">2. Instalación y primer inicio</a>
+<a class="toc-l3" href="#2-1-elige-la-edición-adecuada">2.1 Elige la edición adecuada</a>
+<a class="toc-l3" href="#2-2-qué-ocurre-la-primera-vez">2.2 Qué ocurre la primera vez</a>
+<a class="toc-l3" href="#2-3-requisitos-prácticos">2.3 Requisitos prácticos</a>
+<a class="toc-l2" href="#3-uso-diario">3. Uso diario</a>
+<a class="toc-l3" href="#3-1-instalar-una-aplicación">3.1 Instalar una aplicación</a>
+<a class="toc-l3" href="#3-2-abrir-detener-y-desinstalar">3.2 Abrir, detener y desinstalar</a>
+<a class="toc-l3" href="#3-3-ventana-y-orientación">3.3 Ventana y orientación</a>
+<a class="toc-l3" href="#3-4-archivos-compartidos">3.4 Archivos compartidos</a>
+<a class="toc-l3" href="#3-5-google-play-y-cuenta-de-google">3.5 Google Play y cuenta de Google</a>
+<a class="toc-l3" href="#3-6-manual-integrado-y-tutoriales-automáticos">3.6 Manual integrado y tutoriales automáticos</a>
+<a class="toc-l2" href="#4-conceptos-principales">4. Conceptos principales</a>
+<a class="toc-l3" href="#4-1-runtime-e-imagen-del-sistema">4.1 Runtime e imagen del sistema</a>
+<a class="toc-l3" href="#4-2-aceleración-y-renderizado">4.2 Aceleración y renderizado</a>
+<a class="toc-l3" href="#4-3-compatibilidad-arm-y-antiemulador">4.3 Compatibilidad ARM y antiemulador</a>
+<a class="toc-l2" href="#5-comprobación-del-equipo-y-diagnóstico">5. Comprobación del equipo y diagnóstico</a>
+<a class="toc-l3" href="#5-1-diagnóstico-inicial">5.1 Diagnóstico inicial</a>
+<a class="toc-l3" href="#5-2-diagnóstico-automático">5.2 Diagnóstico automático</a>
+<a class="toc-l3" href="#5-3-informe-de-diagnóstico">5.3 Informe de diagnóstico</a>
+<a class="toc-l2" href="#6-soluciones-habituales">6. Soluciones habituales</a>
+<a class="toc-l3" href="#6-1-aceleración-de-hardware-y-arranque-lento">6.1 Aceleración de hardware y arranque lento</a>
+<a class="toc-l3" href="#6-2-fallos-de-instalación">6.2 Fallos de instalación</a>
+<a class="toc-l3" href="#6-3-aplicaciones-arm-y-detección-del-emulador">6.3 Aplicaciones ARM y detección del emulador</a>
+<a class="toc-l3" href="#6-4-autorización-adb">6.4 Autorización ADB</a>
+<a class="toc-l3" href="#6-5-xora-no-abre-una-aplicación">6.5 XORA no abre una aplicación</a>
+<a class="toc-l3" href="#6-6-tabla-rápida-de-fallos">6.6 Tabla rápida de fallos</a>
+<a class="toc-l3" href="#6-7-la-aplicación-no-tiene-sonido">6.7 La aplicación no tiene sonido</a>
+<a class="toc-l3" href="#6-8-fallo-de-inicio-de-la-versión-de-microsoft-store">6.8 Fallo de inicio de la versión de Microsoft Store</a>
+<a class="toc-l3" href="#6-9-el-micrófono-no-está-disponible">6.9 El micrófono no está disponible</a>
+<a class="toc-l3" href="#6-10-preferencia-de-gpu">6.10 Preferencia de GPU</a>
+<a class="toc-l2" href="#7-referencia-de-comandos">7. Referencia de comandos</a>
+<a class="toc-l2" href="#8-datos-y-carpetas">8. Datos y carpetas</a>
+<a class="toc-l2" href="#9-ayuda-y-comentarios">9. Ayuda y comentarios</a></div>
+</aside>
+<main>
+<h1 id="xora-manual-de-uso-y-solución-de-problemas">XORA — Manual de uso y solución de problemas</h1>
+<blockquote>Versión: v0.6.4 · Plataforma: Windows 10/11 x64 · Actualizado: 2026-11-26  XORA ejecuta aplicaciones Android en ventanas independientes. Importa un APK, deja que el runtime se prepare y abre la aplicación con doble clic. Esta guía explica el uso diario, el rendimiento, los controles y las soluciones más habituales.</blockquote>
+<hr/>
+<h2 id="índice">Índice</h2>
+<ol><li><a href="#xora-en-30-segundos">XORA en 30 segundos</a></li><li><a href="#instalación-y-primer-inicio">Instalación y primer inicio</a></li><li><a href="#uso-diario">Uso diario</a></li><li><a href="#conceptos-principales">Conceptos principales</a></li><li><a href="#comprobación-del-equipo-y-diagnóstico">Comprobación del equipo y diagnóstico</a></li><li><a href="#soluciones-habituales">Soluciones habituales</a></li></ol>
+<ul><li><a href="#61-aceleración-de-hardware-y-arranque-lento">6.1 Aceleración de hardware</a></li><li><a href="#62-fallos-de-instalación">6.2 Fallos de instalación</a></li><li><a href="#63-aplicaciones-arm-y-detección-del-emulador">6.3 Aplicaciones ARM y detección del emulador</a></li><li><a href="#64-autorización-adb">6.4 Autorización ADB</a></li><li><a href="#65-xora-no-abre-una-aplicación">6.5 XORA no abre una aplicación</a></li><li><a href="#66-tabla-rápida-de-fallos">6.6 Tabla rápida de fallos</a></li><li><a href="#67-la-aplicación-no-tiene-sonido">6.7 La aplicación no tiene sonido</a></li><li><a href="#68-fallo-de-inicio-de-la-versión-de-microsoft-store">6.8 Fallo de inicio de la versión de Microsoft Store</a></li><li><a href="#69-el-micrófono-no-está-disponible">6.9 El micrófono no está disponible</a></li><li><a href="#610-preferencia-de-gpu">6.10 Preferencia de GPU</a></li></ul>
+<ol><li><a href="#referencia-de-comandos">Referencia de comandos</a></li><li><a href="#datos-y-carpetas">Datos y carpetas</a></li><li><a href="#ayuda-y-comentarios">Ayuda y comentarios</a></li></ol>
+<hr/>
+<h2 id="1-xora-en-30-segundos">1. XORA en 30 segundos</h2>
+<pre><code>Icono de una aplicación en el escritorio
+          │ doble clic
+          ▼
+XORA.exe --launch &lt;paquete&gt;
+          │ si Android está detenido, XORA inicia el runtime
+          ▼
+La aplicación se abre usando la actividad que declara el sistema
+          ▼
+Ventana Android independiente con tamaño, orientación e icono propios</code></pre>
+<p>Características principales:</p>
+<ul><li>Instala uno o varios APK desde la ventana, mediante arrastrar y soltar o desde el Explorador de archivos.</li><li>Genera accesos directos con el icono de cada aplicación.</li><li>Mantiene un único runtime Android para iniciar las aplicaciones siguientes con mayor rapidez.</li><li>Incluye perfiles para PC básica, portátil, PC de alto rendimiento, teléfono y tableta.</li><li>La imagen Android predeterminada incluye Google Play Store y Servicios de Google. Google Play Juegos es opcional.</li><li>No depende de MuMu, BlueStacks, LDPlayer, WSA ni de otro emulador instalado en el equipo.</li></ul>
+<hr/>
+<h2 id="2-instalación-y-primer-inicio">2. Instalación y primer inicio</h2>
+<h3 id="2-1-elige-la-edición-adecuada">2.1 Elige la edición adecuada</h3>
+<p>Descarga XORA desde el repositorio privado y el canal oficial configurado en la aplicación. Comprueba que el nombre del producto sea XORA y que el manifiesto de actualización sea válido.</p>
+<div class="tw"><table><thead><tr><th>Edición</th><th>Archivo</th><th>Uso recomendado</th></tr></thead><tbody><tr><td>Microsoft Store</td><td><code>XORA_&lt;versión&gt;_x64.msix</code></td><td>Instalación integrada y actualizaciones de la Store.</td></tr><tr><td>Instalador</td><td><code>XORA-v*-Setup.exe</code></td><td>Accesos directos, menú Inicio y desinstalador.</td></tr><tr><td>Portátil completa</td><td><code>XORA-v*-win64-full.zip</code></td><td>Uso sin descargar el runtime durante el primer inicio.</td></tr><tr><td>Portátil ligera</td><td><code>XORA-v*-win64-portable.zip</code></td><td>Probar la interfaz; prepara el runtime al iniciarse.</td></tr></tbody></table></div>
+<h3 id="2-2-qué-ocurre-la-primera-vez">2.2 Qué ocurre la primera vez</h3>
+<ol><li>XORA comprueba la virtualización, la GPU, la memoria, el almacenamiento y los componentes del runtime.</li><li>La edición ligera descarga o la edición completa expande Android Emulator, ADB y la imagen oficial de Android 14 <code>google_apis_playstore</code> x86_64.</li><li>Se crea una partición de datos independiente para conservar aplicaciones, sesiones y configuraciones.</li><li>El runtime inicia Android y comprueba que el sistema y el gestor de paquetes estén listos.</li><li>Google Play Store y Servicios de Google quedan disponibles en la imagen predeterminada. Al abrir Play Store puedes iniciar sesión con tu cuenta de Google.</li></ol>
+<p>El primer arranque puede tardar más que los siguientes porque crea los datos y prepara el snapshot. No cierres XORA mientras el asistente indique que está trabajando.</p>
+<h3 id="2-3-requisitos-prácticos">2.3 Requisitos prácticos</h3>
+<ul><li>Windows 10 2004 o posterior, 64 bits.</li><li>4 GB de RAM como mínimo; se recomiendan 8 GB o más.</li><li>Al menos 4 GB libres para una instalación básica y más espacio si se instalarán juegos grandes.</li><li>Virtualización activada en BIOS/UEFI y Windows Hypervisor Platform o AEHD cuando el equipo lo permita.</li><li>Controlador gráfico actualizado. XORA puede usar GPU integrada, dedicada o el modo elegido por Windows.</li></ul>
+<hr/>
+<h2 id="3-uso-diario">3. Uso diario</h2>
+<h3 id="3-1-instalar-una-aplicación">3.1 Instalar una aplicación</h3>
+<p>Puedes usar cualquiera de estas opciones:</p>
+<ul><li>Arrastra un archivo <code>.apk</code> a XORA.</li><li>Pulsa <strong>Instalar APK</strong> y selecciona el archivo.</li><li>Registra la asociación <code>.apk</code> en Configuración → Integración y archivos y abre el APK desde el Explorador.</li><li>Usa la opción de instalación múltiple para paquetes compatibles <code>.apks</code> o <code>.xapk</code>.</li></ul>
+<p>XORA valida el paquete, la firma, la arquitectura y el espacio disponible antes de enviarlo al runtime. Si la aplicación es ARM, consulta la sección 6.3.</p>
+<h3 id="3-2-abrir-detener-y-desinstalar">3.2 Abrir, detener y desinstalar</h3>
+<p>En <strong>Biblioteca</strong>, busca una aplicación y usa <strong>Abrir</strong>, <strong>Detener</strong>, <strong>Desinstalar</strong>, <strong>Reparar</strong> o <strong>Crear acceso directo</strong>. Una aplicación recién instalada se marca en la biblioteca y el contador se actualiza sin reiniciar XORA.</p>
+<h3 id="3-3-ventana-y-orientación">3.3 Ventana y orientación</h3>
+<ul><li><strong>Ventana vertical:</strong> permite cambiar el tamaño y conserva el tamaño de cada aplicación.</li><li><strong>Pantalla completa:</strong> llena la pantalla y mantiene la proporción de Android.</li><li><strong>Seguir la aplicación:</strong> adapta la orientación a la declaración de la aplicación.</li><li><strong>Forzar vertical u horizontal:</strong> usa la opción correspondiente en Configuración → Pantalla y ventanas.</li><li><strong>Rotar:</strong> usa el botón de la barra de la aplicación o <code>Ctrl+Alt+R</code>.</li><li><strong>Pantalla completa:</strong> usa <code>F11</code> o el menú de la bandeja.</li></ul>
+<p>Si la aplicación solicita una orientación distinta, XORA puede reiniciar el runtime una vez para aplicar el panel correcto. Las siguientes aplicaciones con la misma orientación no necesitan repetir el cambio.</p>
+<h3 id="3-4-archivos-compartidos">3.4 Archivos compartidos</h3>
+<p>La carpeta de Windows <code>%USERPROFILE%\XORAShared</code> se sincroniza con <code>/sdcard/XORAShared</code> cuando la integración de archivos está activa. Configuración → Integración y archivos permite cambiar la carpeta, sincronizar ahora y abrirla.</p>
+<h3 id="3-5-google-play-y-cuenta-de-google">3.5 Google Play y cuenta de Google</h3>
+<p>Google Play Store y Servicios de Google vienen incluidos en la imagen predeterminada. Abre Play Store desde Android, inicia sesión y descarga tus aplicaciones. XORA no solicita ni guarda tu contraseña de Google.</p>
+<p>Google Play Juegos, aplicaciones de Google adicionales y paquetes de reparación se gestionan por separado en <strong>Complementos</strong>. No instales APK de fuentes desconocidas ni reemplaces un servicio del sistema que ya funcione.</p>
+<h3 id="3-6-manual-integrado-y-tutoriales-automáticos">3.6 Manual integrado y tutoriales automáticos</h3>
+<p>Abre el manual con el botón <strong>Ayuda</strong> o desde Configuración → Actualizaciones y acerca de. El diagnóstico puede abrir automáticamente el capítulo relacionado con el problema. También puedes usar el botón <strong>Tutorial</strong> de cada resultado de diagnóstico.</p>
+<hr/>
+<h2 id="4-conceptos-principales">4. Conceptos principales</h2>
+<h3 id="4-1-runtime-e-imagen-del-sistema">4.1 Runtime e imagen del sistema</h3>
+<p>El runtime contiene Android Emulator, ADB, el sistema Android y los componentes gráficos. La partición de datos se mantiene separada, por lo que actualizar la imagen no debe borrar tus aplicaciones.</p>
+<p>La imagen predeterminada es Android 14 x86_64 con Google Play Store, Servicios de Google y una capa de compatibilidad para aplicaciones ARM. El tamaño del runtime puede ser grande, pero se descarga una sola vez y se reutiliza.</p>
+<h3 id="4-2-aceleración-y-renderizado">4.2 Aceleración y renderizado</h3>
+<p>Con virtualización y aceleración gráfica, XORA usa menos CPU y arranca más rápido. El modo automático prioriza <code>host</code> para NVIDIA, AMD e Intel y cambia a una alternativa compatible si el controlador falla.</p>
+<p>En Configuración → Rendimiento y recursos puedes elegir sistema predeterminado, GPU dedicada o GPU integrada. Si el cambio no se aplica inmediatamente, reinicia Android.</p>
+<h3 id="4-3-compatibilidad-arm-y-antiemulador">4.3 Compatibilidad ARM y antiemulador</h3>
+<p>Android x86_64 usa la capa de traducción incluida para ejecutar bibliotecas ARM. Si una aplicación exige funciones de hardware, integridad o antiemulador, puede negarse a ejecutarse aunque el runtime funcione correctamente. Ese caso es una restricción de la aplicación, no necesariamente un fallo de XORA.</p>
+<hr/>
+<h2 id="5-comprobación-del-equipo-y-diagnóstico">5. Comprobación del equipo y diagnóstico</h2>
+<h3 id="5-1-diagnóstico-inicial">5.1 Diagnóstico inicial</h3>
+<p>Ve a Configuración → Diagnóstico y reparación y pulsa <strong>Comprobar</strong>. XORA revisa:</p>
+<ul><li>Virtualización, Hypervisor Platform y AEHD.</li><li>GPU, controlador, memoria y temperatura.</li><li>ADB, Android Emulator, imagen del sistema y partición de datos.</li><li>Red del runtime, DNS, almacenamiento y archivos compartidos.</li><li>Estado de Play Store y Servicios de Google cuando la imagen está lista.</li></ul>
+<p>El resultado diferencia entre correcto, advertencia, error y estado desconocido. Un dato que no se puede comprobar no se presenta como correcto de forma artificial.</p>
+<h3 id="5-2-diagnóstico-automático">5.2 Diagnóstico automático</h3>
+<p>El diagnóstico automático revisa el equipo periódicamente. Puede encontrar autorización ADB pendiente, procesos huérfanos, bloqueos, snapshot inválido, disco lleno, conflicto de orientación, red desconectada, sonido desactivado o micrófono bloqueado.</p>
+<p>Cada resultado incluye una explicación, un botón de reparación cuando es seguro y un enlace al capítulo correspondiente de este manual.</p>
+<h3 id="5-3-informe-de-diagnóstico">5.3 Informe de diagnóstico</h3>
+<p>Pulsa <strong>Exportar informe de diagnóstico</strong> para generar un archivo de texto. El informe incluye versiones, configuración técnica, parámetros de arranque y errores recientes, pero excluye contraseñas y tokens.</p>
+<hr/>
+<h2 id="6-soluciones-habituales">6. Soluciones habituales</h2>
+<h3 id="6-1-aceleración-de-hardware-y-arranque-lento">6.1 Aceleración de hardware y arranque lento</h3>
+<p>Si aparece una advertencia de emulación por software:</p>
+<ol><li>Abre Configuración → Diagnóstico y reparación.</li><li>Comprueba si la virtualización aparece desactivada.</li><li>Activa Intel VT-x o AMD SVM en BIOS/UEFI si es necesario.</li><li>En Windows activa Windows Hypervisor Platform y reinicia.</li><li>Ejecuta de nuevo la comprobación y aplica la configuración recomendada.</li></ol>
+<p>Sin aceleración XORA todavía puede iniciar Android, pero el arranque, los juegos y la respuesta gráfica serán más lentos. No fuerces la GPU si el diagnóstico informa que el controlador se cierra.</p>
+<h3 id="6-2-fallos-de-instalación">6.2 Fallos de instalación</h3>
+<ul><li><code>INSTALL_FAILED_INSUFFICIENT_STORAGE</code>: libera espacio en la partición de datos o aumenta su tamaño.</li><li><code>INSTALL_FAILED_VERSION_DOWNGRADE</code>: desinstala la versión superior o instala una versión más reciente.</li><li><code>INSTALL_PARSE_FAILED_*</code>: verifica que el APK esté completo y firmado.</li><li><code>INSTALL_FAILED_NO_MATCHING_ABIS</code>: la aplicación usa una arquitectura no disponible; continúa con 6.3.</li><li>Firma incompatible: desinstala la versión anterior solo si puedes perder sus datos.</li></ul>
+<p>No desactives la validación del paquete ni instales un APK modificado para saltarte un error de firma.</p>
+<h3 id="6-3-aplicaciones-arm-y-detección-del-emulador">6.3 Aplicaciones ARM y detección del emulador</h3>
+<p>Si la aplicación se cierra con <code>NO_MATCHING_ABIS</code>, <code>DoBadTrampoline</code>, <code>libndk_translation</code> o errores de integridad:</p>
+<ol><li>Confirma que el runtime use la imagen oficial Android 14 <code>google_apis_playstore</code>.</li><li>Reinicia Android para que la capa de traducción se cargue desde el inicio.</li><li>Ejecuta el diagnóstico y repara la imagen si el archivo está incompleto.</li><li>Si la aplicación detecta un emulador, revisa sus requisitos de seguridad o contacta con el desarrollador.</li></ol>
+<p>Una comprobación antiemulador o anti depuración puede bloquear una aplicación deliberadamente. Cambiar de imagen no siempre lo resuelve y puede borrar la sesión si se restablecen los datos.</p>
+<h3 id="6-4-autorización-adb">6.4 Autorización ADB</h3>
+<p>Si el diagnóstico muestra <strong>Android sin autorización</strong>:</p>
+<ol><li>Mira la ventana de Android y pulsa <strong>Permitir</strong> en el aviso de depuración USB.</li><li>Marca <strong>Permitir siempre desde este equipo</strong>.</li><li>Si el aviso no aparece, reinicia el runtime.</li><li>Como último recurso, restablece los datos de Android desde Configuración. Esto elimina las aplicaciones instaladas dentro del runtime.</li></ol>
+<p>No borres manualmente las claves de Windows como primera medida: puede impedir que Android reconozca una autorización anterior.</p>
+<h3 id="6-5-xora-no-abre-una-aplicación">6.5 XORA no abre una aplicación</h3>
+<p>Comprueba que el runtime esté listo, que la aplicación aparezca en Biblioteca y que exista espacio libre. Después:</p>
+<ul><li>Detén la aplicación y vuelve a abrirla.</li><li>Ejecuta Diagnóstico y reparación.</li><li>Revisa orientación, snapshot y aceleración.</li><li>Usa Reparar para reinstalar la aplicación conservando la biblioteca.</li><li>Exporta el informe si el problema se repite.</li></ul>
+<h3 id="6-6-tabla-rápida-de-fallos">6.6 Tabla rápida de fallos</h3>
+<div class="tw"><table><thead><tr><th>Síntoma</th><th>Acción recomendada</th></tr></thead><tbody><tr><td>Ventana negra</td><td>Comprueba GPU, controlador y aceleración.</td></tr><tr><td>Arranque detenido</td><td>Espera el primer inicio; luego revisa ADB y snapshot.</td></tr><tr><td>Android sin red</td><td>Ejecuta Reparar red y revisa VPN o firewall.</td></tr><tr><td>Disco lleno</td><td>Limpia archivos recuperables o aumenta la partición.</td></tr><tr><td>Aplicación sin teclado</td><td>Activa Mapeo de teclado y revisa el perfil.</td></tr><tr><td>Mando sin respuesta</td><td>Comprueba que Windows lo detecte y vuelve a Detectar mando.</td></tr><tr><td>Play Store no abre</td><td>Confirma que la imagen sea <code>google_apis_playstore</code> y que la fecha/hora sean correctas.</td></tr></tbody></table></div>
+<h3 id="6-7-la-aplicación-no-tiene-sonido">6.7 La aplicación no tiene sonido</h3>
+<ol><li>Comprueba que el volumen de Android no esté en silencio.</li><li>Revisa Configuración → Rendimiento y recursos → Sonido.</li><li>Comprueba que el servicio de audio de Windows esté en ejecución.</li><li>Reinicia el runtime después de cambiar el audio.</li></ol>
+<p>El sonido y el micrófono son controles independientes. XORA solo usa <code>-no-audio</code> cuando ambos están desactivados.</p>
+<h3 id="6-8-fallo-de-inicio-de-la-versión-de-microsoft-store">6.8 Fallo de inicio de la versión de Microsoft Store</h3>
+<p>El código <code>0xC0000135</code> indica que un proceso no pudo cargar una DLL. <strong>No significa automáticamente que falte VC++, que el antivirus haya borrado un archivo o que debas reinstalar todo.</strong></p>
+<ol><li>Ejecuta Diagnóstico y reparación.</li><li>Revisa la arquitectura x64, las dependencias del paquete y el registro de Windows.</li><li>Si la instalación es de Microsoft Store, usa Reparar o Restablecer desde Configuración de Windows.</li><li>Si el problema continúa, exporta el informe y conserva el código exacto.</li></ol>
+<h3 id="6-9-el-micrófono-no-está-disponible">6.9 El micrófono no está disponible</h3>
+<ol><li>Abre Configuración → Rendimiento y recursos.</li><li>Activa <strong>Entrada de micrófono</strong>.</li><li>Comprueba los permisos de micrófono de Windows para XORA.</li><li>Selecciona un dispositivo de entrada predeterminado en Windows.</li><li>Reinicia Android y ejecuta el diagnóstico.</li></ol>
+<p>La configuración predeterminada mantiene el micrófono habilitado. Desactivarlo ahorra recursos, pero impide llamadas, dictado y grabación.</p>
+<h3 id="6-10-preferencia-de-gpu">6.10 Preferencia de GPU</h3>
+<p>En Configuración → Rendimiento y recursos selecciona <strong>Sistema predeterminado</strong>, <strong>GPU dedicada</strong> o <strong>GPU integrada</strong>. Windows guarda la preferencia por proceso. El cambio puede requerir reiniciar Android y no puede superar una limitación del controlador.</p>
+<hr/>
+<h2 id="7-referencia-de-comandos">7. Referencia de comandos</h2>
+<p>Los accesos directos usan el ejecutable instalado de XORA. Los ejemplos siguientes son orientativos:</p>
+<pre><code>XORA.exe &lt;ruta\aplicacion.apk&gt;
+XORA.exe --launch &lt;nombre.del.paquete&gt;
+XORA.exe --diagnostics</code></pre>
+<p>No ejecutes comandos con rutas recibidas de terceros sin comprobarlas. Para las operaciones normales, usa la interfaz y el proceso principal validado de XORA.</p>
+<hr/>
+<h2 id="8-datos-y-carpetas">8. Datos y carpetas</h2>
+<ul><li>Datos de XORA: <code>%APPDATA%\xora</code> o la carpeta de datos indicada por la instalación.</li><li>Aplicaciones y metadatos: subcarpetas administradas por XORA, no las edites manualmente.</li><li>Runtime: componentes Android y la imagen del sistema.</li><li>Datos de Android: aplicaciones, sesiones, caché y snapshots.</li><li>Carpeta compartida: <code>%USERPROFILE%\XORAShared</code>.</li><li>Informes y registros: accesibles desde Diagnóstico y reparación.</li></ul>
+<p>No borres la carpeta de datos mientras Android esté ejecutándose. Usa las acciones de limpieza de XORA para conservar los archivos necesarios y proteger las aplicaciones.</p>
+<hr/>
+<h2 id="9-ayuda-y-comentarios">9. Ayuda y comentarios</h2>
+<p>Antes de solicitar ayuda, ejecuta el diagnóstico y adjunta el informe sin contraseñas ni tokens. Indica la versión de XORA, la edición instalada, el perfil activo, el modelo de GPU y el código de error exacto.</p>
+<p>El canal de soporte y las notas de versión se encuentran en el repositorio oficial de XORA. Las actualizaciones válidas se verifican mediante firma RSA-SHA256 y hash SHA-512 antes de instalarse.</p>
+</main>
+</div>
+<div class="btnbar"><button onclick="window.print()">Imprimir / guardar como PDF</button></div>
+<script src="i18n.js"></script>
+<script>
+(function () {
+  var input = document.getElementById('tocSearch');
+  var links = Array.prototype.slice.call(document.querySelectorAll('#tocList a'));
+  if (!input) return;
+  input.addEventListener('input', function () {
+    var q = input.value.trim().toLowerCase();
+    links.forEach(function (a) { a.hidden = !!q && a.textContent.toLowerCase().indexOf(q) < 0; });
+  });
+  // Cuando una solución abre un ancla, desplaza la entrada correspondiente
+  // del índice hasta que quede visible.
+  if (location.hash) {
+    var hit = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (hit) setTimeout(function () { hit.scrollIntoView({ block: 'start' }); }, 80);
+  }
+}());
+</script>
+</body>
+</html>

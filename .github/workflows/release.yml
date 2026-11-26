@@ -41,7 +41,7 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           if (-not $tag.StartsWith('v')) { $tag = "v$tag" }
-          node build/zip.js dist/ApkStart-win64-portable "XORA-$tag-win64-portable.zip" --limit-mb 100
+          node build/zip.js dist/XORA-win64-portable "XORA-$tag-win64-portable.zip" --limit-mb 100
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Get-Item "XORA-$tag-win64-portable.zip" | Select-Object Name, Length
 
@@ -53,12 +53,12 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           if (-not $tag.StartsWith('v')) { $tag = "v$tag" }
-          node build/incremental.js dist/ApkStart-win64-portable $tag
+          node build/incremental.js dist/XORA-win64-portable $tag
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       # Manifiesto de seguridad para el actualizador XORA. La clave privada solo
-      # existe como secreto de Actions; si aún no se configura, la publicación
-      # sigue siendo válida pero el cliente la ofrecerá como descarga manual.
+      # existe como secreto de Actions; sin ella no se publica una Release,
+      # porque el cliente no debe ejecutar paquetes sin firma verificable.
       - name: Generar manifiesto firmado de XORA
         shell: pwsh
         env:
@@ -69,12 +69,12 @@ jobs:
           $ver = $tag.TrimStart('v')
           $zip = "XORA-$tag-win64-portable.zip"
           $securityManifest = "XORA-v$ver-update-manifest.json"
-          if ($env:XORA_UPDATE_PRIVATE_KEY) {
-            node build/sign-update-manifest.js --asset $zip --version $ver --platform win32-x64 --channel stable --output $securityManifest --release-notes "https://github.com/elx19/xora-emulator/releases/tag/$tag"
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          } else {
-            Write-Warning "No está configurado XORA_UPDATE_PRIVATE_KEY; esta Release no tendrá actualización automática segura."
+          if (-not $env:XORA_UPDATE_PRIVATE_KEY) {
+            Write-Error "Falta XORA_UPDATE_PRIVATE_KEY; se cancela la publicación insegura."
+            exit 1
           }
+          node build/sign-update-manifest.js --asset $zip --version $ver --platform win32-x64 --channel stable --output $securityManifest --release-notes "https://github.com/elx19/xora-emulator/releases/tag/$tag"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       # 创建 Release 并上传轻量便携版（壳层极小，运行时首次启动按需下载）
       - name: Crear Release de XORA
@@ -105,8 +105,17 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit 1 }
           } elseif (Test-Path $notes) {
             # release 已存在：把最新的手写说明写回去（覆盖那段 Full Changelog）
-            gh release edit $tag --notes-file $notes
+            gh release edit $tag --title "XORA $tag" --notes-file $notes
             if ($LASTEXITCODE -ne 0) { Write-Error "回填 $tag 说明失败"; exit 1 }
+          }
+          # Retirar activos con la identidad histórica para que un reintento no
+          # deje dos nombres del producto visibles en la misma Release.
+          $release = gh api "repos/${{ github.repository }}/releases/tags/$tag" | ConvertFrom-Json
+          $legacyAssets = gh api "repos/${{ github.repository }}/releases/$($release.id)/assets" | ConvertFrom-Json |
+            Where-Object { $_.name -match '^(ApkStart|apkstart)-' }
+          foreach ($legacy in $legacyAssets) {
+            gh api --method DELETE "repos/${{ github.repository }}/releases/assets/$($legacy.id)"
+            if ($LASTEXITCODE -ne 0) { Write-Error "No se pudo retirar el activo histórico $($legacy.name)"; exit 1 }
           }
           $upload = @($zip, $manifest, $appzip)
           if (Test-Path $securityManifest) { $upload += $securityManifest }
@@ -116,6 +125,8 @@ jobs:
             if ($LASTEXITCODE -eq 0) { $ok = $true } else { Start-Sleep -Seconds 15 }
           }
           if (-not $ok) { Write-Error "上传失败: $zip / $manifest / $appzip"; exit 1 }
+          node scripts/verify-release-artifact.js --manifest $securityManifest --asset $zip --platform win32-x64 --channel stable --version $ver
+          if ($LASTEXITCODE -ne 0) { Write-Error "El artefacto publicado no supera la verificación firmada"; exit 1 }
           gh release view $tag --json assets --jq '.assets[].name'
 
       # 同步到 Gitee：国内直连 GitHub 只有几十 KB/s，Gitee 通常能跑几 MB/s。

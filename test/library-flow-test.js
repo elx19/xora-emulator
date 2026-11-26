@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const { mergeInstalledApp } = require('../src/ui/library-state');
+const { normalizeInstallPath } = require('../src/core/installer');
 
 const installed = {
   package: 'com.xora.demo',
@@ -20,4 +21,10 @@ assert.strictEqual(updated[0].versionName, '1.1.0', 'la tarjeta debe mostrar la 
 assert.strictEqual(updated[0].pinned, true, 'la actualización debe conservar preferencias de la biblioteca');
 assert.strictEqual(updated[0].lastLaunchAt, 42, 'la actualización debe conservar el último inicio');
 
-console.log('✓ flujo de biblioteca: inserción inmediata y actualización sin duplicados');
+assert.strictEqual(normalizeInstallPath('  C:\\Apps\\demo.apk  '), 'C:\\Apps\\demo.apk');
+assert.strictEqual(normalizeInstallPath(['C:\\Apps\\demo.apks']), 'C:\\Apps\\demo.apks');
+assert.strictEqual(normalizeInstallPath({ filePath: 'C:\\Apps\\demo.xapk' }), 'C:\\Apps\\demo.xapk');
+assert.throws(() => normalizeInstallPath([]), /APK|archivo|selecciona/i);
+assert.throws(() => normalizeInstallPath('C:\\Apps\\demo.txt'), /APK|formato/i);
+
+console.log('✓ biblioteca e instalación: inserción, actualización y entrada de rutas');

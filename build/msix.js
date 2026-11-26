@@ -58,10 +58,10 @@ const STAGE = path.resolve(String(arg('stage')
 const OUT_DIR = path.resolve(String(arg('out') || path.join(ROOT, 'dist', 'store')));
 
 /**
- * 选「载荷目录」：就是 MSIX 里 `app\` 下面那份 ApkStart.exe + resources。
+ * El payload del MSIX contiene XORA.exe y resources.
  *
  * 两条来源，优先离线那条：
- *   A. dist/ApkStart-win64-portable —— `node build/pack.js` 的产物，**不需要联网**。
+ *   A. dist/XORA-win64-portable —— resultado de `node build/pack.js`.
  *      它只有壳，不带运行时，所以这里额外把 build/runtime 复制进
  *      resources/runtime（就是 electron-builder 的 extraResources 干的事）。
  *   B. dist/release/win-unpacked —— `electron-builder --win dir` 的产物，自带
@@ -73,9 +73,9 @@ const OUT_DIR = path.resolve(String(arg('out') || path.join(ROOT, 'dist', 'store
 function resolvePayload() {
   const explicit = arg('payload');
   if (explicit) return { dir: path.resolve(String(explicit)), addRuntime: false };
-  const portable = path.join(ROOT, 'dist', 'ApkStart-win64-portable');
+  const portable = path.join(ROOT, 'dist', 'XORA-win64-portable');
   const runtime = path.join(ROOT, 'build', 'runtime');
-  if (fs.existsSync(path.join(portable, 'ApkStart.exe'))) {
+  if (fs.existsSync(path.join(portable, 'XORA.exe'))) {
     const hasRuntime = fs.existsSync(path.join(portable, 'resources', 'runtime', 'emulator', 'emulator.exe'));
     return { dir: portable, addRuntime: !hasRuntime && fs.existsSync(runtime), runtime };
   }
@@ -184,7 +184,7 @@ function writeAssets(dir) {
 function manifest() {
   return `<?xml version="1.0" encoding="utf-8"?>
 <!--
-  ApkStart · Microsoft Store (MSIX) 清单
+      XORA · manifiesto de Microsoft Store (MSIX)
   由 build/msix.js 生成，不要手改；改模板请改 build/msix.js。
 
   两个必须和 Partner Center 逐字一致的字段：
@@ -227,13 +227,13 @@ function manifest() {
       刻意不声明 unvirtualizedResources / broadFileSystemAccess：
       前者只给微软及其合作方发行的 PC 游戏，Store 基本不批；后者是给
       AppContainer 应用突破沙箱用的，full-trust 应用本来就是用户身份。
-      为了避开 AppData 写重定向，我们把数据目录放到了 %USERPROFILE%\\ApkStart，
+      Para evitar la redirección de AppData, los datos se guardan en %USERPROFILE%\\XORA,
       完全不进虚拟化范围（见 src/core/store.js 的 STORE_BUILD）。
     -->
   </Capabilities>
 
   <Applications>
-    <Application Id="${APP_ID}" Executable="app\\ApkStart.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="${APP_ID}" Executable="app\\XORA.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="${DISPLAY}"
         Description="${pkg.description || DISPLAY}"
@@ -336,8 +336,8 @@ const { assertStandalone } = require('./guard-standalone');
 function stagePackage() {
   const pick = resolvePayload();
   const appSrc = pick.dir;
-  if (!fs.existsSync(path.join(appSrc, 'ApkStart.exe'))) {
-    console.error(`\n找不到 ${path.join(appSrc, 'ApkStart.exe')}。`);
+  if (!fs.existsSync(path.join(appSrc, 'XORA.exe'))) {
+    console.error(`\nNo se encontró ${path.join(appSrc, 'XORA.exe')}.`);
     console.error('两条路：');
     console.error('  A) node build/pack.js          （离线，推荐；本脚本会自动把 build/runtime 塞进去）');
     console.error('  B) npx electron-builder --win dir --x64 --config electron-builder.yml');
@@ -377,7 +377,7 @@ function stagePackage() {
 }
 
 function main() {
-  console.log(`ApkStart MSIX 打包  版本 ${VERSION} → ${msixVersion(VERSION)}`);
+  console.log(`Paquete MSIX de XORA · versión ${VERSION} → ${msixVersion(VERSION)}`);
   // 身份守卫：占位 Publisher 打出来的包商店一定拒收（0x800B0109 / 身份不匹配）。
   // 光靠文档提醒没用 —— 默认值曾经就是占位值，一次随手重建就把好包覆盖掉了。
   if (!String(PUBLISHER).toUpperCase().includes('58CA1DED') && !process.argv.includes('--allow-placeholder')) {
@@ -451,8 +451,8 @@ function sign(file) {
     console.error('\n找不到 signtool.exe，跳过签名。');
     return;
   }
-  const pfx = path.join(OUT_DIR, 'ApkStart-test.pfx');
-  const pwd = process.env.APKSTART_MSIX_PFX_PASSWORD || 'ApkStart!test';
+  const pfx = path.join(OUT_DIR, 'XORA-test.pfx');
+  const pwd = process.env.XORA_MSIX_PFX_PASSWORD || process.env.APKSTART_MSIX_PFX_PASSWORD || 'XORA!test';
   const subject = PUBLISHER;   // 必须与清单里的 Publisher 逐字一致
   if (!fs.existsSync(pfx)) {
     console.log(`\n生成自签证书（Subject=${subject}）…`);
@@ -461,7 +461,7 @@ function sign(file) {
       `$c = New-SelfSignedCertificate -Type Custom -KeyUsage DigitalSignature`
       + ` -CertStoreLocation 'Cert:\\CurrentUser\\My'`
       + ` -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3','2.5.29.19={text}')`
-      + ` -Subject '${subject}' -FriendlyName 'ApkStart MSIX Test';`
+      + ` -Subject '${subject}' -FriendlyName 'XORA MSIX Test';`
       + `$p = ConvertTo-SecureString -String '${pwd}' -Force -AsPlainText;`
       + `Export-PfxCertificate -Cert ("Cert:\\CurrentUser\\My\\" + $c.Thumbprint) -FilePath '${pfx}' -Password $p | Out-Null;`
       + `"thumbprint=" + $c.Thumbprint`,

@@ -39,7 +39,7 @@ jobs:
             [ -f "$notes" ] || continue
             tag="$(basename "$notes" .md | sed 's/^release-notes-//')"
             count=$((count+1))
-            title="ApkStart $tag"
+            title="XORA $tag"
             body="$(jq -Rs . < "$notes")"
             code="$(curl -sS -o /tmp/rel.json -w '%{http_code}' \
               -H "Authorization: Bearer $GH_TOKEN" \

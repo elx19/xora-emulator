@@ -40,13 +40,13 @@ test('每个主题的锚点都存在于随包 HTML', () => {
 
 test('手册正文包含 0.6.4 版本号与声音章节', () => {
   assert(html.includes('v0.6.4'), '手册应标注 v0.6.4');
-  assert(html.includes('应用没有声音'), '手册应有声音排障章节');
-  assert(html.includes('内置使用手册与自动教程'), '手册应说明自动教程');
+  assert(html.includes('La aplicación no tiene sonido'), '手册应有声音排障章节');
+  assert(html.includes('Manual integrado y tutoriales automáticos'), '手册应说明自动教程');
 });
 
 test('手册有 6.8 商店版 DLL 加载失败章节，且纠正一刀切误判', () => {
-  assert(html.includes('商店版启动失败'), '手册应有 6.8 章节');
-  assert(/不等于.*VC\+\+|不等于.*运行库|不等于.*杀毒/.test(html.replace(/<[^>]+>/g, '')),
+  assert(html.includes('Fallo de inicio de la versión de Microsoft Store'), '手册应有 6.8 章节');
+  assert(/no significa.*VC\+\+|no significa.*runtime|no significa.*antivirus/i.test(html.replace(/<[^>]+>/g, '')),
     '6.8 应明确 0xC0000135 不等于一定缺 VC++');
 });
 

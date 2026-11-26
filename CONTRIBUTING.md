@@ -51,7 +51,7 @@ Si el cambio afecta a la interfaz, comprueba también las ventanas principales y
 Cuando se disponga de un APK de prueba, se puede indicar mediante una variable de entorno:
 
 ```powershell
-$env:APKSTART_TEST_APK = 'C:\ruta\a\una-aplicacion.apk'
+$env:XORA_TEST_APK = 'C:\ruta\a\una-aplicacion.apk'
 npm test
 ```
 

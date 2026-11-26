@@ -9,7 +9,7 @@
 #   below  : app open, still yield to the Windows foreground
 #   normal : user explicitly asked for maximum guest performance
 param(
-  [string]$Avd = 'apkstart',
+  [string]$Avd = 'xora',
   [ValidateSet('idle', 'below', 'normal', 'game')][string]$Level = 'below'
 )
 

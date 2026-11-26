@@ -14,6 +14,7 @@
  */
 
 const { lookup, lookupGamepad, toCommand } = require('./keymap');
+const { InputLatency } = require('./input-latency');
 
 class KeymapEngine {
   /**
@@ -22,10 +23,12 @@ class KeymapEngine {
    * @param {Function} opts.getSize    () => {width, height} — 当前 LCD 尺寸
    * @param {number}   [opts.minInterval=50]  两条命令之间的最小间隔（ms）
    */
-  constructor({ execInput, getSize, minInterval = 50 } = {}) {
+  constructor({ execInput, getSize, minInterval = 50, clock, latency } = {}) {
     this._exec = execInput || (() => Promise.resolve());
     this._getSize = getSize || (() => ({ width: 720, height: 1280 }));
     this._minInterval = minInterval;
+    this._clock = typeof clock === 'function' ? clock : () => Date.now();
+    this._latency = latency || new InputLatency();
     this._lastExec = 0;
     this._enabled = false;
     // pkg → mappings[]
@@ -71,7 +74,7 @@ class KeymapEngine {
   }
 
   /** Procesa una pulsación de mando ya normalizada por el renderer. */
-  async handleGamepad(button, pressed, pkg) {
+  async handleGamepad(button, pressed, pkg, meta = {}) {
     if (!pressed || !this._enabled || !pkg) return false;
     const mappings = this._maps.get(pkg);
     const hit = lookupGamepad(mappings, button);
@@ -79,13 +82,29 @@ class KeymapEngine {
     const { width, height } = this._getSize();
     const cmd = toCommand(hit, width, height);
     if (!cmd) return false;
-    const now = Date.now();
+    const now = this._clock();
     const wait = Math.max(0, this._minInterval - (now - this._lastExec));
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
-    this._lastExec = Date.now();
+    let finishedAt = this._clock();
     try { await this._exec(cmd); } catch (_) { /* input injection is best effort */ }
+    finally {
+      // Medir después de que el comando de entrada se entregue incluye la
+      // espera IPC/ADB del tramo que el usuario realmente percibe.
+      finishedAt = this._clock();
+      this._lastExec = finishedAt;
+    }
+    const sampleAt = Number(meta.sampleAt);
+    const receivedAt = Number.isFinite(sampleAt) ? sampleAt : this._lastExec;
+    this._latency.record({
+      deviceId: meta.deviceId,
+      source: 'gamepad',
+      latencyMs: Math.max(0, finishedAt - receivedAt),
+    });
     return true;
   }
+
+  latencyStats() { return this._latency.snapshot(); }
+  resetLatency() { return this._latency.reset(); }
 }
 
 module.exports = { KeymapEngine };

@@ -64,7 +64,7 @@
       'welcome.openSettings': 'Abrir configuración',
       'welcome.start': 'Comenzar',
       'drop.release': 'Suelta para comenzar la instalación',
-      'drop.support': 'Admite uno o varios archivos .apk',
+      'drop.support': 'Admite uno o varios archivos .apk, .apks o .xapk',
       'search.clear': 'Borrar búsqueda',
       'settings.categories.basic': 'General e instalación',
       'settings.categories.display': 'Pantalla y ventanas',
@@ -296,7 +296,7 @@
   // tocar la lógica de la aplicación.
   const fragments = [
     ['安装完成后会自动生成桌面图标，双击即以独立窗口运行，和普通 Windows 软件一样。', 'Al terminar la instalación se creará un acceso directo en el escritorio. Haz doble clic para ejecutarla en una ventana independiente, como cualquier programa de Windows.'],
-    ['已注册 .apk 关联时，在资源管理器里双击 APK 也会直接装到 ApkStart。', 'Si registras la asociación .apk, al hacer doble clic en un APK desde el Explorador de archivos también se instalará directamente en ApkStart.'],
+    ['已注册 .apk 关联时，在资源管理器里双击 APK 也会直接装到 ApkStart。', 'Si registras la asociación .apk, al hacer doble clic en un APK desde el Explorador de archivos también se instalará directamente en XORA.'],
     ['把 APK 拖进来就能装', 'Arrastra un APK aquí para instalarlo'],
     ['选择 APK 文件', 'Elegir archivo APK'],
     ['未连接运行时', 'Runtime no conectado'],
@@ -310,7 +310,7 @@
     ['剩余不足 8 GB。', 'Quedan menos de 8 GB disponibles.'],
     ['把面板方向改成与策略一致即可。', 'Cambia la orientación del panel para que coincida con la estrategia.'],
     ['安装 Android 到虚拟磁盘', 'Instalar Android en el disco virtual'],
-    ['虚拟机窗口已打开。按下面 6 步操作一次，之后 ApkStart 会直接从磁盘启动，不再需要镜像。', 'La ventana de la máquina virtual está abierta. Sigue estos 6 pasos una sola vez; después ApkStart iniciará directamente desde el disco y ya no necesitará la imagen.'],
+    ['虚拟机窗口已打开。按下面 6 步操作一次，之后 ApkStart 会直接从磁盘启动，不再需要镜像。', 'La ventana de la máquina virtual está abierta. Sigue estos 6 pasos una sola vez; después XORA iniciará directamente desde el disco y ya no necesitará la imagen.'],
     ['我已安装完成', 'Ya terminé la instalación'],
     ['稍后再说', 'Más tarde'],
     ['自动模式（默认，无需设置）', 'Modo automático (predeterminado, no requiere configuración)'],
@@ -342,7 +342,7 @@
     ['横屏面板', 'Panel horizontal'],
     ['窗口承载方式', 'Modo de alojamiento de la ventana'],
     ['原生窗口（默认·推荐）· 模拟器自己开窗口，帧率与缩放最稳', 'Ventana nativa (predeterminada y recomendada) · el emulador abre su propia ventana, con mejor estabilidad de FPS y escala'],
-    ['嵌入模式 · 安卓画面嵌在 ApkStart 窗口里，标题栏带旋转按钮', 'Modo integrado · la pantalla de Android se muestra dentro de ApkStart y la barra incluye un botón de rotación'],
+    ['嵌入模式 · 安卓画面嵌在 ApkStart 窗口里，标题栏带旋转按钮', 'Modo integrado · la pantalla de Android se muestra dentro de XORA y la barra incluye un botón de rotación'],
     ['竖屏画面大小', 'Tamaño de la pantalla vertical'],
     ['小 · 720 × 1280', 'Pequeño · 720 × 1280'],
     ['中 · 900 × 1600', 'Mediano · 900 × 1600'],
@@ -430,7 +430,7 @@
     ['检查中…', 'Comprobando…'],
     ['运行时数据目录（系统镜像 · 已装应用 · 快照）', 'Carpeta de datos del runtime (imagen del sistema · aplicaciones instaladas · instantáneas)'],
     ['安卓数据目录（应用、游戏与快速启动快照）', 'Carpeta de datos de Android (aplicaciones, juegos e instantáneas de inicio rápido)'],
-    ['卸载 ApkStart', 'Desinstalar ApkStart'],
+    ['卸载 ApkStart', 'Desinstalar XORA'],
     ['一键卸载', 'Desinstalar con un clic'],
     ['软件更新', 'Actualización del software'],
     ['当前版本', 'Versión actual'],
@@ -606,14 +606,14 @@
     ['先纠正一个常见误判', 'Primero aclaremos un error común'],
     ['看诊断是不是真的缺 VC++', 'Comprueba si el diagnóstico realmente indica que falta VC++'],
     ['确认没报 VC++、却仍失败', 'Si no indica falta de VC++ pero sigue fallando'],
-    ['完全退出 ApkStart', 'Cierra ApkStart por completo'],
+    ['完全退出 ApkStart', 'Cierra XORA por completo'],
     ['检查杀毒软件', 'Comprueba el antivirus'],
     ['想拿到确切的失败 DLL 名', 'Obtener el nombre exacto de la DLL que falla'],
     ['adb 也崩溃怎么办', 'Qué hacer si adb también se cierra'],
     ['声音与麦克风的关系', 'Relación entre el sonido y el micrófono'],
     ['Windows 音量与输出设备', 'Volumen y dispositivo de salida de Windows'],
     ['应用内音量', 'Volumen dentro de la aplicación'],
-    ['ApkStart 的声音开关', 'Interruptor de sonido de ApkStart'],
+    ['ApkStart 的声音开关', 'Interruptor de sonido de XORA'],
     ['Windows 音频服务', 'Servicio de audio de Windows'],
     ['蓝牙耳机 / 多输出设备', 'Auriculares Bluetooth / varios dispositivos de salida'],
     ['还是没声', 'Si sigue sin haber sonido'],
@@ -638,7 +638,7 @@
     ['路径含中文/特殊字符', 'La ruta contiene caracteres chinos o especiales'],
     ['CPU 缺少指令集', 'La CPU no tiene el conjunto de instrucciones requerido'],
     ['显卡/未知错误', 'Error de GPU o error desconocido'],
-    ['桌面图标显示成 ApkStart 的图标 / 空白图标', 'El icono del escritorio aparece como ApkStart o queda en blanco'],
+    ['桌面图标显示成 ApkStart 的图标 / 空白图标', 'El icono del escritorio aparece como XORA o queda en blanco'],
     ['打印 / 存为 PDF', 'Imprimir / guardar como PDF'],
     ['反馈问题时请附上三样东西', 'Al informar de un problema, adjunta estas tres cosas'],
 
@@ -782,7 +782,7 @@
     ['模拟器原生把左键当成手指点击，按住拖动就是滑动，无需额外Configuración。', 'El emulador nativo trata el botón izquierdo como un toque; mantenerlo pulsado y arrastrar desplaza la pantalla. No requiere configuración adicional.'],
     ['模拟器默认把右键也当成一次点击（容易误触）。开启后右键只执行返回，不再触发点击。', 'Por defecto el emulador también trata el botón derecho como un clic, lo que puede provocar toques accidentales. Al activarlo, el botón derecho solo vuelve atrás.'],
     ['平滑模式把一小段时间内的滚动合并成一次滑动手势，避免逐格抽搐，也不会每格都拉起一个 adb 进程。', 'El modo suave combina los giros realizados en un intervalo corto en un solo gesto, evita movimientos bruscos y no inicia un proceso adb por cada paso.'],
-    ['侧键映射需要全局鼠标钩子。钩子只在ApkStart Ventana de la aplicación处于前台时安装，失焦或Cerrar立即卸载，不会拖慢桌面。', 'El mapeo de los botones laterales necesita un gancho global del ratón. Solo se instala cuando ApkStart está en primer plano y se quita al perder el foco o cerrar la ventana.'],
+    ['侧键映射需要全局鼠标钩子。钩子只在ApkStart Ventana de la aplicación处于前台时安装，失焦或Cerrar立即卸载，不会拖慢桌面。', 'El mapeo de los botones laterales necesita un gancho global del ratón. Solo se instala cuando XORA está en primer plano y se quita al perder el foco o cerrar la ventana.'],
     ['以上映射只在Ventana de la aplicación前台生效；切回桌面或Cerrar窗口后，鼠标行为完全恢复 Windows 原生。', 'Estos mapeos solo funcionan cuando la ventana de la aplicación está en primer plano; al volver al escritorio o cerrar la ventana, el ratón recupera su comportamiento nativo de Windows.'],
     ['扩容是就地做的：Aplicaciones instaladas与存档都保留，只是下次Abrir aplicación会多花十几秒。', 'La ampliación se realiza en el mismo lugar: conserva las aplicaciones instaladas y las partidas, pero la próxima apertura tardará unos segundos más.'],
     ['正在读取驱动…', 'Leyendo controladores…'],
@@ -838,12 +838,12 @@
     ['切换到横屏：正在重启安卓运行时…', 'Cambiando a horizontal: reiniciando el runtime de Android…'],
     ['切换回竖屏：正在重启安卓运行时…', 'Volviendo a vertical: reiniciando el runtime de Android…'],
     ['模拟器原生窗口没能显示，本次临时用内置窗口接管画面', 'No se pudo mostrar la ventana nativa del emulador; esta vez se usará la ventana integrada como alternativa'],
-    ['ApkStart 仍在后台运行', 'ApkStart sigue ejecutándose en segundo plano'],
+    ['ApkStart 仍在后台运行', 'XORA sigue ejecutándose en segundo plano'],
     ['点击托盘图标可重新打开；右键托盘可退出。', 'Haz clic en el icono de la bandeja para volver a abrirlo; usa el botón derecho para salir.'],
-    ['ApkStart 使用手册', 'Manual de usuario de ApkStart'],
+    ['ApkStart 使用手册', 'Manual de usuario de XORA'],
     ['使用手册', 'Manual de usuario'],
     ['自动检测发现新问题', 'El diagnóstico automático encontró nuevos problemas'],
-    ['打开 ApkStart', 'Abrir ApkStart'],
+    ['打开 ApkStart', 'Abrir XORA'],
     ['还没有安装应用', 'Todavía no hay aplicaciones instaladas'],
     ['关闭当前应用（', 'Cerrar la aplicación actual ('],
     ['关闭当前应用', 'Cerrar la aplicación actual'],
@@ -878,7 +878,7 @@
     ['快捷方式已补齐', 'Se completaron los accesos directos'],
     ['自动检测发现新问题：', 'El diagnóstico automático encontró nuevos problemas: '],
     ['（设置 → 诊断与修复）', '(Configuración → Diagnóstico y reparación)'],
-    ['。打开 ApkStart 的「设置 → 诊断与修复」可以一键处理。', '. Abre «Configuración → Diagnóstico y reparación» en ApkStart para resolverlos con un clic.'],
+    ['。打开 ApkStart 的「设置 → 诊断与修复」可以一键处理。', '. Abre «Configuración → Diagnóstico y reparación» en XORA para resolverlos con un clic.'],
     ['请到「设置 → 系统集成」把安卓数据目录/运行时目录改到其他盘，或先清理磁盘。', 'Ve a «Configuración → Integración del sistema» para cambiar las carpetas de datos/runtime a otra unidad, o libera espacio primero.'],
     ['运行时已自动准备完成', 'El runtime terminó de prepararse automáticamente'],
 
@@ -928,8 +928,8 @@
     [' 分钟检测一次', ' minutos'],
     ['后台会定时检查，发现新问题才提醒', 'Se comprobará periódicamente en segundo plano y solo se avisará al encontrar problemas nuevos'],
     ['随时可以点「立即检测」手动跑一次', 'Puedes pulsar «Detectar ahora» en cualquier momento para hacerlo manualmente'],
-    ['ApkStart — 安卓应用运行器', 'ApkStart — lanzador de aplicaciones Android'],
-    ['ApkStart ${info.tag} 已发布，当前版本', 'ApkStart ${info.tag} ya está publicada; la versión actual es'],
+    ['ApkStart — 安卓应用运行器', 'XORA — lanzador de aplicaciones Android'],
+    ['ApkStart ${info.tag} 已发布，当前版本', 'XORA ${info.tag} ya está publicada; la versión actual es'],
     ['已发布，当前版本', 'ya está publicada; la versión actual es'],
     ['使用手册 · 目录', 'Manual de usuario · Índice'],
     ['未启用硬件加速 / 开机很慢', 'Aceleración de hardware desactivada / inicio lento'],
@@ -967,7 +967,7 @@
     ['策略要求横屏，但面板现在是竖屏，看剧/游戏会是一条竖着的窄画面。把面板方向改成与策略一致即可。', 'La estrategia exige orientación horizontal, pero el panel está vertical. Las series y los juegos se verán en una franja estrecha. Cambia la orientación del panel para que coincida con la estrategia.'],
     ['原生窗口由模拟器自己开窗，全屏由它自己决定，不受这里的开关控制。想铺满屏幕可在窗口里按 F11，或把窗口承载方式改成嵌入模式。', 'La ventana nativa la crea el emulador y él decide la pantalla completa; este interruptor no la controla. Para llenar la pantalla, pulsa F11 en la ventana o cambia el modo de alojamiento a integrado.'],
     ['当前磁盘余量不到 4 GB，快照又被关掉：打开应用会走一次完整冷启动（十几秒）。磁盘够的话建议重新打开快照。', 'Quedan menos de 4 GB y las instantáneas están desactivadas: abrir una aplicación hará un arranque en frío completo (unos segundos). Si hay espacio suficiente, se recomienda volver a activarlas.'],
-    ['安卓声音开关被关掉了，所以只有 ApkStart 里的应用没声音。点「处理」重新打开，并重启一次运行时即可。', 'El sonido de Android está desactivado, por eso solo las aplicaciones de ApkStart no tienen sonido. Pulsa «Reparar» para activarlo de nuevo y reinicia el runtime.'],
+    ['安卓声音开关被关掉了，所以只有 ApkStart 里的应用没声音。点「处理」重新打开，并重启一次运行时即可。', 'El sonido de Android está desactivado, por eso solo las aplicaciones de XORA no tienen sonido. Pulsa «Reparar» para activarlo de nuevo y reinicia el runtime.'],
     ['这会连系统其它软件一起没声音。到 services.msc 启动 Windows Audio 并设为自动，或在管理员 PowerShell 里执行 net start Audiosrv。', 'Esto también silencia el resto del sistema. Abre services.msc, inicia Windows Audio y configúralo como automático, o ejecuta «net start Audiosrv» en PowerShell como administrador.'],
     ['应用里的语音、通话、录音会失败（查不到录音设备）。点「处理」重新打开并重启一次运行时即可；同时确认 Windows 的麦克风权限已允许桌面应用访问。', 'La voz, las llamadas y las grabaciones de las aplicaciones fallarán porque no se detecta el dispositivo de entrada. Pulsa «Reparar» para activarlo y reinicia el runtime; confirma también que Windows permita el acceso al micrófono a las aplicaciones de escritorio.'],
     ['安卓侧解析或联网失败，视频/资讯类应用会一直转圈。可以用「修复网络」重置安卓数据解决（应用清单会保留）。', 'Android no puede resolver nombres o conectarse a Internet y las aplicaciones de vídeo o noticias se quedan cargando. Usa «Reparar red» para restablecer los datos de Android (se conservará la lista de aplicaciones).'],
@@ -990,13 +990,13 @@
     ['命中：', 'Coincidencias: '],
     ['部分 AMD 核显 + 老驱动下，-gpu host 能通过 emulator 自检，但 guest 起来十几秒后进程直接崩溃（日志里只有 AEHD is operational）。把渲染后端固定成 swangle 可以绕过，代价是帧率略低。', 'Con algunas GPU integradas AMD y controladores antiguos, -gpu host supera la autocomprobación del emulador, pero el proceso se cierra después de unos segundos al iniciar el sistema invitado (los registros solo muestran «AEHD is operational»). Fijar el renderizado en swangle evita el problema, a cambio de algo de velocidad.'],
     ['老款 Intel 核显（HD / UHD 6xx 之前）在部分驱动版本上会出现 GLES 初始化失败或花屏。把渲染后端固定为 software，画面一定能出来。', 'En GPU integradas Intel antiguas (anteriores a HD / UHD 6xx), algunas versiones del controlador pueden provocar un fallo al iniciar GLES o una imagen distorsionada. Fijar el renderizado en software permite mostrar la imagen.'],
-    ['机器没开「虚拟机监控程序平台」、也不允许装内核驱动时，emulator 走硬件加速会直接失败。这个补丁让 ApkStart 一开始就用软件模拟（-accel off），省掉两轮白等；同时把渲染后端换成 software，避免 GL 初始化失败。', 'Si el equipo no tiene activada la «Plataforma de hipervisor de Windows» y no permite instalar el controlador del kernel, la aceleración de hardware del emulador falla. Este parche inicia ApkStart con emulación por software (-accel off), evita dos esperas y usa software para evitar fallos de inicialización de GL.'],
+    ['机器没开「虚拟机监控程序平台」、也不允许装内核驱动时，emulator 走硬件加速会直接失败。这个补丁让 ApkStart 一开始就用软件模拟（-accel off），省掉两轮白等；同时把渲染后端换成 software，避免 GL 初始化失败。', 'Si el equipo no tiene activada la «Plataforma de hipervisor de Windows» y no permite instalar el controlador del kernel, la aceleración de hardware del emulador falla. Este parche inicia XORA con emulación por software (-accel off), evita dos esperas y usa software para evitar fallos de inicialización de GL.'],
     ['如果画面正常但游戏很卡，可以在设置里把「画质」调成 540×960', 'Si la imagen se ve bien pero el juego va lento, cambia «Calidad de imagen» a 540×960 en Configuración'],
     ['确认可用后，把 enabled 改成 true 或删掉这一行，就能自动生效', 'Cuando confirmes que funciona, cambia enabled a true o elimina esa línea para activarlo automáticamente'],
     ['画面能出来但游戏会卡：这类机器更适合玩轻量应用', 'La imagen aparece, pero los juegos pueden ir lentos: estos equipos son más adecuados para aplicaciones ligeras'],
     ['软件模拟比硬件加速慢 5~10 倍，能开虚拟化时建议还是去「Windows 功能」里勾上虚拟机平台', 'La emulación por software es entre 5 y 10 veces más lenta que la aceleración de hardware. Si puedes activar la virtualización, marca la plataforma de máquina virtual en «Funciones de Windows»'],
     ['示例：把 gpuMode 改成 host / software 或打开 forceTcg 试试', 'Ejemplo: cambia gpuMode a host / software o activa forceTcg para probar'],
-    ['由 ApkStart「导出本机模板」生成：match 已经按这台机器填好，按需修改 effect 即可。', 'Generado por «Exportar plantilla de este equipo» de ApkStart: match ya está configurado para esta máquina; modifica effect según sea necesario.'],
+    ['由 ApkStart「导出本机模板」生成：match 已经按这台机器填好，按需修改 effect 即可。', 'Generado por «Exportar plantilla de este equipo» de XORA: match ya está configurado para esta máquina; modifica effect según sea necesario.'],
     ['驱动已导入并启用', 'Controlador importado y activado'],
     ['驱动没写成功', 'No se pudo guardar el controlador'],
     ['打不开驱动目录', 'No se pudo abrir la carpeta de controladores'],
@@ -1098,11 +1098,15 @@
           translated = catalogTranslated === null ? fragmentTranslated : catalogTranslated;
         }
       }
-      if (translated === null) return source.replace(/\bApkStart\b/g, 'XORA');
+      const normalizeBrand = (value) => String(value)
+        .replace(/\bApkStart\b/gi, 'XORA')
+        .replace(/%APPDATA%\\apkstart\b/gi, '%APPDATA%\\XORA')
+        .replace(/\\apkstart\\/gi, '\\XORA\\');
+      if (translated === null) return normalizeBrand(source);
 
       const prefix = source.slice(0, source.indexOf(trimmed));
       const suffix = source.slice(source.indexOf(trimmed) + trimmed.length);
-      return prefix + String(translated).replace(/\bApkStart\b/g, 'XORA') + suffix;
+      return prefix + normalizeBrand(translated) + suffix;
     }
 
     function apply(rootNode = doc) {

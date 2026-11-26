@@ -11,25 +11,25 @@
 
 /** 章节 id 与 src/ui/manual.html 的锚点一一对应（由 docs/build-manual-html.py 生成） */
 const TOPICS = Object.freeze({
-  overview: { id: 'overview', anchor: 'apkstart-产品使用手册与问题解决方案', title: '使用手册 · 目录' },
-  accel: { id: 'accel', anchor: '6-1-提示-未启用硬件加速-开机很慢', title: '未启用硬件加速 / 开机很慢' },
-  install: { id: 'install', anchor: '6-2-安装失败-install_failed_', title: '安装失败（INSTALL_FAILED_*）' },
-  arm: { id: 'arm', anchor: '6-3-系统镜像没有-arm-转译层-arm-应用装不上或闪退', title: 'ARM 转译层 / ARM 应用装不上' },
-  adb: { id: 'adb', anchor: '6-4-adb-未授权-允许-usb-调试', title: 'adb 未授权（允许 USB 调试）' },
-  startup: { id: 'startup', anchor: '6-5-双击图标没反应-一直转圈-出现带旋转按钮的窗口', title: '打不开 / 带旋转按钮的窗口' },
-  other: { id: 'other', anchor: '6-6-其它启动类问题速查表', title: '其它启动类问题速查表' },
-  sound: { id: 'sound', anchor: '6-7-应用没有声音-声音很小', title: '应用没有声音 / 声音很小' },
-  dll: { id: 'dll', anchor: '6-8-商店版启动失败-0xc0000135-dll-加载失败', title: '商店版启动失败 / 0xC0000135（DLL 加载失败）' },
-  mic: { id: 'mic', anchor: '6-9-应用用不到麦克风-无法语音通话录音', title: '应用用不到麦克风 / 无法语音通话录音' },
-  gpu: { id: 'gpu', anchor: '6-10-独显-核显渲染-显卡偏好', title: '独显 / 核显渲染（显卡偏好）' },
-  diagnose: { id: 'diagnose', anchor: '5-4-内置使用手册与自动教程', title: '内置手册与自动教程' },
-  settings: { id: 'settings', anchor: '3-6-设置页导航', title: '设置页导航' },
-  storage: { id: 'storage', anchor: '8-数据与目录说明', title: '数据与目录说明' },
-  network: { id: 'network', anchor: '5-2-自动检测-自动-debug', title: '自动检测与网络修复' },
+  overview: { id: 'overview', anchor: 'xora-manual-de-uso-y-solución-de-problemas', title: 'Manual · índice' },
+  accel: { id: 'accel', anchor: '6-1-aceleración-de-hardware-y-arranque-lento', title: 'Aceleración de hardware y arranque lento' },
+  install: { id: 'install', anchor: '6-2-fallos-de-instalación', title: 'Fallos de instalación' },
+  arm: { id: 'arm', anchor: '6-3-aplicaciones-arm-y-detección-del-emulador', title: 'Aplicaciones ARM y detección del emulador' },
+  adb: { id: 'adb', anchor: '6-4-autorización-adb', title: 'Autorización ADB' },
+  startup: { id: 'startup', anchor: '6-5-xora-no-abre-una-aplicación', title: 'XORA no abre una aplicación' },
+  other: { id: 'other', anchor: '6-6-tabla-rápida-de-fallos', title: 'Tabla rápida de fallos' },
+  sound: { id: 'sound', anchor: '6-7-la-aplicación-no-tiene-sonido', title: 'La aplicación no tiene sonido' },
+  dll: { id: 'dll', anchor: '6-8-fallo-de-inicio-de-la-versión-de-microsoft-store', title: 'Fallo de inicio de Microsoft Store' },
+  mic: { id: 'mic', anchor: '6-9-el-micrófono-no-está-disponible', title: 'El micrófono no está disponible' },
+  gpu: { id: 'gpu', anchor: '6-10-preferencia-de-gpu', title: 'Preferencia de GPU' },
+  diagnose: { id: 'diagnose', anchor: '3-6-manual-integrado-y-tutoriales-automáticos', title: 'Manual integrado y tutoriales automáticos' },
+  settings: { id: 'settings', anchor: '5-comprobación-del-equipo-y-diagnóstico', title: 'Comprobación del equipo y diagnóstico' },
+  storage: { id: 'storage', anchor: '8-datos-y-carpetas', title: 'Datos y carpetas' },
+  network: { id: 'network', anchor: '5-2-diagnóstico-automático', title: 'Diagnóstico automático y red' },
 });
 
 // 反模拟 / 安全校验导致的启动退出也归到 6.3：该章节末尾已说明这类应用属于限制。
-const ARM_RE = /NO_MATCHING_ABIS|DoBadTrampoline|libndk_translation|UnsatisfiedLinkError|arm64-v8a|armeabi-v7a|ARM 翻译层|ARM 转译层|反模拟|反仿真|反调试|anti[-_ ]?emulat|emulator.?detect|safetynet|play.?integrity/i;
+const ARM_RE = /NO_MATCHING_ABIS|DoBadTrampoline|libndk_translation|UnsatisfiedLinkError|arm64-v8a|armeabi-v7a|ARM 翻译层|ARM 转译层|反模拟|反仿真|反调试|anti[-_ ]?emulat|emulator.?detect|safetynet|play.?integrity|traducción ARM|bibliotecas ARM|antiemulación|antidepuración|detectó un emulador|compatibilidad.*ARM/i;
 const ADB_RE = /ADB_UNAUTHORIZED|unauthorized|允许 USB 调试|调试授权/i;
 const SOUND_RE = /audio|AUDIO|sound|声音|音量|静音|Audiosrv/i;
 // 0xC0000135 / DLL 加载失败： Decimal 3221225781 也要认，诊断里两种写法都出现

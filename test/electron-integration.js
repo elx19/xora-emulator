@@ -65,7 +65,7 @@ app.whenReady().then(async () => {
     step('删除 .lnk', !fs.existsSync(lnk));
 
     // 3. 真实 APK 图标 → ICO
-    const fixture = process.env.APKSTART_TEST_APK
+    const fixture = process.env.XORA_TEST_APK || process.env.APKSTART_TEST_APK
       || (() => {
         try {
           const dl = path.join(process.env.USERPROFILE || '', 'Documents');

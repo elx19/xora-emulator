@@ -1,6 +1,6 @@
 # Guía de paquete MSIX de XORA
 
-Esta guía describe cómo preparar el paquete de Microsoft Store. El nombre visible del producto es **XORA**; `ApkStart` se conserva únicamente en los nombres técnicos de los artefactos y rutas heredadas del empaquetado.
+Esta guía describe cómo preparar el paquete de Microsoft Store. El nombre visible y técnico del producto es **XORA**.
 
 ## Identidad
 
@@ -49,9 +49,9 @@ Add-AppxPackage -Path dist\store\XORA_0.6.4.0_x64.msix
 - Versión portátil: `%APPDATA%\XORA\runtime`.
 - Versión MSIX: `%USERPROFILE%\XORA\data`.
 - Aplicaciones, snapshots y ajustes: dentro de la carpeta de datos del usuario.
-- Complementos de Google: opcionales y separados del paquete principal.
+- Google Play Store y Servicios de Google: incluidos y verificados en la imagen oficial predeterminada. Play Juegos queda como complemento opcional.
 
-La primera ejecución puede expandir la imagen local y tardar más que los siguientes arranques. No se descargan APK propietarios de Google de forma automática.
+La primera ejecución puede expandir la imagen local y tardar más que los siguientes arranques. La imagen oficial contiene Play Store y Servicios de Google; cualquier paquete adicional debe respetar sus licencias aplicables.
 
 ## Publicación
 

@@ -1,11 +1,11 @@
 'use strict';
 
 /**
- * Contrato local para complementos opcionales de Android.
+ * Contrato local para componentes de Android incluidos y complementos opcionales.
  *
- * XORA no descarga ni distribuye binarios de Google: el usuario debe aportar
- * un paquete con licencia compatible con su imagen. Este módulo solo valida
- * identidad, estado y metadatos antes de que el proceso principal lo instale.
+ * La imagen oficial predeterminada aporta Play Store y Servicios de Google.
+ * Este módulo solo valida identidad, estado y metadatos; los APK aportados
+ * manualmente se aceptan para reparación o compatibilidad con su licencia.
  */
 const crypto = require('crypto');
 
@@ -89,6 +89,14 @@ function normalizeRecords(raw) {
 }
 
 function actionsFor(addon, record) {
+  // Estos paquetes forman parte de la imagen oficial. No se pueden quitar
+  // desde XORA: si Android los pierde, la acción correcta es reparar la
+  // imagen o reinstalar el APK firmado correspondiente.
+  if (addon.preinstalled) {
+    if (record.state === 'repair_required' || record.state === 'failed') return ['repair'];
+    if (record.state === 'installing') return ['cancel'];
+    if (record.state === 'installed') return [];
+  }
   switch (record.state) {
     case 'installed': return ['repair', 'uninstall'];
     case 'update_available': return ['update', 'repair', 'uninstall'];
@@ -105,16 +113,16 @@ function listAddons(rawState = {}, options = {}) {
   const records = normalizeRecords(rawState);
   return BUILTIN_ADDONS.map((addon) => {
     const hasRecord = Object.prototype.hasOwnProperty.call(records, addon.id);
-    const record = hasRecord
-      ? records[addon.id]
-      : (options.playImageReady && addon.preinstalled
-        ? {
-          state: 'installed',
-          packageName: addon.packageName,
-          version: 'incluido',
-          source: 'runtime-image',
-        }
-        : { state: 'not_installed' });
+    const saved = hasRecord ? records[addon.id] : null;
+    const record = options.playImageReady && addon.preinstalled
+      && (!saved || ['not_installed', 'available'].includes(saved.state))
+      ? {
+        state: 'installed',
+        packageName: addon.packageName,
+        version: 'incluido',
+        source: 'runtime-image',
+      }
+      : (saved || { state: 'not_installed' });
     return {
       ...clone(addon),
       ...clone(record),
@@ -141,6 +149,9 @@ function transitionAddon(rawState, id, nextState, patch = {}) {
   if (!ADDON_STATES.includes(nextState)) throw new Error('Estado de complemento inválido');
   const records = normalizeRecords(rawState);
   const current = records[addon.id] || { state: 'not_installed' };
+  if (addon.preinstalled && nextState === 'not_installed' && current.state === 'installed') {
+    throw new Error('Este componente viene incluido en la imagen y no se puede desinstalar');
+  }
   if (current.state !== nextState && !TRANSITIONS[current.state]?.has(nextState)) {
     throw new Error(`Transición de complemento no permitida: ${current.state} → ${nextState}`);
   }

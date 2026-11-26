@@ -79,7 +79,7 @@ Each app gets its own Desktop and Start menu shortcut with its real icon
 Apps run in their own window, with full-screen and resizable window mode
 Portrait and landscape apps are detected and filled to the correct aspect ratio
 Windows Search finds installed Android apps by name
-A shared folder syncs both ways between Windows and /sdcard/ApkStartShared
+A shared folder syncs both ways between Windows and /sdcard/XORAShared
 The full runtime ships in the package — nothing executable is downloaded at runtime
 Shell has zero third-party dependencies; the runtime starts on demand and is reclaimed when idle
 No virtual network adapter and no kernel driver — Android uses the host connection

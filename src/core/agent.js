@@ -229,10 +229,11 @@ class WinAgent extends EventEmitter {
   }
   /**
    * 把模拟器原生窗口的标题从 "Android Emulator - apkstart:5554" 改成用户看得懂的名字。
-   * 传空串时默认 "ApkStart"。代理会在巡检里持续补设（Qt 偶尔会自己改回去）。
+   * Si se pasa una cadena vacía, usa «XORA». El agente lo reaplica porque Qt
+   * ocasionalmente restaura su título interno.
    */
-  async setTitle(text = 'ApkStart') {
-    return this.call({ cmd: 'title', text: String(text || 'ApkStart') }, 4000);
+  async setTitle(text = 'XORA') {
+    return this.call({ cmd: 'title', text: String(text || 'XORA') }, 4000);
   }
   /**
    * 给模拟器原生窗口设图标（独立窗口模式下任务栏/Alt+Tab 显示当前应用图标）。

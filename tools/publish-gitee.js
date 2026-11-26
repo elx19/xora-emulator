@@ -186,7 +186,7 @@ async function upload(releaseId, file, attempts = 3) {
   if (process.argv.includes('--replace')) {
     console.log('2) 清理同名旧附件');
     const list = await api('GET', `/releases/${rel.id}/attach_files`);
-    const olds = (Array.isArray(list) ? list : []).filter((a) => /^ApkStart-.*\.zip(\.part\d+)?$/i.test(a.name || ''));
+    const olds = (Array.isArray(list) ? list : []).filter((a) => /^(ApkStart|apkstart)-.*\.zip(\.part\d+)?$/i.test(a.name || ''));
     for (const a of olds) {
       // eslint-disable-next-line no-await-in-loop
       await api('DELETE', `/releases/${rel.id}/attach_files/${a.id}`);

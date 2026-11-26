@@ -5,7 +5,7 @@
  * 三个形态都要照顾到：
  *   - 安装版（NSIS）：下载 `XORA-x.y.z-Setup.exe`，静默安装（/S）；
  *   - 轻量版（便携 zip，运行时按需下载）：下载 `XORA-vX-win64-portable.zip`，
- *     解压后覆盖程序目录 —— 运行时目录（%APPDATA%\apkstart\runtime）与已装应用、
+ *     解压后覆盖程序目录 —— 运行时目录（%APPDATA%\XORA\runtime）与已装应用、
  *     快照全都在用户目录里，替换程序文件不会动它们；
  *   - 完整版（便携但带 runtime）：同轻量版，只是目录里多了 resources\runtime。
  *
@@ -444,7 +444,7 @@ class Updater {
         return fs.existsSync(path.join(payload, 'resources', 'app', 'package.json'));
       }
       // 完整载荷：程序主 exe 必须在。没有说明解压中断/被杀软删过。
-      const exeName = path.basename(this.exePath || 'ApkStart.exe');
+      const exeName = path.basename(this.exePath || 'XORA.exe');
       return !!findInDir(payload, exeName);
     } catch (_) {
       return false;

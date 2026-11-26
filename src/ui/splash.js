@@ -1,5 +1,5 @@
 'use strict';
-/* ApkStart 开机动画脚本：接收主进程的进度更新，控制淡出 */
+/* Animación de inicio de XORA: recibe el progreso y controla el cierre. */
 
 const api = window.apkstartSplash;
 if (!api) { /* preload 未注入时静默退出 */ }
@@ -20,13 +20,13 @@ Promise.all([
   // 用户抱怨的就是「装了 850MB 还在下镜像」，实际那只是把包里的压缩镜像
   // 展开到用户目录，不需要联网。
   if (bundled) {
-    if ($('firstRunTitle')) $('firstRunTitle').textContent = '首次启动 · 本地准备中（无需联网）';
+    if ($('firstRunTitle')) $('firstRunTitle').textContent = 'Primer inicio · preparación local (sin conexión)';
     if ($('firstRunList')) {
       $('firstRunList').innerHTML = [
-        '<li>运行时组件已随安装包内置，不再下载任何东西</li>',
-        '<li>把系统镜像展开到用户目录（约 1 分钟，只需一次）</li>',
-        '<li>准备硬件加速与中文输入法</li>',
-        '<li>完成后双击 APK 或桌面图标即可秒开应用</li>',
+        '<li>El runtime ya está incluido; no se descarga nada</li>',
+        '<li>Preparar la imagen en tu carpeta de usuario (solo una vez)</li>',
+        '<li>Configurar aceleración y entrada de texto</li>',
+        '<li>Después podrás abrir APK o accesos directos</li>',
       ].join('');
     }
   }

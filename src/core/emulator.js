@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Emulator 引擎：驱动 Google 官方 Android Emulator 作为 ApkStart 的运行时。
+ * Motor de emulación: ejecuta el Android Emulator oficial como runtime de XORA.
  *
  * 与旧版最大的不同：这里不再假设「一套参数在所有电脑上都能跑」。
  *  1. 用 doctor.chooseProfile() 按内存/CPU/磁盘/加速状态/引擎版本自动推导参数；
@@ -18,9 +18,10 @@ const { Provisioner } = require('./provision');
 const doctor = require('./doctor');
 const drivers = require('./drivers');
 const userdata = require('./userdata');
+const { migrateLegacyAvd } = require('./identity');
 
-const AVD_NAME = 'apkstart';
-const SNAPSHOT_NAME = 'apkstart';
+const AVD_NAME = 'xora';
+const SNAPSHOT_NAME = 'xora';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -395,6 +396,9 @@ class EmulatorEngine {
     heapMB = 256, accel = 'auto', snapshot = true, wipe = false, lcd = null,
   } = {}) {
     const p = this.provisioner.ensureDirs();
+    // Las instalaciones anteriores usaban apkstart.avd. Renombrarlo una sola
+    // vez evita perder aplicaciones, sesiones y snapshots al cambiar a XORA.
+    migrateLegacyAvd(p.avdHome);
     const home = p.avdHome;
     const avdDir = path.join(home, `${AVD_NAME}.avd`);
     fs.mkdirSync(avdDir, { recursive: true });
@@ -630,7 +634,7 @@ class EmulatorEngine {
    * 设成 'en-US' 或 'off' 就回到镜像原生英文。
    */
   _guestLocale() {
-    const v = String(this.settings?.engine?.locale || 'zh-CN').trim();
+    const v = String(this.settings?.engine?.locale || 'es-ES').trim();
     if (!v || v === 'off' || /^false$/i.test(v)) return '';
     return v;
   }

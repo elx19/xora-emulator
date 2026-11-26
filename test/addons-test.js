@@ -35,6 +35,8 @@ assert.strictEqual(playImage[0].source, 'runtime-image');
 assert.strictEqual(playImage[2].state, 'installed');
 assert.strictEqual(playImage[2].source, 'runtime-image');
 assert.strictEqual(playImage[1].state, 'not_installed');
+assert.deepStrictEqual(playImage[0].actions, [], 'Play Store incluido no debe ofrecer desinstalación ni instalación manual');
+assert.deepStrictEqual(playImage[2].actions, [], 'Servicios de Google incluidos no deben ofrecer desinstalación ni instalación manual');
 
 const installed = listAddons({
   records: {
@@ -45,8 +47,12 @@ const installed = listAddons({
   },
 });
 assert.strictEqual(installed[0].state, 'installed');
-assert.deepStrictEqual(installed[0].actions, ['repair', 'uninstall']);
+assert.deepStrictEqual(installed[0].actions, []);
 assert.strictEqual(installed[0].version, '42');
+const repair = listAddons({ records: {
+  'google-play-store': { state: 'repair_required', packageName: 'com.android.vending' },
+} });
+assert.deepStrictEqual(repair[0].actions, ['repair']);
 
 assert.strictEqual(validateAddonRecord({
   state: 'installed', packageName: 'com.android.vending', version: '1', sha256: 'b'.repeat(64),
@@ -59,6 +65,11 @@ assert.strictEqual(transitionAddon({}, 'google-play-store', 'installing').state,
 assert.strictEqual(transitionAddon({}, 'google-play-store', 'available').state, 'available');
 assert.strictEqual(transitionAddon({ records: { 'google-play-store': { state: 'installing' } } }, 'google-play-store', 'installed').state, 'installed');
 assert.strictEqual(transitionAddon({ records: { 'google-play-store': { state: 'installed' } } }, 'google-play-store', 'installing').state, 'installing');
+assert.throws(
+  () => transitionAddon({ records: { 'google-play-store': { state: 'installed', source: 'runtime-image' } } }, 'google-play-store', 'not_installed'),
+  /incluido|desinstalar|transici/i,
+  'un componente incluido no debe poder eliminarse',
+);
 assert.throws(() => transitionAddon({}, 'unknown', 'installed'), /complemento|addon/i);
 assert.throws(() => transitionAddon({ records: { 'google-play-store': { state: 'not_installed' } } }, 'google-play-store', 'installed'), /instalando|transici/i);
 

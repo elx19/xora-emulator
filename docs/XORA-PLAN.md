@@ -2,7 +2,7 @@
 
 **Nombre del producto:** XORA  
 **Descripción:** emulador Android de escritorio ligero, fluido y sencillo de configurar.  
-**Estado:** implementación funcional completada sobre la base técnica de la versión 0.6.4; quedan validaciones externas de publicación y hardware.
+**Estado:** implementación funcional completada sobre la base técnica de la versión 0.6.4; quedan validaciones externas de hardware, firma del instalador y reglas de GitHub.
 **Repositorio objetivo:** privado en GitHub; la confirmación de privacidad y protección de `main` queda como tarea administrativa.
 
 ## Estado de implementación
@@ -16,16 +16,16 @@
 - [x] Panel inicial de controles: mando, asignaciones, teclado, mouse, DPI y perfiles guardados.
 - [x] Integración de mapeos por aplicación, eventos de mando compatibles y mediciones en vivo del runtime.
 - [x] Ajustes avanzados del runtime expuestos en módulos dedicados.
-- [x] Complementos opcionales de Google Play y Servicios de Google con instalación aportada por el usuario.
+- [x] Imagen oficial de Android 14 con Google Play Store y Servicios de Google incluidos por defecto; Play Juegos queda como complemento opcional.
 - [x] Contrato de manifiesto firmado, canales de actualización, hash y estado de rollback.
-- [x] Secreto `XORA_UPDATE_PRIVATE_KEY` configurado en GitHub Actions; falta ejecutar una Release real para validarlo de extremo a extremo.
-- [ ] Ejecutar una publicación final en GitHub y comprobar una actualización firmada de extremo a extremo.
+- [x] Secreto `XORA_UPDATE_PRIVATE_KEY` configurado en GitHub Actions y Release `v0.6.4` comprobada con firma y SHA-512.
+- [x] Verificador offline de artefactos integrado en CI para bloquear nombres, versión, firma y hash incorrectos.
 
 ## 1. Objetivo del producto
 
 XORA debe permitir ejecutar aplicaciones Android en una computadora con una configuración mínima y entendible. La prioridad es ofrecer una experiencia fluida usando pocos recursos, con perfiles automáticos para distintos equipos y controles preparados para juegos.
 
-XORA será la aplicación principal. Google Play, Google Play Juegos y los Servicios de Google serán complementos opcionales e instalables por separado. La aplicación debe funcionar sin esos complementos cuando la aplicación Android no los necesite.
+XORA será la aplicación principal. La imagen Android predeterminada incluye Google Play Store y los Servicios de Google para que el usuario pueda iniciar sesión y descargar aplicaciones desde el primer arranque. Google Play Juegos y otros paquetes adicionales se mantienen como complementos opcionales. La disponibilidad de los componentes de Google depende de la imagen oficial seleccionada y de sus condiciones de distribución.
 
 ### Principios
 
@@ -114,9 +114,9 @@ Cada perfil define memoria, número de núcleos, resolución, DPI, densidad, lí
 ### 2.8 Complementos de Google
 
 - Catálogo separado de complementos disponibles.
-- Google Play Store.
-- Google Play Juegos.
-- Servicios de Google.
+- Google Play Store incluido en la imagen predeterminada.
+- Servicios de Google incluidos en la imagen predeterminada.
+- Google Play Juegos como complemento opcional.
 - Estado explícito: no instalado, disponible para instalar, instalado, actualización disponible o error.
 - Comprobación de compatibilidad antes de instalar.
 - Reparación y desinstalación del complemento sin borrar la biblioteca del usuario.
@@ -124,7 +124,7 @@ Cada perfil define memoria, número de núcleos, resolución, DPI, densidad, lí
 
 XORA no debe mostrar “Google Play listo”, “Servicios activos” o “Conectado” si el complemento correspondiente no está instalado y verificado.
 
-La implementación no descarga ni redistribuye APK de Google. El usuario aporta un APK compatible y con licencia; XORA comprueba el paquete, registra la versión y el hash SHA-256, instala en Android y permite reparar o desinstalar sin borrar la biblioteca.
+La imagen predeterminada se prepara con el paquete oficial `google_apis_playstore` de Android 14 y se verifica antes de iniciar el runtime. XORA no incorpora APK sueltos de Google seleccionados por el usuario ni los descarga desde fuentes no verificadas. Los APK aportados manualmente solo se aceptan para reparación o compatibilidad, con validación de paquete y hash SHA-256; la distribución de la imagen debe mantenerse sujeta a las condiciones de licencia aplicables.
 
 ### 2.9 Archivos e integración con el sistema
 
@@ -316,7 +316,8 @@ Estados permitidos: `not_installed`, `available`, `installing`, `installed`, `up
 - [x] Mando compatible y perfiles por juego.
 - [x] Teclado, mouse, bloqueo de cursor y DPI.
 - [x] Validación y persistencia de perfiles por aplicación.
-- [ ] Medición de latencia en hardware real por modelo de mando.
+- [x] Medición local del tramo mando → mapeo → acción Android, con promedio, p95 y modelo del mando.
+- [ ] Medición de latencia en hardware real por modelo de mando y validación de la latencia de renderizado.
 
 ### Fase 5 — Complementos de Google
 
@@ -330,14 +331,15 @@ Estados permitidos: `not_installed`, `available`, `installing`, `installed`, `up
 - [x] Manifiesto versionado.
 - [x] GitHub Actions de pruebas y empaquetado existentes.
 - [x] Firma, hash, canales, descarga y rollback lógico.
-- [ ] Prueba con una Release privada real y configuración del secreto de firma antes de activar publicaciones automáticas.
+- [x] Release privada real `v0.6.4` verificada offline: manifiesto firmado, nombre `XORA-v0.6.4-win64-portable.zip` y SHA-512 coincidente.
+- [x] Workflow de Release bloquea la publicación si falta la clave privada o si el artefacto no pasa la verificación.
 
 ### Fase 7 — Calidad y distribución
 
 - [x] Contratos y pruebas automatizadas para PC básica, portátil y PC de alto rendimiento.
 - [x] Pruebas de instalación limpia, actualización dañada y reversión de aplicación.
 - [x] Auditoría de dependencias y bloqueo de secretos/binarios pesados en el repositorio.
-- [ ] Validación final en hardware físico y publicación de instaladores firmados.
+- [ ] Validación final en hardware físico, medición por modelo de mando y publicación de instaladores firmados.
 
 ## 7. Criterios de aceptación
 
@@ -346,7 +348,7 @@ Estados permitidos: `not_installed`, `available`, `installing`, `installed`, `up
 - Los perfiles se aplican sin borrar datos del usuario.
 - El modo equilibrado mantiene un consumo razonable en equipos modestos.
 - Mando, teclado, mouse y DPI se pueden configurar y guardar.
-- Google Play y sus servicios se muestran como complementos opcionales.
+- Google Play Store y los Servicios de Google están disponibles en la imagen predeterminada; Play Juegos y otros paquetes adicionales son opcionales.
 - Toda la interfaz visible está traducida al español.
 - Una actualización válida se instala y una actualización dañada se rechaza.
 - Una actualización fallida permite volver a la versión anterior.
@@ -354,11 +356,11 @@ Estados permitidos: `not_installed`, `available`, `installing`, `installed`, `up
 
 ## 8. Decisiones pendientes
 
-- Runtime Android base y licencia de la imagen.
+- Confirmar formalmente la licencia y el canal de distribución de la imagen `google_apis_playstore` incluida en los artefactos.
 - Requisitos mínimos oficiales de CPU, RAM, GPU y almacenamiento.
-- Plataformas iniciales: Windows solamente o Windows y Linux.
+- Validar el alcance de Linux; la distribución estable actual está orientada a Windows x64.
 - Canal de distribución autenticado para Releases privadas.
 - Método de firma de instaladores y custodio de las claves.
-- Alcance exacto de los complementos de Google y sus licencias.
-- Nombre legal, icono final y dominio del proyecto.
+- Integración de Google Play Juegos y sus licencias como complemento separado.
+- Dominio y nombre legal del proyecto; el nombre de producto e icono actuales son XORA.
 

@@ -17,7 +17,7 @@ const path = require('path');
 const os = require('os');
 const { execFileSync } = require('child_process');
 
-const EXE = 'ApkStart.exe';
+const EXES = ['XORA.exe', 'ApkStart.exe'];
 
 function dirSize(p) {
   let n = 0;
@@ -87,6 +87,7 @@ function rootsFromShortcuts() {
   for (const h of homes) {
     linkDirs.push(path.join(h, 'Desktop'));
     linkDirs.push(path.join(h, 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu', 'Programs'));
+    linkDirs.push(path.join(h, 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'XORA'));
     linkDirs.push(path.join(h, 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'ApkStart'));
   }
   for (const d of linkDirs) {
@@ -101,13 +102,13 @@ function rootsFromShortcuts() {
           const m = /^Exec=(.+)$/m.exec(txt);
           if (m) {
             const exePath = m[1].trim().replace(/^"|"$/g, '').split(/\s+/)[0];
-            if (exePath && /[\\/]ApkStart(\.exe)?$/i.test(exePath)) dirs.add(path.dirname(exePath));
+            if (exePath && /[\\/](?:XORA|ApkStart)(\.exe)?$/i.test(exePath)) dirs.add(path.dirname(exePath));
           }
         } else {
           // .lnk 是二进制，但目标路径以可读形式内嵌，直接扫字节里的 ApkStart*.exe
           const buf = fs.readFileSync(full);
           const s = buf.toString('latin1');
-          const re = /[A-Za-z]:\\[^\x00\x01-\x1f]*?ApkStart(?:-[^\x00\x01-\x1f]*)?[\\/]?ApkStart\.exe|[A-Za-z]:\\[^\x00\x01-\x1f]*?ApkStart\.exe/gi;
+          const re = /[A-Za-z]:\\[^\x00\x01-\x1f]*?(?:XORA|ApkStart)(?:-[^\x00\x01-\x1f]*)?[\\/]?(?:XORA|ApkStart)\.exe|[A-Za-z]:\\[^\x00\x01-\x1f]*?(?:XORA|ApkStart)\.exe/gi;
           let mm;
           while ((mm = re.exec(s))) {
             dirs.add(path.dirname(mm[0].replace(/\x00.*$/, '')));
@@ -130,12 +131,13 @@ function scanDirs(installDir) {
     seen.add(key);
     if (key === cur) return;
     // 必须是「真的是 ApkStart」的目录，避免误删同名文件夹
-    if (!fs.existsSync(path.join(full, EXE))) return;
+    const exe = EXES.find((name) => fs.existsSync(path.join(full, name)));
+    if (!exe) return;
     out.push({
       kind: 'dir',
       path: full,
       size: dirSize(full),
-      note: '旧版本程序目录（含 ' + EXE + '）',
+      note: `Versión anterior de XORA (contiene ${exe})`,
     });
   };
   for (const root of candidateRoots(installDir)) {
@@ -143,19 +145,19 @@ function scanDirs(installDir) {
     try { list = fs.readdirSync(root, { withFileTypes: true }); } catch (_) { continue; }
     for (const e of list) {
       if (!e.isDirectory()) continue;
-      if (!/^ApkStart/i.test(e.name)) continue;
+      if (!/^(?:XORA|ApkStart)/i.test(e.name)) continue;
       consider(path.join(root, e.name));
     }
   }
   // 快捷方式反查到的目录：本身可能就是旧版本目录，或其父/子目录是
   for (const d of rootsFromShortcuts()) {
-    if (/^ApkStart/i.test(path.basename(d))) consider(d);
+    if (/^(?:XORA|ApkStart)/i.test(path.basename(d))) consider(d);
     // 也看看它的同级（dist 下往往并排好几个版本目录）
     const parent = path.dirname(d);
     let sib = [];
     try { sib = fs.readdirSync(parent, { withFileTypes: true }); } catch (_) { continue; }
     for (const e of sib) {
-      if (e.isDirectory() && /^ApkStart/i.test(e.name)) consider(path.join(parent, e.name));
+      if (e.isDirectory() && /^(?:XORA|ApkStart)/i.test(e.name)) consider(path.join(parent, e.name));
     }
   }
   return out;
@@ -172,7 +174,7 @@ function scanRegistry() {
   for (const root of roots) {
     let text = '';
     try {
-      text = execFileSync('reg', ['query', root, '/s', '/f', 'ApkStart', '/t', 'REG_SZ'],
+      text = execFileSync('reg', ['query', root, '/s', '/f', 'XORA', '/t', 'REG_SZ'],
         { encoding: 'utf8', windowsHide: true, timeout: 15000, maxBuffer: 4 * 1024 * 1024 });
     } catch (_) { continue; }
     // reg query 输出是分块的「键 → 值」，这里按块切
@@ -180,7 +182,7 @@ function scanRegistry() {
     for (const b of blocks) {
       const key = (/^(HKEY_[^\r\n]+)$/m.exec(b) || [])[1];
       if (!key) continue;
-      if (!/\\ApkStart/i.test(key)) continue;
+      if (!/\\(?:XORA|ApkStart)/i.test(key)) continue;
       const loc = (/InstallLocation\s+REG_\w+\s+(.+)/i.exec(b) || [])[1];
       const disp = (/DisplayName\s+REG_\w+\s+(.+)/i.exec(b) || [])[1];
       const unins = (/UninstallString\s+REG_\w+\s+(.+)/i.exec(b) || [])[1];
@@ -210,8 +212,8 @@ function scanTemp(dataDir) {
     try { list = fs.readdirSync(d, { withFileTypes: true }); } catch (_) { continue; }
     for (const e of list) {
       const name = e.name;
-      const isOurs = /^ApkStart.*\.(zip|exe|part\d*|tmp)$/i.test(name)
-        || /^ApkStart-.*\.part\d+$/i.test(name);
+      const isOurs = /^(?:XORA|ApkStart).*\.(zip|exe|part\d*|tmp)$/i.test(name)
+        || /^(?:XORA|ApkStart)-.*\.part\d+$/i.test(name);
       if (!isOurs) continue;
       const full = path.join(d, name);
       let size = 0;
@@ -227,12 +229,12 @@ function scanTemp(dataDir) {
 function scanSnapshots(avdHome) {
   const out = [];
   if (!avdHome) return out;
-  const snapDir = path.join(avdHome, 'apkstart.avd', 'snapshots');
+  const snapDir = path.join(avdHome, 'xora.avd', 'snapshots');
   let list = [];
   try { list = fs.readdirSync(snapDir, { withFileTypes: true }); } catch (_) { return out; }
   for (const e of list) {
     if (!e.isDirectory()) continue;
-    if (e.name === 'apkstart') continue;   // 当前在用的快照
+    if (e.name === 'xora') continue;
     const full = path.join(snapDir, e.name);
     out.push({
       kind: 'dir',

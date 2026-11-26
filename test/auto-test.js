@@ -169,10 +169,10 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     mk(path.join(root, 'system-images', 'android-30', 'default', 'x86_64', 'system.img'), 512);
     mk(path.join(root, 'emulator', 'qemu', 'windows-x86_64', 'qemu-system-aarch64.exe'), 128);
     mk(path.join(root, 'emulator', 'qemu', 'windows-x86_64', 'qemu-system-x86_64.exe'), 128);
-    mk(path.join(root, 'avd', 'apkstart.avd', 'config.ini'), 32);
-    mk(path.join(root, 'avd', 'apkstart.avd', 'snapshots', 'default_boot', 'ram.img'), 256);
-    mk(path.join(root, 'avd', 'apkstart.avd', 'multiInstance.lock'), 8);
-    mk(path.join(root, 'avd', 'apkstart-arm.avd', 'userdata-qemu.img'), 512);
+    mk(path.join(root, 'avd', 'xora.avd', 'config.ini'), 32);
+    mk(path.join(root, 'avd', 'xora.avd', 'snapshots', 'xora', 'ram.img'), 256);
+    mk(path.join(root, 'avd', 'xora.avd', 'multiInstance.lock'), 8);
+    mk(path.join(root, 'avd', 'xora-arm.avd', 'userdata-qemu.img'), 512);
 
     const a = layers.analyze(root);
     const paths = a.candidates.map((c) => c.path.replace(/\\/g, '/'));
@@ -181,17 +181,17 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     assert(paths.some((p) => p.includes('android-30')), '应列出旧版 API30 镜像');
     assert(paths.some((p) => p.endsWith('.lock')), '应列出锁文件');
     assert(paths.some((p) => p.includes('snapshots')), '应列出旧快照');
-    assert(paths.some((p) => p.includes('apkstart-arm.avd')), '应列出非活动 AVD');
-    assert(!paths.some((p) => p.endsWith('apkstart.avd/config.ini')), '不能删活动 AVD 配置');
+    assert(paths.some((p) => p.includes('xora-arm.avd')), '应列出非活动 AVD');
+    assert(!paths.some((p) => p.endsWith('xora.avd/config.ini')), '不能删活动 AVD 配置');
 
     const dry = layers.prune(root, { apply: false });
     assert(dry.removed.length === 0 && dry.saved === 0, 'dryRun 不应删除任何文件');
-    assert(fs.existsSync(path.join(root, 'avd', 'apkstart-arm.avd', 'userdata-qemu.img')));
+    assert(fs.existsSync(path.join(root, 'avd', 'xora-arm.avd', 'userdata-qemu.img')));
 
     const done = layers.prune(root, { apply: true });
     assert(done.saved > 0 && done.removed.length >= 5, '实际清理应释放空间');
-    assert(!fs.existsSync(path.join(root, 'avd', 'apkstart-arm.avd')), '非活动 AVD 应被清掉');
-    assert(fs.existsSync(path.join(root, 'avd', 'apkstart.avd', 'config.ini')), '活动 AVD 必须保留');
+    assert(!fs.existsSync(path.join(root, 'avd', 'xora-arm.avd')), '非活动 AVD 应被清掉');
+    assert(fs.existsSync(path.join(root, 'avd', 'xora.avd', 'config.ini')), '活动 AVD 必须保留');
     assert(fs.existsSync(path.join(root, 'emulator', 'qemu', 'windows-x86_64', 'qemu-system-x86_64.exe')), 'x86_64 QEMU 必须保留');
   });
 
@@ -199,17 +199,17 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
 
   await test('Android 14 老 targetSdk 应用失败有明确指引', () => {
     const s = friendlyInstallError('Failure [INSTALL_FAILED_DEPRECATED_SDK_VERSION: app must target at least 23]');
-    assert(s.includes('Android 14') && s.includes('自动'), s);
+    assert(s.includes('Android 14') && s.includes('volverá a intentarlo'), s);
   });
 
-  await test('ARM 翻译层崩溃能给出可执行的中文结论', () => {
+  await test('el fallo de la traducción ARM da una conclusión ejecutable en español', () => {
     const s = friendlyLaunchError('F DEBUG: DoBadTrampoline libndk_translation SIGABRT', 'com.phoenix.read');
-    assert(s.includes('ARM 翻译层') && s.includes('兼容镜像'), s);
+    assert(s.includes('traducción ARM') && s.includes('imagen compatible'), s);
     // 0.6.3 单镜像：不能再无条件承诺「会自动切换重试」，要说清「已启用则属限制」
-    assert(s.includes('已启用') && s.includes('限制'), `文案要说清单镜像下的真实后果：${s}`);
+    assert(s.includes('ya estaba activa') && s.includes('limitación'), `la文案 debe explicar el límite real: ${s}`);
   });
 
-  await test('反模拟 / 安全校验导致的退出给出「限制不是故障」的中文说明', () => {
+  await test('la detección antiemulación indica que es una limitación y no un fallo', () => {
     for (const raw of [
       'emulator detected, exiting',
       'SafetyNet attest failed',
@@ -217,8 +217,8 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
       'anti-debug hook detected',
     ]) {
       const s = friendlyLaunchError(raw, 'com.bank.app');
-      assert(s.includes('限制') && s.includes('不是故障'), `${raw} → ${s}`);
-      assert(s.includes('手册 6.3'), `应指向手册 6.3：${s}`);
+      assert(s.includes('limitación') && s.includes('no un fallo'), `${raw} → ${s}`);
+      assert(s.includes('manual 6.3'), `debe apuntar al manual 6.3: ${s}`);
     }
     // 不能把反模拟误说成翻译层崩溃而让用户白等一次镜像切换
     const s = friendlyLaunchError('emulator detected', 'com.bank.app');
@@ -229,7 +229,7 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     const manual = require('../src/core/manual');
     const s = friendlyLaunchError('emulator detected / play integrity failed', 'com.bank.app');
     const t = manual.topicForError(s);
-    assert(t.id === 'arm', `反模拟报错应到 ARM/6.3 章节，实际 ${t.id}`);
+    assert(t.id === 'arm', `el error antiemulación debe ir a ARM/6.3, pero fue ${t.id}`);
   });
 
   await test('启动崩溃重试按真实翻译能力判断，不看镜像文件在不在', () => {
@@ -490,23 +490,23 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     // 快照确实存在时才走 quickboot。注意要真的「像一个完整快照」：
     // 保存中断会留下只有几十字节 snapshot.pb 的空壳，那种必须判定为没有快照，
     // 否则 emulator 会尝试加载、失败，再回退冷启动，白等几秒。
-    const avdDir = path.join(emu.provisioner.paths().avdHome, 'apkstart.avd');
+    const avdDir = path.join(emu.provisioner.paths().avdHome, 'xora.avd');
     const snapDir = path.join(avdDir, 'snapshots');
     const created = !fs.existsSync(snapDir);
-    fs.mkdirSync(path.join(snapDir, 'apkstart'), { recursive: true });
+    fs.mkdirSync(path.join(snapDir, 'xora'), { recursive: true });
 
     // 空壳（12 字节 pb + 没有 ram.img）必须当作「没有快照」
-    fs.writeFileSync(path.join(snapDir, 'apkstart', 'snapshot.pb'), 'x'.repeat(12));
+    fs.writeFileSync(path.join(snapDir, 'xora', 'snapshot.pb'), 'x'.repeat(12));
     assert(!emu.hasSnapshot(), '不完整的快照不能被当成可用快照');
     const broken = emu.buildArgs({ gpu: 'software', memoryMB: 2048, cores: 2, snapshot: true }).join(' ');
     assert(/-no-snapshot-load/.test(broken), '空壳快照必须回退冷启动（跳过加载）');
 
     // 完整快照：pb 有内容 + ram.img 有数据（上一步的空壳会被 hasSnapshot 顺手清掉）
-    fs.mkdirSync(path.join(snapDir, 'apkstart'), { recursive: true });
-    fs.writeFileSync(path.join(snapDir, 'apkstart', 'snapshot.pb'), 'x'.repeat(2048));
-    fs.writeFileSync(path.join(snapDir, 'apkstart', 'ram.img'), Buffer.alloc(2 * 1024 * 1024));
+    fs.mkdirSync(path.join(snapDir, 'xora'), { recursive: true });
+    fs.writeFileSync(path.join(snapDir, 'xora', 'snapshot.pb'), 'x'.repeat(2048));
+    fs.writeFileSync(path.join(snapDir, 'xora', 'ram.img'), Buffer.alloc(2 * 1024 * 1024));
     const withSnap = emu.buildArgs({ gpu: 'software', memoryMB: 2048, cores: 2, snapshot: true }).join(' ');
-    assert(/-snapshot apkstart/.test(withSnap), '有快照时应使用 quickboot 快照');
+    assert(/-snapshot xora/.test(withSnap), '有快照时应使用 quickboot 快照');
     assert(!/-no-snapshot-load/.test(withSnap), '有完整快照时不该跳过加载');
     if (created) fs.rmSync(snapDir, { recursive: true, force: true });
 
@@ -663,15 +663,15 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
   await test('新版 emulator 写的 ram.bin 必须被认作完整快照（否则刚存好的 3GB 会被当空壳删掉）', () => {
     const { EmulatorEngine } = require('../src/core/emulator');
     const emu = new EmulatorEngine(path.join(__dirname, '..'));
-    const avdDir = path.join(emu.provisioner.paths().avdHome, 'apkstart.avd');
-    const snapDir = path.join(avdDir, 'snapshots', 'apkstart');
+    const avdDir = path.join(emu.provisioner.paths().avdHome, 'xora.avd');
+    const snapDir = path.join(avdDir, 'snapshots', 'xora');
     fs.rmSync(path.join(avdDir, 'snapshots'), { recursive: true, force: true });
     fs.mkdirSync(snapDir, { recursive: true });
     fs.writeFileSync(path.join(snapDir, 'snapshot.pb'), 'x'.repeat(2048));
     fs.writeFileSync(path.join(snapDir, 'ram.bin'), Buffer.alloc(2 * 1024 * 1024));
     assert(emu.hasSnapshot(), 'ram.bin 应被认作完整快照');
     const args = emu.buildArgs({ gpu: 'software', memoryMB: 2048, cores: 2, snapshot: true }).join(' ');
-    assert(/-snapshot apkstart/.test(args), '有快照时应走 quickboot');
+    assert(/-snapshot xora/.test(args), '有快照时应走 quickboot');
     assert(!/-no-snapshot-load/.test(args), '有完整快照时不该跳过加载');
     fs.rmSync(path.join(avdDir, 'snapshots'), { recursive: true, force: true });
   });
@@ -2560,7 +2560,7 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     assert(/openWindowsFeatures: \(\) => invoke\('provision:openWindowsFeatures'\)/.test(preloadJs),
       'preload 要暴露 openWindowsFeatures');
     // 8) 软件模拟下第一次启动要弹一次系统通知（设置里的自检项用户很可能没看到）
-    assert(/let accelWarned = false;/.test(mainJs) && /正在以软件模拟运行/.test(mainJs),
+    assert(/let accelWarned = false;/.test(mainJs) && /Modo de emulación por software/.test(mainJs),
       '软件模拟要提醒一次');
   });
 
@@ -2576,7 +2576,7 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     assert(/--set-icon/.test(packJs), '要写图标');
     assert(/--set-file-version/.test(packJs), '要写文件版本');
     assert(/--set-version-string', 'FileDescription'/.test(packJs), '要写 FileDescription');
-    assert(/--set-version-string', 'ProductName', 'ApkStart'/.test(packJs), 'ProductName 必须是 ApkStart');
+    assert(/--set-version-string', 'ProductName', 'XORA'/.test(packJs), 'ProductName debe ser XORA');
     assert(/embedExeMeta\(exePath\)/.test(packJs), '要在改名之后真的调用');
     // 找不到 rcedit 时要明确告警，不能静默产出「Electron 图标」的包
     assert(/找不到 rcedit\.exe/.test(packJs), '缺 rcedit 要告警');
@@ -2585,7 +2585,7 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     assert(/setAumid\(APP_AUMID\);/.test(mainJs), '启动时要设置 AppUserModelID');
 
     // 完整版（含运行时）作为一个可交付版本
-    assert(/--full/.test(packJs) && /ApkStart-v\$\{PKG\.version\}-win64-full/.test(packJs),
+    assert(/--full/.test(packJs) && /XORA-v\$\{PKG\.version\}-win64-full/.test(packJs),
       '--full 要产出带版本号的完整版目录');
     assert(/build', 'runtime'/.test(packJs), '完整版要内置 build/runtime');
   });

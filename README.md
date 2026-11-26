@@ -4,7 +4,7 @@
 
 **Emulador Android ligero, fluido y modular para Windows y Linux.** XORA ejecuta aplicaciones Android en ventanas independientes, adapta el rendimiento al equipo y permite configurar perfiles de dispositivo, mando, teclado, mouse y DPI.
 
-> XORA conserva la base técnica de la versión 0.6.4, pero la identidad, la interfaz en español, los perfiles, el rendimiento, los controles, los complementos opcionales y el actualizador seguro ya están integrados. Las validaciones externas de hardware y publicación siguen documentadas en el [plan maestro](docs/XORA-PLAN.md).
+> XORA conserva la base técnica de la versión 0.6.4, pero la identidad, la interfaz en español, los perfiles, el rendimiento, los controles, Google Play predeterminado y el actualizador seguro ya están integrados. Las validaciones externas de hardware y publicación siguen documentadas en el [plan maestro](docs/XORA-PLAN.md).
 
 ## Características
 
@@ -15,7 +15,7 @@
 - **Controles para juegos:** perfiles de mando, teclado, mouse, sensibilidad y DPI.
 - **Archivos compartidos:** intercambio bidireccional entre una carpeta del equipo y el almacenamiento Android.
 - **Diagnóstico:** comprobación de aceleración, controladores, memoria, almacenamiento, red y estado del runtime.
-- **Complementos opcionales:** Google Play y los Servicios de Google se gestionan como complementos separados. XORA funciona sin ellos cuando una aplicación no los necesita.
+- **Google Play predeterminado:** la imagen oficial incluye Play Store y Servicios de Google verificados; Play Juegos y otros paquetes adicionales siguen siendo opcionales.
 - **Interfaz en español:** la interfaz, el manual, los avisos y los mensajes dinámicos pasan por el sistema `i18n`.
 
 ## Arquitectura
@@ -82,7 +82,7 @@ No se incluirán tokens personales de GitHub dentro del instalador. Para más de
 
 ## Complementos de Google
 
-Google Play Store, Google Play Juegos y los Servicios de Google son complementos opcionales. La aplicación debe mostrar estados precisos como `No instalado`, `Disponible para instalar`, `Instalado` o `Reparación necesaria`; nunca debe afirmar que un complemento está activo si no fue instalado y verificado.
+Google Play Store y los Servicios de Google vienen incluidos y verificados en la imagen oficial predeterminada. Google Play Juegos y otros paquetes adicionales son opcionales. La aplicación muestra estados precisos como `No instalado`, `Disponible para instalar`, `Instalado` o `Reparación necesaria`; nunca afirma que un componente está activo sin verificarlo.
 
 ## Documentación
 
@@ -105,7 +105,7 @@ Las contribuciones deben mantener los contratos entre módulos, validar entradas
 
 ## Estado del proyecto
 
-XORA tiene implementada la base funcional del plan: aplicación de escritorio, runtime Android, biblioteca de APK, interfaz y avisos en español, perfiles, rendimiento, controles, complementos opcionales y contrato de actualización firmado. Antes de una distribución pública todavía deben hacerse las pruebas con hardware físico, configurar el secreto de firma y publicar instaladores firmados.
+XORA tiene implementada la base funcional del plan: aplicación de escritorio, runtime Android, biblioteca de APK, interfaz y avisos en español, perfiles, rendimiento, controles, Google Play predeterminado y contrato de actualización firmado. Antes de una distribución pública todavía deben hacerse las pruebas con hardware físico, configurar el secreto de firma y publicar instaladores firmados.
 
 ## Licencia
 

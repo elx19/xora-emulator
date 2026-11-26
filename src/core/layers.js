@@ -33,7 +33,7 @@ const exists = (p) => { try { return fs.existsSync(p); } catch (_) { return fals
  * 盘点运行时占用，并列出「可安全回收」的条目。
  * @returns {{total:number, groups:Array, candidates:Array}}
  */
-function analyze(root, { keepAvd = 'apkstart.avd', aggressive = false, keepSnapshots = false } = {}) {
+function analyze(root, { keepAvd = 'xora.avd', aggressive = false, keepSnapshots = false } = {}) {
   const groups = [];
   const candidates = [];
   if (!exists(root)) return { total: 0, groups, candidates };

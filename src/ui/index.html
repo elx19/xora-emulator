@@ -152,8 +152,8 @@
         </svg>
       </div>
       <h2>把 APK 拖进来就能装</h2>
-      <p>安装完成后会自动生成桌面图标，双击即以独立窗口运行，和普通 Windows 软件一样。<br/>已注册 .apk 关联时，在资源管理器里双击 APK 也会直接装到 ApkStart。</p>
-      <button class="btn primary lg" id="btnInstall2">选择 APK 文件</button>
+      <p>Al terminar la instalación se creará un acceso directo en el escritorio. Haz doble clic para abrir la app en una ventana independiente.<br/>Si registras la asociación .apk, también puedes instalar un APK desde el Explorador de archivos con XORA.</p>
+      <button class="btn primary lg" id="btnInstall2">Elegir archivo APK</button>
       <p class="hint" id="emptyHint"></p>
     </div>
   </section>
@@ -274,6 +274,17 @@
         <label class="optimization-row control-toggle"><span><b>Mapeo de teclado</b><small>Permite usar perfiles de teclas para aplicaciones compatibles.</small></span><input id="controlKeymap" type="checkbox" /></label>
       </section>
     </div>
+    <section class="controls-latency" role="status" aria-live="polite">
+      <div>
+        <h2>Respuesta del mando</h2>
+        <p>Medición del canal mando → mapeo → acción Android. No representa los FPS ni la latencia de renderizado del juego.</p>
+      </div>
+      <div class="latency-summary">
+        <strong id="controlLatencyValue">Sin medición</strong>
+        <span id="controlLatencyDevice">Pulsa un botón del mando para comenzar.</span>
+      </div>
+      <button class="btn ghost sm" id="btnResetLatency" type="button">Restablecer medición</button>
+    </section>
     <section class="control-profiles">
       <div><h2>Perfiles de control</h2><p>Elige una configuración guardada para cambiar rápidamente.</p></div>
       <div class="control-profile-grid" id="controlProfileGrid">
@@ -428,14 +439,14 @@
 
         <div class="setup-guide" id="setupGuide" hidden>
           <h2>安装 Android 到虚拟磁盘</h2>
-          <p class="guide-sub">虚拟机窗口已打开。按下面 6 步操作一次，之后 ApkStart 会直接从磁盘启动，不再需要镜像。</p>
+          <p class="guide-sub">La ventana de la máquina virtual está abierta. Sigue estos seis pasos una sola vez; después XORA iniciará Android directamente desde el disco.</p>
           <ol class="guide-list">
             <li><b>启动菜单</b>：用 <kbd>↓</kbd> 选到 <code>Installation - Install Android-x86 to harddisk</code>，回车</li>
             <li><b>Choose Partition</b>：选 <code>Create/Modify partitions</code>；询问是否使用 GPT 时选 <code>No</code></li>
             <li><b>cfdisk 分区</b>：<code>New</code> → <code>Primary</code> → 容量直接回车 → <code>Bootable</code> → <code>Write</code> → 输入 <code>yes</code> → <code>Quit</code></li>
             <li><b>格式化</b>：选 <code>vda1</code> → 提示格式化时选 <code>ext4</code> → <code>Yes</code></li>
             <li><b>引导与系统</b>：<code>Install GRUB</code> 选 <code>Yes</code>；<code>Install /system as read-write</code> 选 <code>Yes</code></li>
-            <li><b>完成</b>：进度到 100% 后点下面的「我已安装完成」（ApkStart 会自动重启并接管）</li>
+            <li><b>Finalizar</b>: cuando el progreso llegue al 100 %, pulsa «He terminado la instalación» (XORA reiniciará y tomará el control).</li>
           </ol>
           <p class="guide-tip">如果之后提示 adb 未连接：在虚拟机窗口按 <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>F1</kbd> 进入终端，执行
             <code>setprop service.adb.tcp.port 5555</code>、<code>stop adbd</code>、<code>start adbd</code>，
@@ -453,7 +464,7 @@
           <label>本机自适应参数</label>
           <div class="inline-note" id="autoProfileText">正在检测…</div>
           <span class="sub">内存、核心数、渲染后端、端口、加速方式全部自动选择；启动失败会自动降级重试，不需要手动改。
-            ApkStart 用<b>专用 adb 服务端口 5044</b>（你系统里自己的 adb 是 5037），所以命令行里
+            XORA usa el <b>puerto ADB dedicado 5044</b> (el ADB del sistema suele usar 5037), por eso en la consola
             <code>adb devices</code> 看不到这台安卓设备 —— 这是刻意的隔离。想连的话用
             <code>$env:ANDROID_ADB_SERVER_PORT=5044</code> 再执行 adb。
             注意：别对着 5555 端口手动 <code>adb connect</code>，那会在正在运行的应用上弹出
@@ -549,10 +560,10 @@
             只有在「强制」模式下它才完全由你决定。</span>
         </div>
         <div class="field">
-          <label>窗口承载方式</label>
+          <label>Modo de ventana</label>
           <select id="setWindowEmbed">
             <option value="detached">原生窗口（默认·推荐）· 模拟器自己开窗口，帧率与缩放最稳</option>
-            <option value="embed">嵌入模式 · 安卓画面嵌在 ApkStart 窗口里，标题栏带旋转按钮</option>
+            <option value="embed">Modo integrado · la pantalla de Android aparece dentro de la ventana de XORA</option>
           </select>
           <span class="sub">原生窗口由模拟器直接渲染和排布，拖拽、缩放、旋转都跟手，不会出现黑边或点击错位，
             代价是多一个任务栏图标（横屏用托盘菜单或 Ctrl+Alt+R）。嵌入模式会把模拟器窗口塞进我们的窗口，
@@ -595,7 +606,7 @@
         <div class="field switch-field">
           <div>
             <label>鼠标侧键 · 返回 / 前进（默认关闭）</label>
-            <span class="sub">侧键映射需要全局鼠标钩子。钩子只在 ApkStart 应用窗口处于前台时安装，失焦或关闭立即卸载，不会拖慢桌面。</span>
+            <span class="sub">El mapeo de botones laterales usa un gancho temporal del ratón. Solo se activa cuando una ventana de XORA está en primer plano y se retira al perder el foco.</span>
           </div>
           <input type="checkbox" id="setMouseSideButtons" class="switch" />
         </div>
@@ -754,7 +765,7 @@
         <div class="field switch-field">
           <div>
             <label>开机预热（推荐）</label>
-            <span class="sub">启动 ApkStart 后就在后台把安卓环境引导好（窗口全程隐藏，不会看到模拟器）。之后点任何应用只剩一次「打开」，实测从 20 多秒降到几乎不用等。代价是空闲时常驻约 1GB 内存，关掉后第一次打开应用需要冷启动。</span>
+            <span class="sub">Preparar Android en segundo plano acelera la primera apertura, pero mantiene memoria reservada. Por defecto XORA no lo hace para consumir menos RAM y CPU en reposo; actívalo solo si priorizas aperturas instantáneas.</span>
           </div>
           <input type="checkbox" id="setPrewarm" class="switch" />
         </div>
@@ -894,11 +905,11 @@
         <div class="field">
           <label>运行时</label>
           <div class="row">
-            <input id="setEngineLabel" type="text" readonly value="ApkStart 自带运行时（QEMU + Android 14，独立运行）" />
+            <input id="setEngineLabel" type="text" readonly value="Runtime propio de XORA (QEMU + Android 14)" />
           </div>
-          <span class="sub">ApkStart 只跑自己的运行时：adb / emulator / 系统镜像都由它自己下载和管理，
-            不探测、不接管、不依赖你电脑上装的任何模拟器（MuMu / 雷电 / 蓝叠 / WSA 都不会被使用）。
-            这样换机器、别人装没装模拟器、模拟器怎么升级，都不影响这里。</span>
+          <span class="sub">XORA utiliza su propio runtime: adb, emulator y la imagen de Android se descargan y administran de forma independiente,
+            no detecta, no controla ni depende de otros emuladores instalados en tu PC (MuMu, LDPlayer,
+            BlueStacks y WSA no se utilizan). Puedes cambiar de equipo sin que otra instalación interfiera.</span>
         </div>
         <div class="field">
           <label>adb 路径</label>
@@ -906,7 +917,7 @@
         </div>
         <div class="field">
           <label>设备地址</label>
-          <span class="sub" id="deviceAddrNote">由 ApkStart 自己分配（emulator-5554，端口冲突时自动顺延），无需填写。</span>
+          <span class="sub" id="deviceAddrNote">XORA lo asigna automáticamente (emulator-5554; si hay conflicto, usa el siguiente puerto).</span>
         </div>
         <div class="field">
           <label>系统镜像（ISO）</label>
@@ -1060,7 +1071,7 @@
         </div>
         <div class="field">
           <label>安卓内对应目录</label>
-          <input id="setDeviceSharedDir" type="text" placeholder="/sdcard/ApkStartShared" />
+          <input id="setDeviceSharedDir" type="text" placeholder="/sdcard/XORAShared" />
         </div>
         <p class="note">两侧目录会持续双向同步；在安卓应用里保存到该目录的文件，会出现在本机共享目录中。</p>
       </div>
@@ -1070,7 +1081,7 @@
         <div class="field switch-field">
           <div>
             <label>关联 .apk 文件</label>
-            <span class="sub">双击 APK 直接安装到 ApkStart（仅写入当前用户，无需管理员）</span>
+            <span class="sub">Haz doble clic en un APK para instalarlo directamente con XORA (solo para tu usuario, sin permisos de administrador).</span>
           </div>
           <button class="btn ghost sm" id="btnAssoc">检查中…</button>
         </div>
@@ -1090,11 +1101,12 @@
             <button class="btn ghost sm" id="btnBrowseAvdDir">浏览</button>
             <button class="btn ghost sm" id="btnOpenAvdDir">打开</button>
           </div>
-          <span class="sub">真正吃盘的是这一块：数据分区（默认 6 GB，可在上面对大）+ 快速启动快照（约 2–3 GB）。
-            磁盘紧张时把它指到另一个盘（如 D:），重启软件后生效；旧目录里的 <code>apkstart.avd</code> 可整体搬过去再删。</span>
+          <span class="sub">El espacio se utiliza principalmente en esta parte: datos de Android (6 GB por defecto,
+            ampliables arriba) y la instantánea de inicio rápido (aprox. 2–3 GB).
+            Si falta espacio, muévelo a otra unidad (por ejemplo D:); se aplicará al reiniciar. XORA migra automáticamente el antiguo directorio del dispositivo.</span>
         </div>
         <div class="field">
-          <label>卸载 ApkStart</label>
+          <label>Desinstalar XORA</label>
           <div class="row">
             <button class="btn ghost sm" id="btnUninstall">一键卸载</button>
             <span class="inline-note">卸载会取消 .apk 关联并移除程序；便携版请按提示手动删除目录。</span>
@@ -1131,26 +1143,16 @@
       </div>
 
       <div class="group" id="aboutGroup" data-cat="about">
-        <div class="group-title">关于</div>
+        <div class="group-title">Acerca de XORA</div>
         <div class="about-box">
           <div class="about-brand">
             <img class="about-logo" src="assets/xora-icon.png" alt="XORA" draggable="false" />
           </div>
-          <div class="about-qrs">
-            <div class="about-qr">
-              <img src="assets/wechat-qr.jpg" alt="微信公众号二维码" width="112" height="112" />
-              <span class="about-qr-tip">扫码关注公众号</span>
-            </div>
-            <div class="about-qr">
-              <img src="assets/douyin-qr.jpg" alt="抖音二维码" width="112" height="112" />
-              <span class="about-qr-tip">抖音 · 日常MIKU</span>
-            </div>
-          </div>
           <div class="about-info">
             <div class="about-name">XORA <span class="about-ver" id="aboutVer"></span></div>
-            <p class="note">双击即装的 Windows 安卓应用启动器：APK 安装、桌面快捷方式、独立窗口运行、文件双向互通。</p>
+            <p class="note">Emulador Android ligero para Windows: instala APK, crea accesos directos, ejecuta aplicaciones en ventanas independientes y sincroniza archivos.</p>
             <div class="about-links">
-              <button class="btn ghost sm" id="btnOpenManual">打开使用手册（含故障解决方案）</button>
+              <button class="btn ghost sm" id="btnOpenManual">Abrir el manual y las soluciones</button>
               <a href="https://github.com/elx19/xora-emulator" target="_blank" rel="noopener">GitHub · elx19/xora-emulator</a>
               <span class="powered">XORA</span>
             </div>

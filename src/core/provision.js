@@ -14,6 +14,7 @@ const doctor = require('./doctor');
 const { download, downloadAny, downloadAnyParallel, downloadMulti, head, discardPartial } = require('./download');
 const { ZipArchive, ZipFile, resolveZipEntry } = require('./zip');
 const { Sources } = require('./sources');
+const identity = require('./identity');
 const { cmpVer } = require('./version');
 
 const IS_WIN = process.platform === 'win32';
@@ -127,7 +128,7 @@ function provisionDirWritable(dir) {
   let ok = false;
   try {
     fs.mkdirSync(dir, { recursive: true });
-    const probe = path.join(dir, `.apkstart-wtest-${process.pid}-${Date.now()}`);
+  const probe = path.join(dir, `.xora-wtest-${process.pid}-${Date.now()}`);
     fs.writeFileSync(probe, 'x');
     fs.rmSync(probe, { force: true });
     ok = true;
@@ -229,7 +230,12 @@ class Provisioner {
 
   get root() {
     const r = store.getSettings().runtime.dir;
-    return r && r.trim() ? r : path.join(store.DATA_DIR, 'runtime');
+    if (r && r.trim()) return r;
+    const canonical = path.join(store.DATA_DIR, 'runtime');
+    return identity.legacyRuntimeFallback({
+      runtimeDir: canonical,
+      legacyDataDirs: identity.paths({ storeBuild: store.STORE_BUILD }).legacyDataDirs,
+    }) || canonical;
   }
 
   paths() {
@@ -312,7 +318,15 @@ class Provisioner {
   }
 
   ensureDirs() {
-    const p = this.paths();
+    let p = this.paths();
+    if (!store.getSettings().runtime.dir) {
+      const canonical = path.join(store.DATA_DIR, 'runtime');
+      identity.migrateLegacyRuntime({
+        runtimeDir: canonical,
+        legacyDataDirs: identity.paths({ storeBuild: store.STORE_BUILD }).legacyDataDirs,
+      });
+      p = this.paths();
+    }
     for (const d of [p.root, p.qemuDir, p.adbDir, p.imagesDir, p.tmp, p.avdHome]) {
       // 逐个容错：商店（MSIX）版的 p.root 在只读的安装包里，建不出来也正常，
       // 可写目录已经全部改道到用户数据目录（见 paths()）。一个建不出来不该
@@ -575,7 +589,7 @@ class Provisioner {
       if (!item.list) continue;
       for (const rel of item.list) {
         if (!rel || rel.draft) continue;
-        const hit = (rel.assets || []).find((x) => /^(?:XORA|ApkStart)-runtime-.*\.zip$/i.test(x.name || ''));
+        const hit = (rel.assets || []).find((x) => /^XORA-runtime-.*\.zip$/i.test(x.name || ''));
         if (!hit) continue;
         cands.push({
           url: hit.browser_download_url || hit.url,

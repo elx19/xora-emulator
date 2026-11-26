@@ -1,0 +1,10 @@
+extends: electron-builder.yml
+
+# Variante opcional para laboratorios o distribución sin conexión. No se usa
+# en el instalador público ligero.
+extraResources:
+  - from: build/runtime
+    to: runtime
+    filter:
+      - "**/*"
+      - "!.prepared"

@@ -10,9 +10,9 @@ const http = require('http');
 const net = require('net');
 
 // 隔离测试数据目录，避免污染真实用户配置
-const TMP = path.join(os.tmpdir(), `apkstart-test-${Date.now()}`);
+const TMP = path.join(os.tmpdir(), `xora-test-${Date.now()}`);
 process.env.APPDATA = TMP;
-fs.mkdirSync(path.join(TMP, 'apkstart'), { recursive: true });
+fs.mkdirSync(path.join(TMP, 'XORA'), { recursive: true });
 
 let passed = 0;
 let failed = 0;
@@ -229,16 +229,16 @@ function assert(cond, msg) { if (!cond) throw new Error(msg || '断言失败'); 
     assert(/^image\.sysdir\.1=\S*system-images\//m.test(cfg), 'image.sysdir.1 缺失');
   });
 
-  await test('安装失败原因翻译：NO_MATCHING_ABIS 给出中文指引', async () => {
+  await test('la instalación ARM muestra una explicación clara en español', async () => {
     const { friendlyInstallError } = require('../src/core/adb');
     const out = friendlyInstallError(
       'Performing Streamed Install\nadb.exe: failed to install x.apk: '
       + 'Failure [INSTALL_FAILED_NO_MATCHING_ABIS: Failed to extract native libraries, res=-113]',
     );
-    assert(out.includes('ARM 原生库'), `应解释 ARM 原生库问题：${out}`);
+    assert(out.includes('bibliotecas ARM'), `debe explicar las bibliotecas ARM: ${out}`);
     assert(out.includes('INSTALL_FAILED_NO_MATCHING_ABIS'), '应保留原始错误码');
     const other = friendlyInstallError('Failure [INSTALL_FAILED_INVALID_APK: x]');
-    assert(other.includes('损坏') || other.includes('不完整'), `未知错误也应可读：${other}`);
+    assert(other.includes('dañado') || other.includes('incompleto'), `el error debe ser legible: ${other}`);
   });
 
   await test('镜像校验：区分有效 ISO9660 / 损坏 / 未下完', async () => {
@@ -338,7 +338,13 @@ function assert(cond, msg) { if (!cond) throw new Error(msg || '断言失败'); 
   await test('未安装系统时 ensure 返回 needsSetup', async () => {
     store.saveSettings({ runtime: { installed: false }, engine: { mode: 'builtin' } });
     const rt = new Runtime(TMP);
-    // 用假 adb 保证 isOnline 快速失败
+    // 隔离真实主机上的模拟器：本测试只验证未部署运行时的返回契约，
+    // 不应因为用户正在运行 XORA 而被 ensure() 误判为已就绪。
+    rt.client = () => ({
+      isOnline: async () => false,
+      devices: async () => [],
+    });
+    rt.emulatorPorts = async () => [];
     const r = await rt.ensure({ onLog: () => {} });
     assert(r.ok === false, '不应就绪');
     assert(['provision', 'install'].includes(r.needsSetup), `needsSetup=${r.needsSetup}`);
@@ -389,7 +395,7 @@ function assert(cond, msg) { if (!cond) throw new Error(msg || '断言失败'); 
   console.log('\n[provision.js 兼容镜像 / 完整版]');
 
   await test('playImageInfo 校验 API 34 兼容镜像完整性', async () => {
-    const dir = path.join(TMP, 'apkstart', 'runtime', 'system-images', 'android-34', 'google_apis_playstore', 'x86_64');
+    const dir = path.join(TMP, 'XORA', 'runtime', 'system-images', 'android-34', 'google_apis_playstore', 'x86_64');
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'kernel-ranchu'), 'k');
     const prov = new Provisioner(path.join(__dirname, '..'));
@@ -402,12 +408,13 @@ function assert(cond, msg) { if (!cond) throw new Error(msg || '断言失败'); 
 
   await test('完整版品牌资产与 repositorio XORA listos', async () => {
     const root = path.join(__dirname, '..');
-    assert(fs.existsSync(path.join(root, 'src', 'ui', 'assets', 'douyin-qr.jpg')), '缺少抖音二维码图片');
+    assert(fs.existsSync(path.join(root, 'src', 'ui', 'assets', 'xora-icon.png')), 'falta el icono oficial de XORA');
     assert(fs.existsSync(path.join(root, 'build', 'fetch-runtime.js')), '缺少完整版运行时组装脚本');
     const html = fs.readFileSync(path.join(root, 'src', 'ui', 'index.html'), 'utf8');
-    assert(html.includes('douyin-qr.jpg'), '关于区未引用抖音二维码');
+    assert(html.includes('assets/xora-icon.png'), 'la sección «Acerca de» no usa el icono de XORA');
     assert(html.includes('https://github.com/elx19/xora-emulator'), 'falta el enlace al repositorio XORA');
     assert(!html.includes('RoutineMiku'), 'la interfaz no debe mostrar el autor anterior');
+    assert(!html.includes('wechat-qr.jpg') && !html.includes('douyin-qr.jpg'), 'la interfaz no debe mostrar materiales del desarrollador anterior');
   });
 
   console.log(results.join('\n'));

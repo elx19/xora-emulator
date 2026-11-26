@@ -9,6 +9,10 @@ const i18n = window.apkstartI18n || {
   translateLegacy: (value) => String(value == null ? '' : value),
 };
 const tr = (value) => i18n.translateLegacy(value);
+const safeUiText = (value, fallback = '') => {
+  const translated = tr(value);
+  return /[\u3400-\u9fff]/.test(String(translated || '')) ? fallback : translated;
+};
 const $ = (id) => document.getElementById(id);
 
 const state = {
@@ -39,6 +43,7 @@ const performanceState = {
 const controlState = {
   settings: null,
   profile: 'fps',
+  latency: null,
 };
 
 /* ---------------- 工具 ---------------- */
@@ -436,6 +441,27 @@ function renderControls() {
     button.classList.toggle('selected', selected);
     button.setAttribute('aria-pressed', String(selected));
   });
+  renderInputLatency();
+}
+
+function renderInputLatency() {
+  const value = $('controlLatencyValue');
+  const device = $('controlLatencyDevice');
+  const stats = controlState.latency;
+  if (!value || !device) return;
+  if (!stats || !Number(stats.samples)) {
+    value.textContent = 'Sin medición';
+    device.textContent = 'Pulsa un botón del mando para comenzar.';
+    return;
+  }
+  value.textContent = `${stats.averageMs} ms promedio · p95 ${stats.p95Ms} ms`;
+  device.textContent = `${stats.deviceId || 'Mando compatible'} · ${stats.samples} muestras`;
+}
+
+async function refreshInputLatency() {
+  if (!api.keymap?.latency) return;
+  controlState.latency = await api.keymap.latency().catch(() => null);
+  renderInputLatency();
 }
 
 async function refreshControls() {
@@ -444,6 +470,7 @@ async function refreshControls() {
     controlState.profile = controlState.settings?.engine?.controlProfile || 'fps';
     renderControls();
     detectGamepad(false);
+    await refreshInputLatency();
   } catch (error) {
     toast({ title: 'No se pudo cargar Controles', body: error?.message || '', type: 'error' });
   }
@@ -543,6 +570,13 @@ async function showProfilesView() {
 
 async function showPerformanceView() {
   showView('performance');
+  // Pintar el estado disponible de inmediato. La medición del runtime puede
+  // tardar o no existir todavía, pero la navegación nunca debe mostrar un
+  // panel vacío mientras se resuelven los canales IPC.
+  performanceState.settings = state.settings || performanceState.settings;
+  performanceState.mode = ['save', 'balanced', 'smooth'].includes(performanceState.settings?.engine?.resourceMode)
+    ? performanceState.settings.engine.resourceMode : 'balanced';
+  renderPerformance();
   if (api.metrics && typeof api.metrics.start === 'function') await api.metrics.start().catch(() => null);
   await refreshPerformance();
 }
@@ -566,19 +600,31 @@ function addonStateText(state) {
   }[state] || ['Estado desconocido', 'error'];
 }
 
+function addonIcon(addon) {
+  if (addon.id === 'google-play-store') {
+    return '<span class="addon-logo addon-logo-store" aria-hidden="true"><span>▶</span></span>';
+  }
+  if (addon.id === 'google-play-games') {
+    return '<span class="addon-logo addon-logo-games" aria-hidden="true">◆</span>';
+  }
+  return '<span class="addon-logo addon-logo-services" aria-hidden="true">G</span>';
+}
+
 function renderAddons() {
   const grid = $('addonsGrid');
   if (!grid) return;
   grid.innerHTML = addonState.items.map((addon) => {
     const [label, tone] = addonStateText(addon.state);
-    const action = addon.state === 'installed' ? 'repair' : addon.state === 'repair_required' || addon.state === 'failed' ? 'repair' : 'install';
-    const actionText = action === 'repair' ? 'Seleccionar APK' : 'Instalar complemento';
-    const uninstall = ['installed', 'repair_required', 'update_available', 'failed'].includes(addon.state)
+    const action = addon.actions?.[0] || '';
+    const actionText = action === 'repair' ? 'Reparar componente' : action === 'install' ? 'Instalar complemento' : action === 'cancel' ? 'Cancelar' : '';
+    const actionButton = action
+      ? `<button class="btn primary sm" type="button" data-addon-action="${action}">${actionText}</button>` : '<span class="addon-included">Incluido en la imagen oficial</span>';
+    const uninstall = addon.actions?.includes('uninstall')
       ? '<button class="btn ghost sm" type="button" data-addon-action="uninstall">Desinstalar</button>' : '';
     return `<article class="addon-card" data-addon-id="${esc(addon.id)}">
-      <div class="addon-card-icon" aria-hidden="true">G</div>
+      <div class="addon-card-icon">${addonIcon(addon)}</div>
       <div><h2>${esc(addon.name)}</h2><p>${esc(addon.description)}</p><div class="addon-meta"><span class="addon-state ${tone}">${esc(label)}</span>${addon.version ? `<span class="addon-state">v${esc(addon.version)}</span>` : ''}</div></div>
-      <div class="addon-card-actions"><button class="btn primary sm" type="button" data-addon-action="${action}">${actionText}</button>${uninstall}</div>
+      <div class="addon-card-actions">${actionButton}${uninstall}</div>
     </article>`;
   }).join('');
 }
@@ -1086,7 +1132,7 @@ async function createShortcut(pkg) {
 async function uninstall(pkg) {
   const app = state.apps.find((a) => a.package === pkg);
   if (!app) return;
-  const ok = window.confirm(`确定卸载「${app.label}」？\n\n应用数据会一并被清除，桌面快捷方式也会被删除。`);
+  const ok = window.confirm(`¿Desinstalar «${app.label}»?\n\nTambién se eliminarán sus datos y el acceso directo del escritorio.`);
   if (!ok) return;
   try {
     await api.uninstall(pkg);
@@ -1187,7 +1233,7 @@ async function handleMenu(act) {
     case 'keymap': return showKeymapPicker(pkg, app.label);
     case 'reveal': return api.revealApk(pkg);
     case 'clear': {
-      if (!window.confirm(`清除「${app.label}」的全部数据？此操作不可撤销。`)) return;
+      if (!window.confirm(`¿Borrar todos los datos de «${app.label}»? Esta acción no se puede deshacer.`)) return;
       try {
         await api.clearData(pkg);
         toast({ title: '数据已清除', body: app.label, type: 'ok' });
@@ -1315,15 +1361,16 @@ async function refreshResources() {
   const gb = (mb) => (Number(mb) > 0 ? `${Math.round(Number(mb) / 1024)} GB` : '未知');
   const r = await api.resources().catch(() => null);
   if (!r || r.ok === false) {
-    bNote.textContent = (r && (r.note || r.error)) || '暂时读不到资源分配信息';
+    bNote.textContent = (r && (r.note || r.error)) || 'No se puede leer la asignación de recursos por ahora';
     return;
   }
   const host = r.host || {};
   const lim = r.limits || {};
   const free = Number(r.freeMB) || Number((r.current && r.current.freeMB) || 0);
-  bNote.textContent = `本机 ${gb(host.totalMB)} 内存 / ${host.cores} 核；`
-    + `内存最多可分 ${gb(lim.maxMB)}，核心最多 ${Math.max(1, (host.cores || 1) - 1)} 个（各留 1/4 内存与 1 核给 Windows）。`
-    + `数据分区上限 ${lim.maxGB || 0} GB${free ? `（所在磁盘剩余 ${(free / 1024).toFixed(1)} GB）` : ''}。`
+  bNote.textContent = `Este equipo: ${gb(host.totalMB)} de memoria / ${host.cores} núcleos; `
+    + `puede asignar hasta ${gb(lim.maxMB)} y ${Math.max(1, (host.cores || 1) - 1)} núcleos `
+    + '(se reserva 1/4 de la memoria y 1 núcleo para Windows). '
+    + `Límite de datos: ${lim.maxGB || 0} GB${free ? ` (disco restante ${(free / 1024).toFixed(1)} GB)` : ''}.`
     + (r.verdict && r.verdict.note ? ` ${r.verdict.note}` : '');
 }
 
@@ -1580,19 +1627,20 @@ async function refreshDataInfo() {
   const el = $('dataNote');
   if (!el) return;
   const info = await api.dataInfo().catch(() => null);
-  if (!info) { el.textContent = '读取数据分区信息失败'; return; }
+  if (!info) { el.textContent = 'No se pudo leer la información de la partición de datos'; return; }
   const auto = Number(($('setDataGB') || {}).value || 0) === 0;
   // 有 quickboot 差量盘时底座镜像的大小不等于 guest 看到的容量（实测 8GB 镜像、guest 5.7GB），
   // 与其显示一个会误导人的数字，不如明确说「以运行时为准」。
   const img = info.overlay
-    ? '快速启动差量盘（实际容量以运行时 /data 为准）'
-    : (info.fsGB ? `实际文件系统 ${info.fsGB} GB` : (info.imageGB ? `${info.imageGB} GB` : '尚未创建'));
-  const free = info.freeDiskMB ? `${(info.freeDiskMB / 1024).toFixed(1)} GB` : '未知';
+    ? 'Capa diferencial de inicio rápido (la capacidad real depende de /data)'
+    : (info.fsGB ? `Sistema de archivos real: ${info.fsGB} GB` : (info.imageGB ? `${info.imageGB} GB` : 'Aún no creado'));
+  const free = info.freeDiskMB ? `${(info.freeDiskMB / 1024).toFixed(1)} GB` : 'desconocido';
   const pending = Number(info.pendingGB) > 0
-    ? ` 目标 ${info.configuredGB} GB 还没生效：安卓正在用快速启动差量盘，需要「重置安卓数据」后按新容量重建（会清空已装应用）。`
+    ? ` El objetivo de ${info.configuredGB} GB aún no se aplicó: Android usa una capa diferencial. `
+      + 'Restablece los datos de Android para reconstruirla con el nuevo tamaño (se borrarán las aplicaciones instaladas).'
     : '';
-  el.textContent = `当前数据分区：${img}${auto ? '（自动）' : ''} · 所在磁盘剩余 ${free}。${pending}`
-    + '游戏提示「存储空间不足」就把这里调大后点「立即扩容」；能就地扩容时不丢已装应用。';
+  el.textContent = `Partición de datos actual: ${img}${auto ? ' (automático)' : ''} · espacio libre en el disco: ${free}.${pending}`
+    + ' Si un juego indica «espacio de almacenamiento insuficiente», aumenta este valor y pulsa «Ampliar ahora»; la ampliación local conserva las aplicaciones instaladas.';
 }
 
 /* ---------------- 设置页：分类导航 + 搜索 ---------------- */
@@ -1899,6 +1947,13 @@ function fillAutodebugSettings(cfg) {
 }
 
 async function openSettings() {
+  // Abrir el panel de inmediato evita que la ventana parezca no responder
+  // mientras se cargan los datos de configuración y diagnóstico.
+  const settingsMask = $('settingsMask');
+  if (settingsMask) {
+    settingsMask.classList.add('on');
+    settingsMask.setAttribute('aria-hidden', 'false');
+  }
   state.settings = await api.getSettings();
   fillSettings(state.settings);
   fillAutodebugSettings((state.settings && state.settings.debug) || {});
@@ -1938,7 +1993,6 @@ async function openSettings() {
       : '统计不可用';
   }).catch(() => { $('usageText').textContent = '统计不可用'; });
 
-  $('settingsMask').classList.add('on');
   refreshAndroid();
   refreshDataInfo();
   applySettingsFilter();
@@ -1966,7 +2020,7 @@ function renderUpdate(info) {
   if (info.current) cur.textContent = `v${info.current}`;
 
   if (info.ok === false) {
-    st.textContent = `检查失败：${info.error || '网络不可用'}`;
+    st.textContent = `No se pudo comprobar la actualización: ${safeUiText(info.error, 'GitHub no respondió. Comprueba tu conexión e inténtalo de nuevo.')}`;
     // 检查失败也要给一条出路：直接把发布页打开，用户至少能手动下载。
     // 以前这里是「什么都不显示」，用户只会觉得「更新功能坏了」。
     showUpdateBtn(true);
@@ -1989,7 +2043,7 @@ function renderUpdate(info) {
     const note = $('updateNote');
     if (note && info.notes) {
       const brief = String(info.notes).split('\n').slice(0, 8).join('\n').trim();
-      if (brief) note.textContent = `更新内容：\n${brief}`;
+      if (brief) note.textContent = `Novedades:\n${safeUiText(brief, 'Consulta las notas de la publicación en GitHub.')}`;
     }
     if (bar) bar.hidden = true;
   } else {
@@ -2015,9 +2069,9 @@ function renderUpdateProgress(p) {
   const bar = $('updateBar');
   const fill = $('updateBarFill');
   if (p.stage === 'error') {
-    if (st) st.textContent = `更新失败：${p.message || ''}`;
+    if (st) st.textContent = `Falló la actualización: ${safeUiText(p.message, 'No se pudo completar la descarga.')}`;
     if (bar) bar.hidden = true;
-    toast({ title: '更新失败', body: p.message || '', type: 'error' });
+    toast({ title: 'Falló la actualización', body: safeUiText(p.message, 'No se pudo completar la descarga.'), type: 'error' });
     return;
   }
   if (st) st.textContent = p.message || '正在更新…';
@@ -2044,7 +2098,7 @@ function bindUpdate() {
         if (info && info.hasUpdate) toast({ title: `发现新版本 ${info.tag}`, body: '点「立即更新」自动下载安装', type: 'info' });
         else if (info && info.ok !== false) toast({ title: '已是最新版本', body: `v${info.current}`, type: 'ok' });
       } catch (e) {
-        $('updateState').textContent = `检查失败：${e.message}`;
+        $('updateState').textContent = `No se pudo comprobar la actualización: ${safeUiText(e.message, 'GitHub no respondió. Comprueba tu conexión e inténtalo de nuevo.')}`;
       } finally {
         check.disabled = false;
         check.textContent = old;
@@ -2069,8 +2123,8 @@ function bindUpdate() {
       go.disabled = false;
       go.textContent = '立即更新';
       if (r && r.error && !r.manual) {
-        $('updateState').textContent = `更新失败：${r.error}`;
-        toast({ title: '更新失败', body: r.error, type: 'error' });
+        $('updateState').textContent = `Falló la actualización: ${safeUiText(r.error, 'No se pudo completar la descarga.')}`;
+        toast({ title: 'Falló la actualización', body: safeUiText(r.error, 'No se pudo completar la descarga.'), type: 'error' });
       }
     } else {
       $('updateState').textContent = `已下载 v${r.version}，正在重启完成安装…`;
@@ -2324,7 +2378,7 @@ function bindSettings() {
     const ok = env.playImage && env.playImage.ok;
     $('compatInstallField').hidden = !on || !!ok;
     if (on && !ok) toast({ title: 'Google Play predeterminado', body: 'Descarga la imagen oficial de Android 14 para activar Play Store y Servicios de Google.', type: 'info' });
-    else if (on) toast({ title: 'Google Play está listo', body: 'Reinicia el runtime para aplicar cualquier cambio.', type: 'info' });
+    else if (on) toast({ title: 'Complemento de Google Play incluido', body: 'Reinicia el runtime para aplicar cualquier cambio.', type: 'info' });
   });
   $('setAutoShortcut').addEventListener('change', (e) => save({ createShortcutOnInstall: e.target.checked }));
   $('setStartMenuShortcut').addEventListener('change', (e) => save({ createStartMenuShortcut: e.target.checked }));
@@ -2631,7 +2685,7 @@ function bindSettings() {
 
   // 一键卸载 ApkStart 本体（取消 .apk 关联 + 启动卸载程序；便携版手动删除）
   $('btnUninstall').addEventListener('click', async () => {
-    const ok = window.confirm('确定卸载 ApkStart？\n\n将取消 .apk 文件关联并移除程序。此操作不可撤销。');
+    const ok = window.confirm('¿Desinstalar XORA?\n\nSe quitará la asociación de archivos .apk y el programa. Esta acción no se puede deshacer.');
     if (!ok) return;
     const btn = $('btnUninstall');
     btn.disabled = true;
@@ -2650,7 +2704,7 @@ function bindSettings() {
       toast({ title: '卸载失败', body: r.error, type: 'error' });
       return;
     }
-    toast({ title: '正在卸载…', body: '卸载程序已启动，ApkStart 即将退出', type: 'ok', sticky: true });
+    toast({ title: 'Desinstalando…', body: 'El desinstalador se inició; XORA se cerrará', type: 'ok', sticky: true });
   });
 
   // Descarga de la imagen oficial Google Play (con progreso)
@@ -2706,7 +2760,7 @@ function bindSettings() {
     if (!picked) return;
     await api.setSettings({ runtime: { dir: picked } });
     $('setRuntimeDir').value = picked;
-    toast({ title: '数据目录已更新', body: '请重启 ApkStart 使其生效（旧数据不会自动搬移）', type: 'ok', sticky: true });
+    toast({ title: 'Carpeta de datos actualizada', body: 'Reinicia XORA para aplicar el cambio (los datos antiguos no se moverán automáticamente)', type: 'ok', sticky: true });
   });
 
   // 安卓数据目录（AVD + 快照）：真正吃盘的那块，单独指到别的盘
@@ -2718,7 +2772,7 @@ function bindSettings() {
       $('setAvdDir').value = picked;
       toast({
         title: '安卓数据目录已更新',
-        body: '请重启 ApkStart 使其生效。旧目录里的 apkstart.avd 可以整体搬到新目录，再删掉旧的。',
+        body: 'Reinicia XORA para aplicar el cambio. Puedes mover la carpeta xora.avd antigua al nuevo directorio y después borrar la anterior.',
         type: 'ok',
         sticky: true,
       });
@@ -2757,7 +2811,7 @@ function bindSettings() {
       const r = await api.assocRegister();
       btn.textContent = '已关联 · 点击取消';
       btn.dataset.on = '1';
-      toast({ title: '.apk 关联已开启', body: r.ok ? '现在双击 APK 会直接安装到 ApkStart' : '', type: r.ok ? 'ok' : 'error' });
+      toast({ title: 'Asociación .apk activada', body: r.ok ? 'Ahora al hacer doble clic en un APK se instalará directamente en XORA' : '', type: r.ok ? 'ok' : 'error' });
     }
   });
 }
@@ -2960,6 +3014,10 @@ function bindEvents() {
     renderControls();
   });
   $('btnSaveControls')?.addEventListener('click', saveControls);
+  $('btnResetLatency')?.addEventListener('click', async () => {
+    if (api.keymap?.resetLatency) controlState.latency = await api.keymap.resetLatency().catch(() => ({ samples: 0 }));
+    renderInputLatency();
+  });
   $('addonsGrid')?.addEventListener('click', (event) => {
     const button = event.target.closest('[data-addon-action]');
     const card = event.target.closest('[data-addon-id]');
@@ -3063,7 +3121,7 @@ function bindEvents() {
     const files = [...(e.dataTransfer?.files || [])];
     const paths = files
       .map((f) => { try { return api.pathForFile(f); } catch (_) { return null; } })
-      .filter((p) => p && /\.apk$/i.test(p));
+      .filter((p) => p && /\.(apk|apks|xapk)$/i.test(p));
     if (paths.length) installFiles(paths);
     else toast({ title: '只能拖入 .apk 文件', type: 'error' });
   });

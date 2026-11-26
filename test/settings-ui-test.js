@@ -18,16 +18,17 @@ const OUT = path.join(__dirname, 'out');
 const UI = path.join(__dirname, '..', 'src', 'ui');
 
 const SETTINGS = {
+  identityVersion: 2,
   adbPath: '',
-  runtime: { isoPath: '', sourcePreference: 'auto', autoMirror: true, giteeToken: '', mirrorPrefix: '', downloadConnections: 8 },
+  runtime: { isoPath: '', sourcePreference: 'github', autoMirror: true, giteeToken: '', mirrorPrefix: '', downloadConnections: 8 },
   engine: {
     memoryMB: 4096, cores: 4, idleShutdownMinutes: 15, audio: true, liteMode: true,
-    prewarm: true, priorityMode: 'balanced', deepTrim: false, mouseRightBack: true,
+    prewarm: false, priorityMode: 'balanced', deepTrim: false, mouseRightBack: true,
     mouseWheelMode: 'smooth', mouseSideButtons: false, keymapEnabled: true,
     resourceMode: 'balanced', renderSize: 'auto', dataPartitionGB: 6, fastDns: true,
     gpuMode: 'auto', fpsTarget: 60, autoMemory: true,
     controlProfile: 'fps', mouseDpi: 800, mouseSensitivity: 50, cursorLock: true,
-    locale: 'zh-CN', chineseIme: true, keepSnapshot: true, logLimitKB: 2048,
+    locale: 'es-ES', chineseIme: true, keepSnapshot: true, logLimitKB: 2048,
   },
   display: {
     mode: 'window', portrait: '900x1600', autoFullscreenOnLaunch: false, landscape: false,
@@ -36,8 +37,8 @@ const SETTINGS = {
   createShortcutOnInstall: true,
   createStartMenuShortcut: true,
   shortcutDir: '',
-  sharedDir: path.join(process.env.USERPROFILE || '', 'ApkStartShared'),
-  deviceSharedDir: '/sdcard/ApkStartShared',
+  sharedDir: path.join(process.env.USERPROFILE || '', 'XORAShared'),
+  deviceSharedDir: '/sdcard/XORAShared',
   autoStart: true,
   notifyOnInstall: true,
   debug: { auto: true, intervalMin: 10, notify: true },
@@ -65,18 +66,18 @@ const OVERRIDES = {
   'profiles:recommend': () => PROFILE_LIST[1],
   'profiles:apply': (id) => ({ ok: true, profile: PROFILE_LIST.find((profile) => profile.id === id), settings: SETTINGS }),
   'addons:list': () => ([
-    { id: 'google-play-store', name: 'Google Play Store', description: 'Tienda opcional.', state: 'not_installed', actions: ['install'] },
+    { id: 'google-play-store', name: 'Google Play Store', description: 'Incluido en la imagen oficial.', state: 'installed', source: 'runtime-image', actions: [] },
     { id: 'google-play-games', name: 'Google Play Juegos', description: 'Funciones de juegos.', state: 'not_installed', actions: ['install'] },
-    { id: 'google-play-services', name: 'Servicios de Google', description: 'Compatibilidad Android.', state: 'not_installed', actions: ['install'] },
+    { id: 'google-play-services', name: 'Servicios de Google', description: 'Incluido en la imagen oficial.', state: 'installed', source: 'runtime-image', actions: [] },
   ]),
   'metrics:get': () => null,
   'metrics:start': () => ({ ok: true, sample: null }),
   'assoc:status': () => ({ registered: false }),
-  'doctor:profile': () => ({ profile: {}, text: '均衡 · 4 核 / 4 GB / 720p' }),
+  'doctor:profile': () => ({ profile: {}, text: 'Equilibrado · 4 núcleos / 4 GB / 720p' }),
   'doctor:selfCheck': () => ({ issues: [], accel: { ok: true }, free: 102400 }),
   'doctor:report': () => ({ ok: true, file: 'C:\\report.txt' }),
   'runtime:usage': () => ({ totalText: '8.2 GB', reclaimableText: '1.1 GB', count: 3 }),
-  'runtime:status': () => ({ mode: 'builtin', backend: 'builtin', backendLabel: '内置', installed: true, vmRunning: false, deviceOnline: false, ready: false, phase: 'idle', needsSetup: null, error: '', env: { adb: { ok: true }, emulator: { ok: true }, sysimg: { ok: true } }, accel: { ok: true }, network: null }),
+  'runtime:status': () => ({ mode: 'builtin', backend: 'builtin', backendLabel: 'Imagen oficial', installed: true, vmRunning: false, deviceOnline: false, ready: false, phase: 'idle', needsSetup: null, error: '', env: { adb: { ok: true }, emulator: { ok: true }, sysimg: { ok: true } }, accel: { ok: true }, network: null }),
   'runtime:dataInfo': () => ({ avdDir: 'C:\\data\\avd', configuredGB: 6, actualGB: 6 }),
   'android:status': () => ({ running: false, wifi: true, airplane: false, anim: true, volume: 50, font: 1, density: 320 }),
   'drivers:list': () => ({ drivers: [], errors: [] }),
@@ -92,6 +93,8 @@ const OVERRIDES = {
   'display:state': () => ({ mode: 'window' }),
   'keymap:getPresets': () => ({ presets: [] }),
   'keymap:isEnabled': () => ({ enabled: true }),
+  'keymap:latency': () => ({ samples: 0 }),
+  'keymap:latencyReset': () => ({ samples: 0 }),
 };
 
 // 其余通道统一返回空对象：app.js 里所有调用都有 .catch / 空值兜底
@@ -148,6 +151,14 @@ app.whenReady().then(async () => {
   await new Promise((r) => setTimeout(r, 1200));
 
   const evalJs = (code) => win.webContents.executeJavaScript(code, true);
+  const waitFor = async (code, timeout = 5000) => {
+    const deadline = Date.now() + timeout;
+    while (Date.now() < deadline) {
+      if (await evalJs(code)) return true;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return false;
+  };
 
   const initialLocaleAudit = await evalJs(`(() => {
     const text = document.body?.innerText || '';
@@ -246,10 +257,12 @@ app.whenReady().then(async () => {
     dpi: document.getElementById('controlDpi')?.value || '',
     sensitivity: document.getElementById('controlSensitivity')?.value || '',
     keymap: !!document.getElementById('controlKeymap')?.checked,
+    latency: !!document.getElementById('controlLatencyValue'),
   }))()`);
   step('el módulo de controles se abre desde la navegación', controlsView.visible && controlsView.active === 'controls', `${controlsView.active} / visible=${controlsView.visible}`);
   step('las asignaciones rápidas están disponibles', controlsView.bindings === 4, `${controlsView.bindings} asignaciones`);
   step('los perfiles de control y el DPI se cargan', controlsView.profiles === 3 && controlsView.dpi === '800' && controlsView.sensitivity === '50' && controlsView.keymap, `${controlsView.profiles} perfiles / ${controlsView.dpi} DPI / ${controlsView.sensitivity} %`);
+  step('el panel de latencia de entrada está disponible', controlsView.latency, `latency=${controlsView.latency}`);
   await evalJs('new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
   await win.webContents.capturePage().then((img) => fs.writeFileSync(path.join(OUT, 'controls.png'), img.toPNG()));
 
@@ -264,7 +277,7 @@ app.whenReady().then(async () => {
     notice: document.querySelector('.addons-notice')?.textContent || '',
   }))()`);
   step('el módulo de complementos se abre desde la navegación', addonsView.visible && addonsView.active === 'addons', `${addonsView.active} / visible=${addonsView.visible}`);
-  step('el catálogo muestra los complementos disponibles', addonsView.cards === 3 && addonsView.installButtons === 3, `${addonsView.cards} tarjetas / ${addonsView.installButtons} acciones`);
+  step('el catálogo muestra los complementos disponibles', addonsView.cards === 3 && addonsView.installButtons === 1, `${addonsView.cards} tarjetas / ${addonsView.installButtons} acciones`);
   step('el módulo informa que Google Play viene incluido por defecto', /incluido por defecto|imagen oficial/i.test(addonsView.notice), addonsView.notice);
   await evalJs('new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
   await win.webContents.capturePage().then((img) => fs.writeFileSync(path.join(OUT, 'addons.png'), img.toPNG()));
@@ -272,9 +285,15 @@ app.whenReady().then(async () => {
   console.log('\n[设置页 · 分类导航]');
   // 先打开设置弹窗（自动检测结果是在打开设置时取回来渲染的）
   await evalJs(`document.getElementById('btnSettings').click()`);
-  await new Promise((r) => setTimeout(r, 1600));
+  await waitFor(`document.getElementById('settingsMask')?.classList.contains('on')`);
   const modalOpen = await evalJs(`document.getElementById('settingsMask').classList.contains('on')`);
   step('设置弹窗能打开', modalOpen);
+
+  await waitFor(`(() => {
+    const visible = Array.from(document.querySelectorAll('#settingsBody [data-cat]'))
+      .filter((group) => !group.hidden).map((group) => group.dataset.cat);
+    return visible.length > 0 && visible.every((cat) => cat === visible[0]);
+  })()`);
 
   const navInfo = await evalJs(`(() => ({
     items: document.querySelectorAll('#setNav .set-nav-item').length,
@@ -351,6 +370,22 @@ app.whenReady().then(async () => {
   })()`);
   step('la configuración visible no conserva texto chino', settingsLocaleAudit.count === 0,
     settingsLocaleAudit.sample.join(' | '));
+
+  const categoryLocaleAudit = [];
+  for (const cat of ['basic', 'display', 'input', 'perf', 'net', 'diag', 'files', 'about', 'lab']) {
+    await evalJs(`document.querySelector('#setNav .set-nav-item[data-cat="${cat}"]')?.click()`);
+    await new Promise((r) => setTimeout(r, 120));
+    categoryLocaleAudit.push(await evalJs(`(() => {
+      const group = document.querySelector('#settingsBody [data-cat="${cat}"]');
+      const text = group?.innerText || '';
+      return { cat: '${cat}', count: (text.match(/[\\u3400-\\u9fff]/g) || []).length,
+        sample: text.split('\\n').filter((line) => /[\\u3400-\\u9fff]/.test(line)).slice(0, 6) };
+    })()`));
+  }
+  step('todas las categorías de configuración quedan traducidas',
+    categoryLocaleAudit.every((item) => item.count === 0), JSON.stringify(categoryLocaleAudit));
+  await evalJs(`document.querySelector('#setNav .set-nav-item[data-cat="diag"]')?.click()`);
+  await new Promise((r) => setTimeout(r, 120));
 
   // 滚到自动检测面板再截图（等合成器跟上，避免拍到上一帧）
   await evalJs(`document.getElementById('autodebugGroup').scrollIntoView({ block: 'start' })`);

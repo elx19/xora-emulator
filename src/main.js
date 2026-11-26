@@ -9,7 +9,7 @@ const path = require('path');
 
 const store = require('./core/store');
 const { Runtime } = require('./core/engine');
-const { Installer } = require('./core/installer');
+const { Installer, normalizeInstallPath } = require('./core/installer');
 const { Sharer } = require('./core/sharer');
 const { parseApk } = require('./core/apk');
 const { drawAppIcon } = require('./core/png');
@@ -348,7 +348,7 @@ function applyAutoStart() {
     // 必须显式给 name，否则注册表里的启动项会叫 "electron.app.Electron"
     app.setLoginItemSettings({
       openAtLogin: on,
-      name: 'ApkStart',
+      name: 'XORA',
       path: process.execPath,
       args: ['--autostart'],
     });
@@ -600,7 +600,7 @@ async function attachAppWindow() {
     const fallback = await appWin.embed().catch(() => false);
     if (fallback) {
       try {
-        send('toast', { type: 'info', message: '模拟器原生窗口没能显示，本次临时用内置窗口接管画面' });
+        send('toast', { type: 'info', message: 'La ventana nativa no apareció; XORA usará su ventana integrada esta vez.' });
       } catch (_) { /* 主窗口可能已关闭 */ }
     }
     return fallback;
@@ -729,7 +729,7 @@ async function autoDeploy({ force = false } = {}) {
   };
   let succeeded = false;
   try {
-    const env = await runtime.provisioner.checkEnv();
+    let env = await runtime.provisioner.checkEnv();
     const needEngine = !env.emulator.ok || !env.sysimg.ok;
     // 随包自带运行时（完整版安装包 / 微软商店版）：**一律不联网**。
     // 镜像已经在包里（压缩形态），第一次开机由 engine.ensure() 就地展开；
@@ -755,28 +755,32 @@ async function autoDeploy({ force = false } = {}) {
     // 整包拿不到（没网 / 还没发过该资产 / 被限流）再逐个从官方源装。
     if (needEngine && store.getSettings().runtime.preferGithubRuntime !== false) {
       try {
-        progress({ message: '正在从 GitHub 下载运行时…' });
+        progress({ message: 'Descargando el runtime desde GitHub…' });
         await runtime.provisioner.installRuntimePack(progress);
         const afterPack = await runtime.provisioner.checkEnv();
+        // El paquete de GitHub ya contiene ADB, emulator y la imagen Play.
+        // Reutiliza este estado actualizado para no volver a descargar partes
+        // que el paquete acaba de instalar desde otra fuente.
+        env = afterPack;
         if (afterPack.emulator.ok && afterPack.sysimg.ok) {
           succeeded = true;
           return { ok: true, source: 'github' };
         }
-        progress({ message: '运行时整包不完整，改用官方源补齐…' });
+      progress({ message: 'El runtime está incompleto; completando componentes desde la fuente oficial…' });
       } catch (e) {
-        progress({ message: `GitHub 运行时不可用（${e.message}），改用官方源…` });
+      progress({ message: `El runtime de GitHub no está disponible (${e.message}); usando la fuente oficial…` });
       }
     }
     if (!env.adb.ok) {
-      progress({ message: '正在准备 adb…' });
+      progress({ message: 'Preparando ADB…' });
       await runtime.provisioner.installAdb(progress);
     }
     if (!env.emulator.ok) {
-      progress({ message: '正在准备 Android 运行时…' });
+      progress({ message: 'Preparando el runtime de Android…' });
       await runtime.provisioner.installEmulator(progress);
     }
     if (!env.sysimg.ok) {
-      progress({ message: '正在准备 Android 系统镜像…' });
+      progress({ message: 'Preparando la imagen del sistema Android…' });
       await runtime.provisioner.installSystemImage(progress);
     }
     const after = await runtime.provisioner.checkEnv();
@@ -915,7 +919,7 @@ function createWindow({ show = true } = {}) {
     if (quitting) return;
     e.preventDefault();
     mainWindow.hide();
-    notify('ApkStart 仍在后台运行', '点击托盘图标可重新打开；右键托盘可退出。');
+  notify('XORA sigue ejecutándose en segundo plano', 'Haz clic en el icono de XORA para volver a abrirlo; usa el botón derecho para salir.');
   });
 
   if (IS_DEV) mainWindow.webContents.openDevTools({ mode: 'detach' });
@@ -985,7 +989,7 @@ function openManual(payload = {}) {
         if (/^https?:\/\//i.test(url)) shell.openExternal(url);
       });
     }
-    manualWindow.setTitle(trMain(`ApkStart 使用手册 · ${target.title}`));
+    manualWindow.setTitle(trMain(`Manual de usuario de XORA · ${target.title}`));
     manualWindow.loadFile(path.join(__dirname, 'ui', 'manual.html'), { hash: target.anchor });
     manualWindow.once('ready-to-show', () => {
       if (!manualWindow || manualWindow.isDestroyed()) return;
@@ -1019,9 +1023,14 @@ function notify(title, body) {
 
 function send(channel, payload) {
   if (!mainWindow || mainWindow.isDestroyed()) return;
-  if (channel === 'toast' && payload && typeof payload === 'object') {
+  const translatableChannels = new Set(['toast', 'runtime:log', 'install:progress', 'update:progress']);
+  if (translatableChannels.has(channel) && typeof payload === 'string') {
+    mainWindow.webContents.send(channel, trMain(payload));
+    return;
+  }
+  if (translatableChannels.has(channel) && payload && typeof payload === 'object') {
     const translated = { ...payload };
-    for (const key of ['title', 'body', 'message']) {
+    for (const key of ['title', 'body', 'message', 'hint', 'detail']) {
       if (translated[key] !== undefined) translated[key] = trMain(translated[key]);
     }
     mainWindow.webContents.send(channel, translated);
@@ -1077,8 +1086,8 @@ async function runAutodebug({ force = false } = {}) {
       const fresh = added.filter((i) => i.severity === 'error');
       if (fresh.length) {
         const text = fresh.map((i) => i.title).join('；');
-        send('toast', { type: 'error', message: `自动检测发现新问题：${text}（设置 → 诊断与修复）` });
-        notify('自动检测发现新问题', `${text}。打开 ApkStart 的「设置 → 诊断与修复」可以一键处理。`);
+        send('toast', { type: 'error', message: `El diagnóstico detectó un problema nuevo: ${text} (Configuración → Diagnóstico y reparación).` });
+        notify('El diagnóstico detectó un problema', `${text}. Abre «Configuración → Diagnóstico y reparación» de XORA para resolverlo.`);
         appLog(`autodebug new issues: ${fresh.map((i) => i.code).join(',')}`);
       }
     }
@@ -1130,7 +1139,7 @@ function buildTray() {
       ? ((store.getApp(currentAppPkg) || {}).label || currentAppPkg)
       : '';
     const menu = Menu.buildFromTemplate([
-      { label: trMain('打开 ApkStart'), click: () => showWindow() },
+      { label: trMain('Abrir XORA'), click: () => showWindow() },
       { label: trMain('使用手册'), click: () => openManual({ topic: 'overview', reason: 'tray' }) },
       { type: 'separator' },
       ...(apps.length
@@ -1170,7 +1179,7 @@ function buildTray() {
             const r = await dialog.showMessageBox(mainWindow || undefined, {
               type: 'question',
               title: trMain('发现新版本'),
-              message: trMain(`ApkStart ${info.tag} 已发布，当前版本 v${app.getVersion()}。现在更新吗？`),
+              message: trMain(`XORA ${info.tag} ya está disponible; la versión actual es v${app.getVersion()}. ¿Actualizar ahora?`),
               detail: (info.notes || '').slice(0, 600),
               buttons: [trMain('立即更新'), trMain('稍后')],
               defaultId: 0,
@@ -1178,7 +1187,7 @@ function buildTray() {
             });
             if (r.response === 0) runUpdate();
           } else if (info && !info.hasUpdate) {
-            notify('已是最新版本', `ApkStart v${app.getVersion()}`);
+            notify('XORA está actualizado', `XORA v${app.getVersion()}`);
           }
         },
       },
@@ -1194,7 +1203,7 @@ function buildTray() {
     ]);
     tray.setContextMenu(menu);
   };
-  tray.setToolTip(trMain('ApkStart — 安卓应用运行器'));
+  tray.setToolTip(trMain('XORA — emulador Android ligero'));
   // Windows 托盘的惯例是单击就打开主窗口（双击当然也可以）。
   // 之前只绑了 double-click，用户单击没反应，会以为托盘图标坏了。
   // 右键才出菜单，所以这里单击直接 showWindow 不会和菜单冲突。
@@ -1210,15 +1219,16 @@ let installBusy = null;   // 正在安装的文件路径：双击 APK 连点会�
 let lastInstallErr = { msg: '', at: 0 };
 
 async function runInstall(filePath) {
+  filePath = normalizeInstallPath(filePath);
   showWindow();
   // 同一个包正在装（用户连点了几次图标 / 拖了好几次）→ 只提示一次，别重复跑一遍安装
   if (installBusy) {
     if (installBusy === filePath) {
-      send('toast', { type: 'info', message: '这个 APK 正在安装中，请稍等…' });
-      return { ok: false, error: '正在安装中' };
+      send('toast', { type: 'info', message: 'Este APK ya se está instalando; espera un momento…' });
+      return { ok: false, error: 'La instalación ya está en curso' };
     }
-    send('toast', { type: 'info', message: '已有安装任务在进行，请等它装完。' });
-    return { ok: false, error: '已有安装任务在进行' };
+    send('toast', { type: 'info', message: 'Ya hay otra instalación en curso; espera a que termine.' });
+    return { ok: false, error: 'Ya hay otra instalación en curso' };
   }
   installBusy = filePath;
   send('install:start', { file: filePath });
@@ -1227,7 +1237,7 @@ async function runInstall(filePath) {
     send('install:done', result);
     // 新建的桌面图标要让资源管理器立刻刷新，否则用户会以为「没创建快捷方式」
     windowctl.refreshShell().catch(() => {});
-    notify('安装完成', `${result.app.label} 已安装${result.app.shortcutPath ? '，桌面快捷方式已创建' : ''}`);
+    notify('Instalación completada', `${result.app.label} ya está instalada${result.app.shortcutPath ? '; se creó un acceso directo en el escritorio' : ''}`);
     return result;
   } catch (e) {
     send('install:error', { message: e.message, file: filePath });
@@ -1238,7 +1248,7 @@ async function runInstall(filePath) {
       lastInstallErr = { msg: e.message, at: now };
       // 窗口在前台时用户已经看到界面里的提示，不必再弹系统通知
       if (!mainWindow || !mainWindow.isVisible() || mainWindow.isMinimized()) {
-        notify('安装失败', e.message.slice(0, 120));
+      notify('Instalación fallida', e.message.slice(0, 120));
       }
     }
     throw e;
@@ -1536,10 +1546,10 @@ async function launchOne(pkg) {
       runtime.provisioner.emulatorAccel().then((a) => {
         if (!a || a.ok) return;
         accelWarned = true;
-        notify('正在以软件模拟运行（很慢）', store.STORE_BUILD
-          ? '开启「Windows 虚拟机监控程序平台」后重启一次，速度可提升 5~10 倍。'
-            + '设置 → 环境自检 → 修复 会直接打开该窗口。'
-          : '设置 → 环境自检 → 修复 可一键开启（需管理员授权），之后重启一次。');
+        notify('Modo de emulación por software', store.STORE_BUILD
+          ? 'Activa la Plataforma del hipervisor de Windows y reinicia para mejorar el rendimiento.'
+            + ' Configuración → Diagnóstico y reparación abre esa opción.'
+          : 'Configuración → Diagnóstico y reparación puede activarlo con autorización de administrador.');
       }).catch(() => {});
     }
     // 兜底：如果 early attach 没触发（比如嵌入模式），这里补一次。幂等，已收则无事。
@@ -1552,7 +1562,7 @@ async function launchOne(pkg) {
     // 下次点应用还是走同一条隐藏 → embed 的路径。
     if (winAgent) armAgent(winAgent).catch(() => {});
     showWindow();
-    send('toast', { type: 'error', message: `启动失败：${e.message}` });
+    send('toast', { type: 'error', message: `No se pudo iniciar: ${e.message}` });
     return { ok: false, error: e.message };
   }
 }
@@ -1665,7 +1675,7 @@ function registerIpc() {
   // 选文件夹（用于把运行时/镜像/已装应用挪到非系统盘）
   ipcMain.handle('dialog:openDir', async (_e, defaultPath) => {
     const r = await dialog.showOpenDialog(mainWindow, {
-      title: '选择数据存放目录',
+      title: 'Elegir carpeta para los datos',
       defaultPath: defaultPath || store.DATA_DIR,
       properties: ['openDirectory', 'createDirectory'],
     });
@@ -1690,13 +1700,13 @@ function registerIpc() {
           : null,
         shortcutExists: a.shortcutPath ? fs.existsSync(a.shortcutPath) : false,
       }))
-      .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.lastLaunchAt || 0) - (a.lastLaunchAt || 0) || a.label.localeCompare(b.label, 'zh'));
+      .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.lastLaunchAt || 0) - (a.lastLaunchAt || 0) || a.label.localeCompare(b.label, 'es'));
   });
 
   ipcMain.handle('apk:pick', async () => {
     const r = await dialog.showOpenDialog(mainWindow, {
-      title: '选择要安装的 APK',
-      filters: [{ name: 'Android 应用', extensions: ['apk', 'apks', 'xapk'] }],
+      title: 'Elegir APK para instalar',
+      filters: [{ name: 'Aplicaciones Android', extensions: ['apk', 'apks', 'xapk'] }],
       properties: ['openFile', 'multiSelections'],
     });
     if (r.canceled) return [];
@@ -1921,9 +1931,10 @@ function registerIpc() {
     }
   });
 
-  // ---------------- Complementos opcionales ----------------
-  // Los APK de Google deben venir del usuario o de una distribución con licencia.
-  // XORA valida el paquete y el hash, pero no descarga ni redistribuye esos binarios.
+  // ---------------- Google Play y complementos ----------------
+  // Play Store y Servicios de Google vienen en la imagen oficial predeterminada.
+  // Los APK aportados manualmente solo se usan para reparación o compatibilidad;
+  // XORA valida el paquete y el hash antes de instalarlos.
   function addonRecords() {
     const current = store.getSettings().addons || {};
     return current.records && typeof current.records === 'object' ? current.records : {};
@@ -1952,7 +1963,7 @@ function registerIpc() {
       try {
         const present = await client.isInstalled(item.packageName);
         if (!present) item.state = 'repair_required';
-        item.actions = item.state === 'repair_required' ? ['repair', 'uninstall'] : item.actions;
+        item.actions = item.state === 'repair_required' ? ['repair'] : item.actions;
       } catch (_) { /* el estado guardado sigue siendo la mejor información disponible */ }
     }
     return result;
@@ -1976,6 +1987,9 @@ function registerIpc() {
     const records = addonRecords();
     let playImageReady = false;
     try { playImageReady = !!runtime.provisioner.playImageInfo().ok; } catch (_) { /* runtime aún no disponible */ }
+    if (addon.preinstalled && playImageReady && !String(requestedPath || '').trim()) {
+      return { ok: false, error: `${addon.name} ya viene incluido y activo en la imagen oficial de XORA` };
+    }
     const knownAddons = addons.listAddons({ records }, { playImageReady });
     for (const required of addon.requires) {
       const dependency = knownAddons.find((candidate) => candidate.id === required);
@@ -2035,6 +2049,9 @@ function registerIpc() {
   ipcMain.handle('addons:uninstall', async (_e, id) => {
     const addon = addons.BUILTIN_ADDONS.find((candidate) => candidate.id === String(id || ''));
     if (!addon) return { ok: false, error: 'Complemento desconocido' };
+    if (addon.preinstalled) {
+      return { ok: false, error: `${addon.name} viene incluido en la imagen oficial y no se puede desinstalar` };
+    }
     try {
       const ready = await runtime.ensure();
       if (!ready.ok) throw new Error(ready.error || 'El runtime no está disponible');
@@ -2230,7 +2247,7 @@ function registerIpc() {
   ipcMain.handle('drivers:import', async () => {
     const drv = require('./core/drivers');
     const r = await dialog.showOpenDialog(mainWindow, {
-      title: '选择驱动文件（.json）',
+      title: 'Elegir archivo de controlador (.json)',
       filters: [{ name: '驱动 JSON', extensions: ['json'] }],
       properties: ['openFile'],
     });
@@ -2250,7 +2267,7 @@ function registerIpc() {
     const overview = await driverOverview();
     const tpl = drv.templateFromHost(overview.host);
     const r = await dialog.showSaveDialog(mainWindow, {
-      title: '导出本机驱动模板',
+      title: 'Exportar plantilla de controlador',
       defaultPath: path.join(drv.userDir(store), `${tpl.id}.json`),
       filters: [{ name: '驱动 JSON', extensions: ['json'] }],
     });
@@ -2331,7 +2348,7 @@ function registerIpc() {
     try {
       if (!doctor.vcRedistOk()) {
         issues.push({
-          code: 'vcRedist', severity: 'error', title: '缺少 VC++ 运行库（x64）',
+          code: 'vcRedist', severity: 'error', title: 'Falta el runtime de VC++ (x64)',
           // 这一条是实测 dll 文件不存在才报，可信。但要说清：0xC0000135 不等于
           // 一定是缺 VC++——商店版从 WindowsApps 起子进程也会报同码。装完若仍
           // 起不来，按内置手册 6.8 继续定位，别反复重装运行库。
@@ -2351,7 +2368,7 @@ function registerIpc() {
           ? {
             code: 'accel',
             severity: 'error',
-            title: '需要开启「Windows 虚拟机监控程序平台」',
+            title: 'Activa la Plataforma del hipervisor de Windows',
             hint: '没有它只能跑纯软件模拟，开机会慢到几分钟。'
               + MSIX_ACCEL_HINT
               + '（商店版无法代你提权，需要你手动操作一次，之后重启。）',
@@ -2360,7 +2377,7 @@ function registerIpc() {
           : {
             code: 'accel',
             severity: 'warn',
-            title: '未启用硬件加速',
+            title: 'La aceleración de hardware no está activa',
             hint: `${accel.note || '将回退软件模拟（能跑但很慢）。'}`
               + '点右侧「修复」会自动开启（需要管理员授权，可能要重启一次）；'
               + '失败时会自动改装 AEHD 驱动。',
@@ -2370,33 +2387,33 @@ function registerIpc() {
       free = doctor.freeDiskMB(runtime.provisioner.paths().root);
       if (free && free < 8192) {
         issues.push({
-          code: 'disk', severity: free < 2048 ? 'error' : 'warn', title: '运行时磁盘空间紧张',
+          code: 'disk', severity: free < 2048 ? 'error' : 'warn', title: 'Hay poco espacio en el disco del runtime',
           hint: `「${runtime.provisioner.paths().root}」所在盘仅剩 ${free} MB，运行时与镜像可能撑爆硬盘。`, fix: 'disk',
         });
       }
       const rtDir = runtime.provisioner.paths().root;
       if (!doctor.isAsciiPath(rtDir)) {
         issues.push({
-          code: 'pathRuntime', severity: 'warn', title: '运行时目录含中文/特殊字符',
+          code: 'pathRuntime', severity: 'warn', title: 'La carpeta del runtime contiene caracteres especiales',
           hint: '部分运行时组件对中文路径敏感，可能引发启动失败。建议改到纯英文目录。', fix: 'path',
         });
       }
       const env = await runtime.provisioner.checkEnv().catch(() => ({}));
       if (!env.adb || !env.adb.ok) {
-        issues.push({ code: 'adb', severity: 'error', title: 'adb 工具链缺失', hint: '无法连接安卓运行时。', fix: 'deploy' });
+        issues.push({ code: 'adb', severity: 'error', title: 'Falta la herramienta ADB', hint: 'No se puede conectar con el runtime de Android.', fix: 'deploy' });
       }
       if (!env.emulator || !env.emulator.ok) {
-        issues.push({ code: 'emulator', severity: 'error', title: '运行时引擎未安装', hint: '需要先部署运行时引擎（约 440MB）。', fix: 'deploy' });
+        issues.push({ code: 'emulator', severity: 'error', title: 'El motor del runtime no está instalado', hint: 'Primero prepara el motor de Android.', fix: 'deploy' });
       }
       if (!env.sysimg || !env.sysimg.ok) {
-        issues.push({ code: 'sysimg', severity: 'warn', title: '系统镜像未就绪', hint: '需要先下载 Android 系统镜像（约 1.5GB）。', fix: 'deploy' });
+        issues.push({ code: 'sysimg', severity: 'warn', title: 'La imagen del sistema no está lista', hint: 'Primero descarga la imagen oficial de Android.', fix: 'deploy' });
       }
       // 残留锁文件：会让下一次启动被判定为「AVD 已被占用」而 FATAL
       const avdHome = runtime.provisioner.paths().avdHome;
       let locked = false;
       try { for (const f of fs.readdirSync(avdHome)) { if (/\.lock$/i.test(f)) { locked = true; break; } } } catch (_) { /* ignore */ }
       if (locked) {
-        issues.push({ code: 'lock', severity: 'warn', title: '检测到上次残留的锁文件', hint: '可能导致下一次启动被判定为「AVD 已被占用」。', fix: 'lock' });
+        issues.push({ code: 'lock', severity: 'warn', title: 'Se detectó un bloqueo residual', hint: 'Puede impedir el próximo arranque del dispositivo virtual.', fix: 'lock' });
       }
     } catch (_) { /* 自检失败不阻断使用 */ }
     return { issues, accel, free };
@@ -2489,12 +2506,13 @@ function registerIpc() {
 
   // 通用确认框（渲染层统一走这里，避免各处自己拼 dialog 文案）
   ipcMain.handle('app:confirm', async (_e, opts = {}) => {
+    const text = (value) => trMain(value == null ? '' : String(value));
     const { response } = await dialog.showMessageBox(mainWindow || undefined, {
       type: opts.type || 'question',
-      title: opts.title || '确认',
-      message: opts.message || '',
-      detail: opts.detail || '',
-      buttons: ['取消', opts.okLabel || '确定'],
+      title: text(opts.title || 'Confirmar'),
+      message: text(opts.message || ''),
+      detail: text(opts.detail || ''),
+      buttons: ['Cancelar', text(opts.okLabel || 'Confirmar')],
       defaultId: 1,
       cancelId: 0,
       noLink: true,
@@ -2568,7 +2586,7 @@ function registerIpc() {
     try {
       const r = runtime.emulator.resizeDataPartition(mb);
       appLog(`data partition -> ${want}GB: ${JSON.stringify(r)}`);
-      if (r && r.ok) notify('数据分区已调整', `安卓可用空间约 ${want} GB${stopped ? '（运行时已重启）' : ''}`);
+      if (r && r.ok) notify('Partición de datos ajustada', `Android dispone de unos ${want} GB${stopped ? '; el runtime se reinició' : ''}`);
       return { ok: !!(r && r.ok), stopped, ...r, ...runtime.emulator.dataInfo() };
     } catch (e) {
       return { ok: false, error: e.message };
@@ -2585,12 +2603,12 @@ function registerIpc() {
       buttons: ['取消', `清理 ${preview.candidates.length} 项`],
       defaultId: 0,
       cancelId: 0,
-      title: '确认清理运行时缓存',
-      message: `将释放约 ${(preview.candidates.reduce((n, c) => n + c.size, 0) / 1048576).toFixed(0)} MB`,
+      title: 'Confirmar limpieza de caché',
+      message: `Se liberarán aproximadamente ${(preview.candidates.reduce((n, c) => n + c.size, 0) / 1048576).toFixed(0)} MB`,
       detail: (opts.includeSnapshots
-        ? '会先停止运行时，再删除旧镜像、当前 AVD 的快速启动快照、锁文件和非活动 AVD 的缓存。已安装的应用本身保留（只清快照），'
-        : '只删除旧镜像、旧快照、锁文件和非活动 AVD 的缓存，已安装的应用会保留。')
-        + '此操作不可撤销，建议先导出诊断报告。',
+        ? 'Primero se detendrá el runtime y se eliminarán imágenes antiguas, la instantánea de inicio rápido del AVD actual, bloqueos y cachés de AVD inactivos. Las aplicaciones instaladas se conservarán (solo se limpia la instantánea). '
+        : 'Solo se eliminarán imágenes antiguas, instantáneas, bloqueos y cachés de AVD inactivos; las aplicaciones instaladas se conservarán. ')
+        + 'Esta acción no se puede deshacer; se recomienda exportar antes un informe de diagnóstico.',
     });
     if (response !== 1) return { ...preview, cancelled: true };
     return runtime.cleanup({ apply: true, aggressive: !!opts.aggressive, includeSnapshots: !!opts.includeSnapshots });
@@ -2855,7 +2873,7 @@ function registerIpc() {
 
   ipcMain.handle('provision:importIso', async () => {
     const r = await dialog.showOpenDialog(mainWindow, {
-      title: '选择 Android-x86 / Bliss OS 系统镜像',
+      title: 'Elegir imagen de sistema Android-x86 / Bliss OS',
       filters: [{ name: '系统镜像', extensions: ['iso', 'img'] }],
       properties: ['openFile'],
     });
@@ -2869,7 +2887,7 @@ function registerIpc() {
 
   ipcMain.handle('provision:importDisk', async () => {
     const r = await dialog.showOpenDialog(mainWindow, {
-      title: '选择已安装 Android 的虚拟磁盘',
+      title: 'Elegir disco virtual con Android instalado',
       filters: [{ name: '虚拟磁盘', extensions: ['qcow2', 'img', 'vmdk', 'raw'] }],
       properties: ['openFile'],
     });
@@ -2919,7 +2937,7 @@ function registerIpc() {
 
   ipcMain.handle('assoc:register', () => {
     const l = launcherInfo();
-    const icoPath = path.join(store.ICON_DIR, 'apkstart.ico');
+    const icoPath = path.join(store.ICON_DIR, 'xora.ico');
     if (!fs.existsSync(icoPath)) {
       // 优先用随包分发的多尺寸品牌 ICO，缺失时从 Logo PNG 现算
       if (fs.existsSync(APPICON_FILE)) fs.copyFileSync(APPICON_FILE, icoPath);
@@ -3120,7 +3138,10 @@ function registerIpc() {
   });
   ipcMain.handle('shell:gamepadEvent', async (_e, event) => {
     if (!keymapEngine || !keymapEngine.enabled || !event) return false;
-    return keymapEngine.handleGamepad(event.button, !!event.pressed, currentAppPkg);
+    return keymapEngine.handleGamepad(event.button, !!event.pressed, currentAppPkg, {
+      deviceId: event.deviceId,
+      sampleAt: event.sampleAt,
+    });
   });
   ipcMain.handle('keymap:getPresets', () => {
     return Object.entries(KEYMAP_PRESETS).map(([id, p]) => ({ id, label: p.label, desc: p.desc }));
@@ -3144,6 +3165,8 @@ function registerIpc() {
     return { ok: true };
   });
   ipcMain.handle('keymap:isEnabled', () => keymapEngine ? keymapEngine.enabled : false);
+  ipcMain.handle('keymap:latency', () => keymapEngine ? keymapEngine.latencyStats() : { samples: 0 });
+  ipcMain.handle('keymap:latencyReset', () => keymapEngine ? keymapEngine.resetLatency() : { samples: 0 });
   ipcMain.handle('keymap:applyPreset', (_e, pkg, presetId) => {
     if (!keymapEngine || !KEYMAP_PRESETS[presetId]) return { ok: false };
     controls.validatePackageName(pkg);
@@ -3485,8 +3508,8 @@ if (!gotLock) {
       if (freeMB && freeMB < 3072) {
         appLog(`LOW_DISK free=${freeMB}MB dir=${store.DATA_DIR}`);
         setTimeout(() => {
-          notify('磁盘空间不足', `只剩 ${(freeMB / 1024).toFixed(1)} GB。请到「设置 → 系统集成」把安卓数据目录/运行时目录改到其他盘，或先清理磁盘。`);
-          send('toast', { type: 'error', message: `磁盘只剩 ${(freeMB / 1024).toFixed(1)} GB，安卓可能无法启动（设置 → 系统集成 可换盘）` });
+          notify('Espacio insuficiente', `Solo quedan ${(freeMB / 1024).toFixed(1)} GB. Abre «Configuración → Integración del sistema» para cambiar la unidad o libera espacio.`);
+          send('toast', { type: 'error', message: `Solo quedan ${(freeMB / 1024).toFixed(1)} GB; Android podría no iniciar. Puedes cambiar la unidad en Configuración → Integración del sistema.` });
         }, 3000).unref?.();
       }
     }
@@ -3495,7 +3518,7 @@ if (!gotLock) {
     installer.ensureShortcuts().then((fixed) => {
       if (fixed && fixed.length) {
         windowctl.refreshShell().catch(() => {});
-        notify('快捷方式已补齐', fixed.join('、'));
+        notify('Accesos directos reconstruidos', fixed.join(', '));
       }
     }).catch(() => {});
 
@@ -3559,7 +3582,7 @@ if (!gotLock) {
     // 再并发下载解压只会让桌面更卡。真有应用要打开时 ensure() 自会准备。
     setTimeout(() => {
       autoDeploy().then((r) => {
-        if (r && r.ok) send('toast', { type: 'ok', message: '运行时已自动准备完成' });
+        if (r && r.ok) send('toast', { type: 'ok', message: 'El runtime quedó preparado automáticamente.' });
       }).catch(() => {});
     }, 20000).unref?.();
 
@@ -3577,7 +3600,7 @@ if (!gotLock) {
         if (job) {
           resuming = true;
           appLog(`resuming pending update ${job.version} from cached payload`);
-          send('update:progress', { stage: 'apply', percent: 100, message: '正在完成上次未完成的更新…' });
+          send('update:progress', { stage: 'apply', percent: 100, message: 'Terminando la actualización pendiente…' });
           updater.apply(job);
           setTimeout(() => { quitting = true; app.quit(); }, 900);
         }
@@ -3626,7 +3649,7 @@ if (!gotLock) {
               console.log('[smoke] settings opened =', opened);
               await new Promise((r) => setTimeout(r, 600));
               const dbg = await mainWindow.webContents.executeJavaScript(
-                "JSON.stringify({ on: document.getElementById('settingsMask').classList.contains('on'), qr: !!document.querySelector('#aboutGroup img'), qrH: (document.querySelector('#aboutGroup img')||{}).naturalHeight, ver: (document.getElementById('aboutVer')||{}).textContent, note: (document.getElementById('setupNote')||{}).textContent })",
+                "JSON.stringify({ on: document.getElementById('settingsMask').classList.contains('on'), logo: !!document.querySelector('#aboutGroup .about-logo'), ver: (document.getElementById('aboutVer')||{}).textContent, note: (document.getElementById('setupNote')||{}).textContent })",
               );
               console.log('[smoke] dom =', dbg);
             }
@@ -3643,21 +3666,21 @@ if (!gotLock) {
             if (process.argv.includes('--perf')) {
               // 拍一张「性能与资源占用」区（设置页里控件最多的一块）
               await mainWindow.webContents.executeJavaScript(
-                "document.getElementById('perfGroup').scrollIntoView({ block: 'start' }); true;",
+                "document.querySelector('#setNav .set-nav-item[data-cat=\\\"perf\\\"]')?.click(); document.getElementById('perfGroup').scrollIntoView({ block: 'start' }); true;",
               );
               await snap(out.replace(/\.png$/i, '-perf.png'));
             }
             if (process.argv.includes('--download')) {
               // 拍一张「下载与更新源」区
               await mainWindow.webContents.executeJavaScript(
-                "document.getElementById('downloadGroup').scrollIntoView({ block: 'start' }); true;",
+                "document.querySelector('#setNav .set-nav-item[data-cat=\\\"net\\\"]')?.click(); document.getElementById('downloadGroup').scrollIntoView({ block: 'start' }); true;",
               );
               await snap(out.replace(/\.png$/i, '-download.png'));
             }
             if (process.argv.includes('--settings')) {
               // 再拍一张「关于」区（二维码 / GitHub / Powered by）
               await mainWindow.webContents.executeJavaScript(
-                "document.getElementById('aboutGroup').scrollIntoView({ block: 'center' }); true;",
+                "document.querySelector('#setNav .set-nav-item[data-cat=\\\"about\\\"]')?.click(); document.getElementById('aboutGroup').scrollIntoView({ block: 'center' }); true;",
               );
               await snap(out.replace(/\.png$/i, '-about.png'));
             }

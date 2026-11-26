@@ -660,8 +660,8 @@ class Runtime {
     // 用户可在设置里关掉自动配置（engine.chineseIme=false）。
     if (!this._chineseReady && this.settings.engine.chineseIme !== false) {
       try {
-        const locale = this.settings.engine.locale || 'zh-CN';
-        await client.ensureChineseLocale(locale);
+        const locale = this.settings.engine.locale || 'es-ES';
+        await client.ensureLocale(locale);
         const path = require('path');
         const apk = path.join(this.appRoot, 'assets', 'PinyinIME.apk');
         const r = await client.ensureChineseIme(apk, {
@@ -698,7 +698,7 @@ class Runtime {
   async _ensureSystemLocale(client, locale) {
     const fs = require('fs');
     const path = require('path');
-    const want = String(locale || 'zh-CN');
+    const want = String(locale || 'es-ES');
     if (want === 'off' || want === 'en-US') return;
     // 已经生效（system_locales 是目标语言，或语言列表里第一项是它）
     const cur = await client.shell('settings get system system_locales', { timeout: 8000 }).catch(() => '');
@@ -1366,7 +1366,7 @@ class Runtime {
     const path = require('path');
     try {
       if (this.vmRunning) await this.stop().catch(() => {});
-      const avdDir = path.join(this.provisioner.paths().avdHome, 'apkstart.avd');
+      const avdDir = path.join(this.provisioner.paths().avdHome, 'xora.avd');
       let reclaimed = 0;
       if (fs.existsSync(avdDir)) {
         for (const e of fs.readdirSync(avdDir, { withFileTypes: true })) {

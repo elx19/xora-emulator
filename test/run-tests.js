@@ -81,11 +81,11 @@ const { parseAxml } = require('../src/core/axml');
 const { ResTable } = require('../src/core/arsc');
 const { parseApk, quickCheck } = require('../src/core/apk');
 
-// 测试夹具：优先用环境变量 APKSTART_TEST_APK 指定，
+// 测试夹具：优先用环境变量 XORA_TEST_APK 指定，兼容旧变量，
 // 否则尝试常见的本机 APK 位置（只读，不复制）
 function findFixture() {
   const candidates = [
-    process.env.APKSTART_TEST_APK,
+    process.env.XORA_TEST_APK || process.env.APKSTART_TEST_APK,
     path.join(__dirname, 'fixtures', 'sample.apk'),
   ];
   try {
@@ -128,7 +128,7 @@ if (fixture) {
     }
   });
 } else {
-  console.log('  （跳过：未找到 APK 夹具，可设置 APKSTART_TEST_APK）');
+  console.log('  (se omite: no hay un APK de prueba; puedes definir XORA_TEST_APK)');
 }
 
 // 合成 APK 的构造器放在 test/lib/make-apk.js：真实夹具缺失时也能覆盖解析栈，
