@@ -615,8 +615,23 @@ class EmulatorEngine {
     // resources/runtime）时 root/avd 不存在也不可写，AVD 要落到用户数据目录。
     const avdHome = doctor.shortPath(this.provisioner.paths().avdHome);
     const adbPort = String(plan.adbPort || process.env.ANDROID_ADB_SERVER_PORT || '5044');
+    // emulator.exe invoca `adb` por su cuenta durante el arranque. El runtime debe
+    // ganar siempre a C:\\Windows\\adb.exe u otro SDK del sistema; de lo contrario
+    // se mezclan servidores ADB y aparecen estados `offline`/`device not found`.
+    const inheritedPath = process.env.Path || process.env.PATH || '';
+    const runtimePath = [
+      path.join(safeRoot, 'platform-tools'),
+      path.join(safeRoot, 'emulator'),
+      inheritedPath,
+    ].filter(Boolean).join(path.delimiter);
+    const pathKey = Object.prototype.hasOwnProperty.call(process.env, 'Path') ? 'Path' : 'PATH';
+    const childEnv = { ...process.env, [pathKey]: runtimePath };
+    // Evita que CreateProcess elija una copia antigua si el proceso padre expuso
+    // simultáneamente `Path` y `PATH`.
+    if (pathKey === 'Path') delete childEnv.PATH;
+    else delete childEnv.Path;
     return {
-      ...process.env,
+      ...childEnv,
       ANDROID_SDK_ROOT: safeRoot,
       ANDROID_HOME: safeRoot,
       ANDROID_AVD_HOME: avdHome,
@@ -650,7 +665,14 @@ class EmulatorEngine {
     const drvGpu = eff ? drivers.gpuModeToArg(eff.gpuMode) : '';
     if (drvGpu) gpu = drvGpu;
     if (eff && eff.forceTcg) accel = 'off';
+    let bundledAdb = '';
+    try {
+      const root = this.locate().root;
+      const candidate = path.join(root, 'platform-tools', process.platform === 'win32' ? 'adb.exe' : 'adb');
+      if (fs.existsSync(candidate)) bundledAdb = candidate;
+    } catch (_) { /* el runtime aún no está desplegado */ }
     const args = [
+      ...(bundledAdb ? ['-adb-path', bundledAdb] : []),
       '-avd', AVD_NAME,
       '-port', String(port),
       // 音频：-no-audio 会连麦克风一起关掉（整个音频子系统都停）。

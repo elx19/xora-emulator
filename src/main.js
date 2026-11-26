@@ -9,7 +9,9 @@ const path = require('path');
 
 const store = require('./core/store');
 const { Runtime } = require('./core/engine');
-const { Installer, normalizeInstallPath, runtimeNeedsPreparation } = require('./core/installer');
+const {
+  Installer, normalizeInstallPath, runtimeNeedsPreparation, installWhenAdbReady,
+} = require('./core/installer');
 const { Sharer } = require('./core/sharer');
 const { parseApk } = require('./core/apk');
 const { drawAppIcon } = require('./core/png');
@@ -2078,6 +2080,11 @@ function registerIpc() {
       try {
         const present = await client.isInstalled(item.packageName);
         if (!present) item.state = 'repair_required';
+        if (item.preinstalled && typeof client.needsSystemPackageRepair === 'function'
+          && await client.needsSystemPackageRepair(item.packageName)) {
+          item.state = 'repair_required';
+          item.error = 'La actualización de este componente no responde; se puede restaurar la copia oficial.';
+        }
         item.actions = item.state === 'repair_required' ? ['repair'] : item.actions;
       } catch (_) { /* el estado guardado sigue siendo la mejor información disponible */ }
     }
@@ -2103,6 +2110,39 @@ function registerIpc() {
     let playImageReady = false;
     try { playImageReady = !!runtime.provisioner.playImageInfo().ok; } catch (_) { /* runtime aún no disponible */ }
     if (addon.preinstalled && playImageReady && !String(requestedPath || '').trim()) {
+      let ready = null;
+      try {
+        ready = await runtime.ensure({ onLog: (message) => send('runtime:log', message) });
+        if (!ready.ok) throw new Error(ready.error || 'El runtime no está disponible');
+        const present = await ready.client.isInstalled(addon.packageName).catch(() => false);
+        const needsRepair = typeof ready.client.needsSystemPackageRepair === 'function'
+          ? await ready.client.needsSystemPackageRepair(addon.packageName).catch(() => !present) : !present;
+        if (needsRepair) {
+          saveAddonRecord(addon.id, 'installing', {
+            packageName: addon.packageName,
+            source: 'runtime-image',
+            startedAt: Date.now(),
+          });
+          await ready.client.restoreSystemPackage(addon.packageName);
+          try { runtime.emulator.invalidateSnapshot(); } catch (_) { /* no bloquear reparación */ }
+          const settings = saveAddonRecord(addon.id, 'installed', {
+            packageName: addon.packageName,
+            version: 'incluido',
+            source: 'runtime-image',
+            installedAt: Date.now(),
+            error: null,
+          });
+          send('addons:changed');
+          return { ok: true, repaired: true, addon: addons.listAddons(settings.addons)[findAddonIndex(addon.id)], settings };
+        }
+      } catch (error) {
+        const settings = saveAddonRecord(addon.id, 'failed', {
+          packageName: addon.packageName,
+          error: String(error.message || error).slice(0, 240),
+        });
+        send('addons:changed');
+        return { ok: false, error: error.message || `No se pudo reparar ${addon.name}`, settings };
+      }
       return { ok: false, error: `${addon.name} ya viene incluido y activo en la imagen oficial de XORA` };
     }
     const knownAddons = addons.listAddons({ records }, { playImageReady });
@@ -2139,7 +2179,10 @@ function registerIpc() {
     try {
       const ready = await runtime.ensure({ onLog: (message) => send('runtime:log', message) });
       if (!ready.ok) throw new Error(ready.error || 'El runtime no está disponible');
-      await ready.client.install(filePath);
+      await installWhenAdbReady(ready.client, () => ready.client.install(filePath), {
+        timeoutMs: 30000,
+        onLog: (message) => send('runtime:log', message),
+      });
       try { runtime.emulator.invalidateSnapshot(); } catch (_) { /* no bloquear instalación */ }
       const settings = saveAddonRecord(addon.id, 'installed', { installedAt: Date.now(), error: null });
       send('addons:changed');

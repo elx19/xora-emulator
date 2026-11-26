@@ -1,6 +1,6 @@
 # XORA — Manual de uso y solución de problemas
 
-> Versión: v0.6.12 · Plataforma: Windows 10/11 x64 · Actualizado: 2026-11-26
+> Versión: v0.6.13 · Plataforma: Windows 10/11 x64 · Actualizado: 2026-11-26
 >
 > XORA ejecuta aplicaciones Android dentro de su ventana principal por defecto. Importa un APK, deja que el runtime se prepare y abre la aplicación con doble clic. Esta guía explica el uso diario, el rendimiento, los controles y las soluciones más habituales.
 

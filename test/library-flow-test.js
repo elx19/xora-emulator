@@ -63,6 +63,9 @@ assert.match(mainProcess, /promptUpdateInstall/, 'una actualización disponible 
 assert.doesNotMatch(mainProcess, /正在更新中|已经是最新版本|准备下载|正在替换程序并重启/, 'los estados del actualizador no deben mostrar chino');
 assert.match(libraryUi, /Actualizar ahora/, 'la actualización debe ofrecer una acción en español');
 assert.match(installerSource, /waitForAdbDevice/, 'el arranque debe esperar un dispositivo ADB válido antes de abrir la app');
+assert.match(mainProcess, /installWhenAdbReady/, 'los complementos también deben esperar ADB antes de instalarse');
+assert.match(mainProcess, /needsSystemPackageRepair/, 'la interfaz debe detectar componentes de Play Store no saludables');
+assert.match(mainProcess, /restoreSystemPackage/, 'la reparación de Play Store debe volver a la copia oficial');
 
 const playStore = listSystemApps({ playImageReady: true })[0];
 assert.strictEqual(playStore.package, 'com.android.vending', 'Play Store debe usar su paquete oficial');

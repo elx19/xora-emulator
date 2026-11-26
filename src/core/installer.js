@@ -10,6 +10,7 @@ const crypto = require('crypto');
 const store = require('./store');
 const { parseApk } = require('./apk');
 const { ZipFile } = require('./zip');
+const { shouldRepairSystemPackage } = require('./adb');
 const { iconToIco, writeShortcut, removeShortcut, safeFileName, shortcutExt } = require('./shortcut');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -53,6 +54,23 @@ async function waitForAdbDevice(client, { timeoutMs = 12000, onLog = () => {} } 
   }
   onLog('El dispositivo Android no respondió por ADB; se reiniciará el enlace antes de abrir la aplicación.');
   return false;
+}
+
+/**
+ * No se debe abrir una transferencia de APK contra un serial que todavía está
+ * `offline` o que desapareció durante el arranque. Ese estado deja `adb install`
+ * esperando varios minutos y la interfaz parece congelada. Centralizamos la
+ * espera para instalaciones simples y divididas.
+ */
+async function installWhenAdbReady(client, installAction, { timeoutMs = 30000, onLog = () => {} } = {}) {
+  if (!(await waitForAdbDevice(client, { timeoutMs, onLog }))) {
+    const error = new Error(
+      'Android no respondió por ADB. La instalación se canceló de forma segura; vuelve a intentarlo para que XORA recupere el runtime.',
+    );
+    error.code = 'ADB_NOT_READY';
+    throw error;
+  }
+  return installAction();
 }
 
 function isTransientAdbError(error) {
@@ -291,8 +309,12 @@ class Installer {
     try { this.runtime.emulator?.invalidateSnapshot(); } catch (_) { /* ignore */ }
     onProgress({ stage: 'install', message: existing ? '正在更新应用…' : '正在安装应用…' });
     try {
-      if (bundle) await client.installMultiple(bundle.files);
-      else await client.install(filePath);
+      await installWhenAdbReady(client, () => (
+        bundle ? client.installMultiple(bundle.files) : client.install(filePath)
+      ), {
+        timeoutMs: 30000,
+        onLog: (message) => onProgress({ stage: 'runtime', message }),
+      });
     } catch (e) {
       // 到了这一步报 ABI 不匹配，就是「当前这台运行时没有 ARM 翻译层」的铁证 —— 不需要
       // 再去猜 playImageInfo()。以前用 `!playImageInfo().ok` 当开关，镜像文件明明在磁盘上
@@ -305,8 +327,12 @@ class Installer {
         const rt2 = await this.switchToCompat(onProgress);
         onProgress({ stage: 'install', message: '已切换兼容镜像，正在重新安装…' });
         try {
-          if (bundle) await rt2.client.installMultiple(bundle.files);
-          else await rt2.client.install(filePath);
+          await installWhenAdbReady(rt2.client, () => (
+            bundle ? rt2.client.installMultiple(bundle.files) : rt2.client.install(filePath)
+          ), {
+            timeoutMs: 30000,
+            onLog: (message) => onProgress({ stage: 'runtime', message }),
+          });
         } catch (e2) {
           // 已经切到兼容镜像仍失败：这次必须说实话，别再说「正在重试」。
           const raw2 = (e2 && e2.message) || String(e2 || '');
@@ -549,6 +575,7 @@ class Installer {
       if (replaced && replaced.client) rt = replaced;
     }
     let adbRecoveryUsed = false;
+    let playStoreRepairUsed = false;
     const recoverAdb = async () => {
       if (adbRecoveryUsed) return false;
       adbRecoveryUsed = true;
@@ -721,6 +748,25 @@ class Installer {
         // eslint-disable-next-line no-await-in-loop
         ok = started ? await staysAlive() : false;
         onMark(`alive #${attempt} ${ok}`);
+        // Una actualización del sistema puede dejar Play Store en un ANR durante
+        // el primer arranque. Si Android lo confirma, vuelve una sola vez a la
+        // copia oficial incluida en la imagen y reintenta; no se borra ningún
+        // APK del host ni se toca una instalación que no esté en ANR.
+        if (ok && pkg === 'com.android.vending' && !playStoreRepairUsed
+          && typeof rt.client.hasPackageAnr === 'function'
+          && await rt.client.hasPackageAnr(pkg).catch(() => false)) {
+          const state = typeof rt.client.packageState === 'function'
+            ? await rt.client.packageState(pkg).catch(() => null) : null;
+          if (shouldRepairSystemPackage(state)) {
+            playStoreRepairUsed = true;
+            onLog('Play Store no respondió; se restaurará la versión oficial incluida y se volverá a intentar…');
+            await rt.client.restoreSystemPackage(pkg);
+            ok = false;
+            attempt -= 1;
+            await sleep(1200);
+            continue;
+          }
+        }
         if (!ok && attempt < 3) onLog(`应用启动后退出（第 ${attempt} 次），正在自动重试…`);
       }
       if (!ok) {
@@ -788,5 +834,6 @@ class Installer {
 }
 
 module.exports = {
-  Installer, accentOf, parseBundle, normalizeInstallPath, runtimeNeedsPreparation, waitForAdbDevice,
+  Installer, accentOf, parseBundle, normalizeInstallPath, runtimeNeedsPreparation,
+  waitForAdbDevice, installWhenAdbReady,
 };

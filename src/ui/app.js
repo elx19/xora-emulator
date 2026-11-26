@@ -659,7 +659,11 @@ async function runAddonAction(id, action) {
     const result = action === 'install' ? await api.addons.install(id) : action === 'repair' ? await api.addons.repair(id) : await api.addons.uninstall(id);
     if (!result?.ok && !result?.canceled) throw new Error(result?.error || 'La operación no pudo completarse');
     if (result?.canceled) return;
-    toast({ title: action === 'uninstall' ? 'Complemento desinstalado' : 'Complemento instalado', body: item.name, type: 'ok' });
+    toast({
+      title: action === 'uninstall' ? 'Complemento desinstalado' : action === 'repair' ? 'Complemento reparado' : 'Complemento instalado',
+      body: item.name,
+      type: 'ok',
+    });
     await refreshAddons();
   } catch (error) {
     toast({ title: 'No se pudo completar el complemento', body: error?.message || '', type: 'error' });
@@ -1686,7 +1690,7 @@ function fillSettings(s) {
   if ($('setAutoRotate')) $('setAutoRotate').value = d.autoRotate === false ? 'off' : 'on';
   if ($('setTabletMode')) $('setTabletMode').value = d.tabletMode === false ? 'off' : 'on';
   $('setPortrait').value = d.portrait || '900x1600';
-  // XORA 0.6.12 usa la ventana integrada por defecto; el modo nativo solo se activa
+  // XORA 0.6.13 usa la ventana integrada por defecto; el modo nativo solo se activa
   // cuando el usuario lo elige explícitamente en Configuración.
   if ($('setWindowEmbed')) $('setWindowEmbed').value = d.windowEmbed === true ? 'embed' : 'detached';
   $('portraitField').hidden = $('setDisplayMode').value === 'fullscreen';

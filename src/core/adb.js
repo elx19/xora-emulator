@@ -125,6 +125,32 @@ function friendlyLaunchError(raw, pkg) {
   return `${pkg || 'La aplicación'} no pudo iniciar${t ? `: ${t.slice(0, 240)}` : ' porque el proceso no quedó activo'}`;
 }
 
+function parsePackageState(text, userId = 0) {
+  const source = String(text || '');
+  const userLine = source.split(/\r?\n/).find((line) => line.includes(`User ${userId}:`)) || '';
+  const flagLine = source.match(/pkgFlags=\[([^\]]*)\]/i);
+  return {
+    codePath: (source.match(/(?:^|\n)\s*codePath=(\S+)/i) || [])[1] || '',
+    versionName: (source.match(/(?:^|\n)\s*versionName=(.+)/i) || [])[1]?.trim() || '',
+    updatedSystemApp: /\bUPDATED_SYSTEM_APP\b/i.test(flagLine ? flagLine[1] : ''),
+    installed: /\binstalled=true\b/i.test(userLine),
+    enabled: !/\benabled=0\b/i.test(userLine),
+    stopped: /\bstopped=true\b/i.test(userLine),
+  };
+}
+
+function shouldRepairSystemPackage(state) {
+  return !!(state && state.updatedSystemApp && state.installed && state.enabled);
+}
+
+function needsSystemPackageRepair(state) {
+  return !!(state && (!state.installed || !state.enabled || shouldRepairSystemPackage(state)));
+}
+
+function validPackageName(pkg) {
+  return /^[a-zA-Z][a-zA-Z0-9_]*(?:\.[a-zA-Z0-9_]+)+$/.test(String(pkg || ''));
+}
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
@@ -589,6 +615,48 @@ class AdbClient {
     const checks = paths.map((p) => `[ -s "${p}" ]`).join(' && ');
     const probe = await this.shell(`${checks} && echo __APKSTART_PRESENT__`, { timeout: 10000 }).catch(() => '');
     return /__APKSTART_PRESENT__/.test(String(probe));
+  }
+
+  async packageState(pkg, userId = 0) {
+    if (!validPackageName(pkg)) throw new Error('Paquete Android inválido');
+    const out = await this.shell(`dumpsys package ${pkg}`, { timeout: 12000 });
+    return parsePackageState(out, userId);
+  }
+
+  async isUpdatedSystemPackage(pkg) {
+    return shouldRepairSystemPackage(await this.packageState(pkg));
+  }
+
+  async needsSystemPackageRepair(pkg) {
+    return needsSystemPackageRepair(await this.packageState(pkg));
+  }
+
+  async hasPackageAnr(pkg) {
+    if (!validPackageName(pkg)) return false;
+    const out = await this.shell('dumpsys window', { timeout: 12000 }).catch(() => '');
+    const escaped = String(pkg).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`Application Not Responding:\\s*${escaped}\\b`, 'i').test(String(out));
+  }
+
+  /**
+   * Restaura la versión de fábrica de un paquete incluido en la imagen.
+   * Se usa únicamente como recuperación después de un ANR confirmado; no
+   * reemplaza una actualización sana ni toca APK del host.
+   */
+  async restoreSystemPackage(pkg) {
+    if (!validPackageName(pkg)) throw new Error('Paquete Android inválido');
+    const removeUpdate = await this.shell(`cmd package uninstall-system-updates ${pkg}`, { timeout: 60000 });
+    if (/Failure|Error/i.test(removeUpdate) && !/No updates|not installed/i.test(removeUpdate)) {
+      throw new Error(`No se pudo restaurar la versión oficial de ${pkg}`);
+    }
+    const install = await this.shell(`cmd package install-existing --user 0 ${pkg}`, { timeout: 30000 });
+    if (/Failure|Error/i.test(install) && !/already installed/i.test(install)) {
+      throw new Error(`No se pudo activar ${pkg} en el usuario Android`);
+    }
+    await this.shell(`pm enable --user 0 ${pkg}`, { timeout: 15000 });
+    await this.forceStop(pkg);
+    this.clearLauncherCache(pkg);
+    return true;
   }
 
   async listPackages() {
@@ -1207,4 +1275,5 @@ class AdbClient {
 module.exports = {
   AdbClient, AdbError, parseStatList, friendlyInstallError, friendlyLaunchError,
   componentArg, parseResolvedActivity, parseDeviceState, isUnauthorizedError, parsePmPaths,
+  parsePackageState, shouldRepairSystemPackage, needsSystemPackageRepair,
 };

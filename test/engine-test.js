@@ -229,6 +229,72 @@ function assert(cond, msg) { if (!cond) throw new Error(msg || '断言失败'); 
     assert(/^image\.sysdir\.1=\S*system-images\//m.test(cfg), 'image.sysdir.1 缺失');
   });
 
+  await test('el emulador prioriza el ADB empaquetado frente al ADB del sistema', async () => {
+    const { EmulatorEngine } = require('../src/core/emulator');
+    const emu = new EmulatorEngine(TMP);
+    emu.provisioner.paths = () => ({ avdHome: path.join(TMP, 'avd') });
+    const runtimeRoot = path.join(TMP, 'runtime');
+    const env = emu.env(runtimeRoot, { adbPort: 5044 });
+    const runtimeTools = path.join(runtimeRoot, 'platform-tools').toLowerCase();
+    const envPath = String(env.PATH || env.Path || '')
+      .split(path.delimiter)
+      .map((entry) => entry.toLowerCase());
+    assert(envPath[0] === runtimeTools,
+      `el platform-tools del runtime debe ir antes que el ADB instalado en Windows: ${envPath[0]}`);
+    assert(env.ANDROID_ADB_SERVER_PORT === '5044', 'el emulador debe usar su puerto ADB aislado');
+  });
+
+  await test('el emulador fija explícitamente la ruta de su ADB interno', async () => {
+    const { EmulatorEngine } = require('../src/core/emulator');
+    const emu = new EmulatorEngine(TMP);
+    const runtimeRoot = path.join(TMP, 'runtime-with-adb');
+    fs.mkdirSync(path.join(runtimeRoot, 'platform-tools'), { recursive: true });
+    fs.writeFileSync(path.join(runtimeRoot, 'platform-tools', 'adb.exe'), 'test-adb');
+    emu.locate = () => ({ root: runtimeRoot });
+    const args = emu.buildArgs({ headless: true, gpu: 'software' });
+    const adbIndex = args.indexOf('-adb-path');
+    assert(adbIndex >= 0, 'debe pasar -adb-path al emulator');
+    assert(String(args[adbIndex + 1]).toLowerCase() === path.join(runtimeRoot, 'platform-tools', 'adb.exe').toLowerCase(),
+      'la ruta de -adb-path debe apuntar al ADB empaquetado');
+  });
+
+  await test('la instalación espera a que ADB esté en línea antes de enviar el APK', async () => {
+    const { installWhenAdbReady } = require('../src/core/installer');
+    let online = false;
+    let installCalls = 0;
+    const client = {
+      isOnline: async () => online,
+      connect: async () => { online = true; return true; },
+    };
+    const result = await installWhenAdbReady(client, async () => {
+      installCalls += 1;
+      return 'Success';
+    }, { timeoutMs: 1000 });
+    assert(result === 'Success', 'debe devolver el resultado de la instalación');
+    assert(installCalls === 1, 'el APK debe enviarse una sola vez después de conectar ADB');
+  });
+
+  await test('detecta una actualización de sistema de Play Store que debe repararse', async () => {
+    const { parsePackageState, shouldRepairSystemPackage, needsSystemPackageRepair } = require('../src/core/adb');
+    const updated = parsePackageState([
+      'codePath=/data/app/com.android.vending',
+      'versionName=54.4.11',
+      'pkgFlags=[ SYSTEM HAS_CODE UPDATED_SYSTEM_APP ]',
+      'User 0: installed=true hidden=false enabled=1',
+    ].join('\n'));
+    assert(updated.updatedSystemApp && updated.installed && updated.enabled, 'no detectó el paquete actualizado activo');
+    assert(shouldRepairSystemPackage(updated), 'un paquete actualizado con ANR debe ser reparable');
+    const clean = parsePackageState([
+      'codePath=/product/priv-app/Phonesky',
+      'pkgFlags=[ SYSTEM HAS_CODE ]',
+      'User 0: installed=true hidden=false enabled=1',
+    ].join('\n'));
+    assert(!shouldRepairSystemPackage(clean), 'la versión oficial no debe marcarse para reparación');
+    assert(!needsSystemPackageRepair(clean), 'un paquete oficial habilitado debe considerarse sano');
+    assert(needsSystemPackageRepair({ installed: true, enabled: false, updatedSystemApp: false }),
+      'un componente oficial deshabilitado debe ofrecer reparación');
+  });
+
   await test('la instalación ARM muestra una explicación clara en español', async () => {
     const { friendlyInstallError } = require('../src/core/adb');
     const out = friendlyInstallError(

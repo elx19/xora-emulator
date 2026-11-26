@@ -9,14 +9,16 @@ Documento de referencia para Partner Center. El instalador, el icono y el manifi
 | Nombre del producto | `XORA` |
 | Categoría | Developer tools → Utilities & tools |
 | Precio | Gratis |
-| Paquete técnico | `dist/store/XORA_0.6.12.0_x64.msix` |
+| Paquete técnico | `dist/store/XORA_0.6.13.0_x64.msix` |
 | Idioma principal | Español |
 | Idioma adicional | English (United States) |
 | Sitio del proyecto | https://github.com/elx19/xora-emulator |
 | Política de privacidad | https://github.com/elx19/xora-emulator/blob/main/docs/privacy.md |
 | Soporte | https://github.com/elx19/xora-emulator/issues |
 
-## Novedades de XORA 0.6.12
+## Novedades de XORA 0.6.13
+
+Se corrigió la instalación directa de APK cuando el ADB del sistema estaba mezclándose con el ADB incluido por XORA. También se añadió una reparación automática para Play Store cuando una actualización incompatible provoca un bloqueo ANR.
 
 Android se abre dentro de la misma ventana de XORA por defecto, sin una segunda ventana del emulador. El modo nativo avanzado permanece disponible para diagnóstico y compatibilidad.
 
