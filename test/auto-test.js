@@ -2294,6 +2294,31 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     }
   });
 
+  await test('XZ/runtime legado: detecta una imagen truncada y marca el runtime antiguo para reparación automática', () => {
+    const store = require('../src/core/store');
+    const { hasValidXzFooter } = require('../src/core/provision');
+    const before = store.getSettings().runtime.dir;
+    const rt = path.join(TMP, 'rt-xz-integrity');
+    fs.mkdirSync(rt, { recursive: true });
+    const broken = path.join(rt, 'system.img.xz');
+    fs.writeFileSync(broken, Buffer.alloc(1024 * 1024));
+    const valid = path.join(rt, 'valid.img.xz');
+    fs.writeFileSync(valid, Buffer.concat([Buffer.from([0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]), Buffer.alloc(1024), Buffer.from([0x59, 0x5a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])]));
+    try {
+      assert(hasValidXzFooter(valid) === true, 'un .xz con footer debe reconocerse como completo');
+      assert(hasValidXzFooter(broken) === false, 'un .xz truncado no debe aceptarse por su tamaño');
+      fs.writeFileSync(path.join(rt, '.runtime-pack.json'), JSON.stringify({
+        name: 'ApkStart-runtime-v0.6.4.zip',
+        from: 'https://github.com/RoutineMiku/apkstart/releases/download/v0.6.4/runtime.zip',
+      }));
+      store.saveSettings({ runtime: { dir: rt } });
+      const p = new (require('../src/core/provision').Provisioner)(path.join(__dirname, '..'));
+      assert(p.runtimePackNeedsRefresh() === true, 'el runtime del autor anterior debe entrar en migración');
+    } finally {
+      store.saveSettings({ runtime: { dir: before } });
+    }
+  });
+
   await test('换下载源/整包地址后：provisioner 的地址缓存必须被清掉（否则要重启才生效）', () => {
     const { Provisioner } = require('../src/core/provision');
     const p = new Provisioner(path.join(__dirname, '..'));
@@ -2685,7 +2710,7 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
   await test('窗口模式：默认嵌入主窗口，两种模式可在设置里切换，且只迁移一次', () => {
     const root = path.join(__dirname, '..');
     const storeJs = fs.readFileSync(path.join(root, 'src', 'core', 'store.js'), 'utf8');
-    // XORA 0.6.8：默认把 Android 画面嵌入 XORA 窗口，避免点击应用后弹出第二个窗口。
+    // XORA 0.6.9：默认把 Android 画面嵌入 XORA 窗口，避免点击应用后弹出第二个窗口。
     assert(/windowEmbed:\s*true,\s*\n\s*\/\/ 镜像内/.test(storeJs), 'defaultSettings.display.windowEmbed 必须是 true');
     // 一次性迁移：只迁「没主动选过」的旧配置，用户自己选的不能被反复扳回来
     assert(/windowEmbedMigrated3/.test(storeJs), '要有一次性迁移标记');

@@ -116,6 +116,29 @@ function fileSize(p) {
 }
 
 /**
+ * Un archivo XZ puede conservar el tamaño completo después de una descarga por
+ * rangos fallida (las zonas que nunca llegaron quedan rellenas con ceros). No
+ * basta con comprobar el tamaño: el footer XZ siempre termina con la firma YZ.
+ */
+function hasValidXzFooter(file) {
+  const size = fileSize(file);
+  if (size < 16) return false;
+  let fd = null;
+  try {
+    fd = fs.openSync(file, 'r');
+    const tail = Buffer.alloc(Math.min(16, size));
+    fs.readSync(fd, tail, 0, tail.length, size - tail.length);
+    return tail.includes(Buffer.from('YZ'));
+  } catch (_) {
+    return false;
+  } finally {
+    if (fd !== null) {
+      try { fs.closeSync(fd); } catch (_) { /* ignore */ }
+    }
+  }
+}
+
+/**
  * 目录可写性探测（结果按目录缓存）。
  *
  * 为什么不用 fs.accessSync(dir, W_OK)：Windows 上它只看「只读」文件属性、
@@ -187,6 +210,33 @@ class Provisioner {
   /** 双源/镜像的统一入口（测速缓存也在这里，多个组件共用一份） */
   get sources() {
     return this._sources;
+  }
+
+  /**
+   * Detecta instalaciones que todavía apuntan al runtime del repositorio
+   * histórico o que conservaron un .xz truncado. Se usa para migrar sin
+   * borrar el AVD: solo se vuelve a descargar el runtime oficial de XORA.
+   */
+  runtimePackNeedsRefresh() {
+    const p = this.paths();
+    let legacy = false;
+    try {
+      const marker = JSON.parse(fs.readFileSync(path.join(p.root, '.runtime-pack.json'), 'utf8'));
+      const identityText = JSON.stringify(marker);
+      legacy = /routinemiku[\\/]apkstart|apkstart-runtime|apkstart/i.test(identityText);
+    } catch (_) { /* no marker: instalación nueva o versión completa */ }
+    let brokenArchive = false;
+    try {
+      const dirs = [
+        path.join(p.sysImgRoot, `android-${DEFAULT_SYSIMG.api}`, DEFAULT_SYSIMG.tag, DEFAULT_SYSIMG.abi),
+        path.join(p.root, 'system-images', `android-${DEFAULT_SYSIMG.api}`, DEFAULT_SYSIMG.tag, DEFAULT_SYSIMG.abi),
+      ];
+      brokenArchive = dirs.some((dir) => {
+        const xz = path.join(dir, 'system.img.xz');
+        return fs.existsSync(xz) && !hasValidXzFooter(xz);
+      });
+    } catch (_) { /* el chequeo es best-effort */ }
+    return legacy || brokenArchive;
   }
 
   /** 缓存指纹：引擎文件与加速驱动任一变化就换 key */
@@ -923,6 +973,11 @@ class Provisioner {
               throw e2;
             }
             const { xz } = require(path0.join(lzmaDir, 'index.js'));
+            if (!hasValidXzFooter(j.src)) {
+              const e3 = new Error('la imagen comprimida está incompleta o dañada; falta el cierre XZ');
+              e3.code = 'IMAGE_ARCHIVE_INVALID';
+              throw e3;
+            }
             const webIn = Readable.toWeb(fs.createReadStream(j.src));
             const webOut = xz.decompressStream(webIn);
             pipeline(Readable.fromWeb(webOut), fs.createWriteStream(part), (err) => (err ? reject(err) : resolve()));
@@ -1435,4 +1490,4 @@ class Provisioner {
   }
 }
 
-module.exports = { Provisioner, SOURCES, MIN_SIZE, absUrl, baseOf };
+module.exports = { Provisioner, SOURCES, MIN_SIZE, absUrl, baseOf, hasValidXzFooter };

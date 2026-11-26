@@ -1038,13 +1038,42 @@ class Runtime {
     const s = this.settings;
 
     // 唯一路径：自带运行时
-    // 单文件发行版的镜像是压缩的，先展开（已展开过就秒过）。
-    // 展开失败不要把错误吞掉：否则后面 checkEnv() 只会说「还差系统镜像」，
-    // 用户会以为是没下载，而不是解压失败（磁盘满 / 文件损坏）。
-    await this.provisioner.materializeImages(onLog).catch((e) => {
-      onLog(`系统镜像展开失败：${e.message}`);
-      this.log(`materialize failed: ${e.message}`);
-    });
+    // 如果数据目录还指向历史 ApkStart runtime，或 XZ 文件虽然占满了预分配大小
+    // 但实际下载被截断，先从 XORA 的 GitHub Release 自动迁移。这样升级后点
+    // Play Store 不需要用户手动找运行时压缩包，也不会把坏镜像交给 emulator。
+    if (this.provisioner.runtimePackNeedsRefresh?.()) {
+      onLog('Se detectó un runtime de Android antiguo o dañado; se reparará automáticamente desde GitHub…');
+      try {
+        await this.provisioner.installRuntimePack((p) => {
+          if (p && p.message) onLog(p.message);
+        });
+        onLog('El runtime de XORA está listo; se conservarán las aplicaciones y los datos.');
+      } catch (e) {
+        const message = `No se pudo reparar automáticamente la imagen de Google Play: ${e.message}`;
+        onLog(message);
+        this.log(`runtime repair failed: ${e && (e.stack || e.message)}`);
+        return {
+          ok: false,
+          needsSetup: 'sysimg',
+          error: `${message}. Revisa el espacio libre y vuelve a intentarlo desde Diagnóstico y reparación.`,
+        };
+      }
+    }
+
+    // La imagen comprimida se expande antes de arrancar. Un fallo aquí no debe
+    // continuar hasta boot(): el emulator solo mostraría "No initial system image"
+    // y ocultaría la causa real (archivo truncado, disco lleno o runtime incompleto).
+    try {
+      await this.provisioner.materializeImages(onLog);
+    } catch (e) {
+      onLog(`No se pudo preparar la imagen de Google Play: ${e.message}`);
+      this.log(`materialize failed: ${e && (e.stack || e.message)}`);
+      return {
+        ok: false,
+        needsSetup: 'sysimg',
+        error: `La imagen de Google Play no está disponible: ${e.message}. XORA no iniciará el emulador hasta repararla.`,
+      };
+    }
     const env = await this.provisioner.checkEnv();
 
     // emulator 路径：镜像即系统，没有"安装到磁盘"这一步

@@ -1634,7 +1634,7 @@ function fillSettings(s) {
   if ($('setAutoRotate')) $('setAutoRotate').value = d.autoRotate === false ? 'off' : 'on';
   if ($('setTabletMode')) $('setTabletMode').value = d.tabletMode === false ? 'off' : 'on';
   $('setPortrait').value = d.portrait || '900x1600';
-  // XORA 0.6.8 usa la ventana integrada por defecto; el modo nativo solo se activa
+  // XORA 0.6.9 usa la ventana integrada por defecto; el modo nativo solo se activa
   // cuando el usuario lo elige explícitamente en Configuración.
   if ($('setWindowEmbed')) $('setWindowEmbed').value = d.windowEmbed === true ? 'embed' : 'detached';
   $('portraitField').hidden = $('setDisplayMode').value === 'fullscreen';
