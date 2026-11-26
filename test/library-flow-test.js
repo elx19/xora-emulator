@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const { mergeInstalledApp } = require('../src/ui/library-state');
+const { googlePlayIcon } = require('../src/ui/system-icons');
 const { normalizeInstallPath } = require('../src/core/installer');
 const { listSystemApps, mergeSystemApps, isProtectedSystemApp } = require('../src/core/system-apps');
 
@@ -38,5 +39,7 @@ assert.strictEqual(mergeSystemApps([], { playImageReady: true })[0].package, 'co
 assert.strictEqual(mergeSystemApps([{ package: 'com.android.vending', label: 'duplicada' }], { playImageReady: true }).length, 1);
 assert.strictEqual(isProtectedSystemApp('com.android.vending'), true);
 assert.strictEqual(isProtectedSystemApp('com.example.user'), false);
+assert.match(googlePlayIcon(), /google-play-icon/);
+assert.match(googlePlayIcon(), /#4285f4/i);
 
 console.log('✓ biblioteca e instalación: inserción, actualización y entrada de rutas');

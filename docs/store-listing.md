@@ -9,14 +9,18 @@ Documento de referencia para Partner Center. El instalador, el icono y el manifi
 | Nombre del producto | `XORA` |
 | Categoría | Developer tools → Utilities & tools |
 | Precio | Gratis |
-| Paquete técnico | `dist/store/XORA_0.6.7.0_x64.msix` |
+| Paquete técnico | `dist/store/XORA_0.6.8.0_x64.msix` |
 | Idioma principal | Español |
 | Idioma adicional | English (United States) |
 | Sitio del proyecto | https://github.com/elx19/xora-emulator |
 | Política de privacidad | https://github.com/elx19/xora-emulator/blob/main/docs/privacy.md |
 | Soporte | https://github.com/elx19/xora-emulator/issues |
 
-## Novedades de XORA 0.6.7
+## Novedades de XORA 0.6.8
+
+Android se abre dentro de la misma ventana de XORA por defecto, sin una segunda ventana del emulador. El modo nativo avanzado permanece disponible para diagnóstico y compatibilidad.
+
+Google Play Store ahora muestra su icono oficial multicolor tanto en la Biblioteca como en Complementos de Android.
 
 Google Play Store aparece en la Biblioteca como aplicación incluida y lista para abrir cuando la imagen oficial está preparada. Servicios de Google siguen protegidos como componente del sistema y no se pueden desinstalar accidentalmente.
 
@@ -34,7 +38,7 @@ La imagen oficial de Android 14 incluye Google Play Store y los Servicios de Goo
 
 ## Descripción breve
 
-Ejecuta aplicaciones Android en Windows con ventanas independientes, perfiles automáticos y controles configurables.
+Ejecuta aplicaciones Android en Windows dentro de la ventana principal, con perfiles automáticos y controles configurables.
 
 ## Descripción completa
 
@@ -73,7 +77,7 @@ El primer inicio puede tardar mientras prepara archivos locales. La aplicación 
 
 **Short description**
 
-Run Android apps on Windows with independent windows, automatic profiles and configurable controls.
+Run Android apps on Windows inside the main window, with automatic profiles and configurable controls.
 
 **Description**
 

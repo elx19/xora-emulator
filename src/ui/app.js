@@ -4,6 +4,7 @@ const api = window.apkstart;
 const libraryState = window.xoraLibraryState || {
   mergeInstalledApp: (apps, app) => [app, ...(Array.isArray(apps) ? apps : []).filter((item) => item.package !== app.package)],
 };
+const systemIcons = window.xoraSystemIcons || { googlePlayIcon: () => '' };
 const i18n = window.apkstartI18n || {
   t: (key, vars = {}) => String(key).replace(/\{(\w+)\}/g, (_, name) => vars[name] === undefined ? `{${name}}` : String(vars[name])),
   translateLegacy: (value) => String(value == null ? '' : value),
@@ -225,7 +226,9 @@ function renderGrid() {
       <div class="icon">
         ${a.iconUrl
           ? `<img src="${esc(a.iconUrl)}" alt="" draggable="false" />`
-          : `<div class="fallback" style="background:${esc(a.accent || '#9aa6b2')}">${esc(initialOf(a.label))}</div>`}
+          : a.system && a.package === 'com.android.vending'
+            ? `<div class="system-app-icon">${systemIcons.googlePlayIcon()}</div>`
+            : `<div class="fallback" style="background:${esc(a.accent || '#9aa6b2')}">${esc(initialOf(a.label))}</div>`}
       </div>
       <div class="name">${esc(a.label)}</div>
       <div class="meta"><span>${esc(categoryLabel(a))}</span><span class="meta-sep">·</span><span>${a.system ? esc(i18n.t('apps.included')) : `v${esc(a.versionName || '?')}`}</span><span class="installed-badge">✓ ${esc(a.system ? i18n.t('apps.included') : i18n.t('apps.installed'))}</span></div>
@@ -602,7 +605,7 @@ function addonStateText(state) {
 
 function addonIcon(addon) {
   if (addon.id === 'google-play-store') {
-    return '<span class="addon-logo addon-logo-store" aria-hidden="true"><span>▶</span></span>';
+    return `<span class="addon-logo addon-logo-store" aria-hidden="true">${systemIcons.googlePlayIcon()}</span>`;
   }
   if (addon.id === 'google-play-games') {
     return '<span class="addon-logo addon-logo-games" aria-hidden="true">◆</span>';
@@ -1631,7 +1634,8 @@ function fillSettings(s) {
   if ($('setAutoRotate')) $('setAutoRotate').value = d.autoRotate === false ? 'off' : 'on';
   if ($('setTabletMode')) $('setTabletMode').value = d.tabletMode === false ? 'off' : 'on';
   $('setPortrait').value = d.portrait || '900x1600';
-  // 0.6.0 起默认原生窗口：只有显式 true 才是嵌入模式（旧配置里 undefined 视为原生）
+  // XORA 0.6.8 usa la ventana integrada por defecto; el modo nativo solo se activa
+  // cuando el usuario lo elige explícitamente en Configuración.
   if ($('setWindowEmbed')) $('setWindowEmbed').value = d.windowEmbed === true ? 'embed' : 'detached';
   $('portraitField').hidden = $('setDisplayMode').value === 'fullscreen';
 }

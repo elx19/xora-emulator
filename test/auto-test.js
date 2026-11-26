@@ -2682,40 +2682,39 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     assert(/accelerometer_rotation \$\{guestAutoRotate\(\)\}/.test(adbJs), 'adb 要用 guestAutoRotate 值');
   });
 
-  await test('窗口模式：默认原生窗口，两种模式可在设置里切换，且只迁移一次', () => {
+  await test('窗口模式：默认嵌入主窗口，两种模式可在设置里切换，且只迁移一次', () => {
     const root = path.join(__dirname, '..');
     const storeJs = fs.readFileSync(path.join(root, 'src', 'core', 'store.js'), 'utf8');
-    // 0.6.0：嵌入模式（SetParent）缩放/旋转时掉帧且有黑边、坐标错位，
-    // 默认改为让模拟器开自己的原生窗口。
-    assert(/windowEmbed:\s*false,\s*\n\s*\/\/ 镜像内/.test(storeJs), 'defaultSettings.display.windowEmbed 必须是 false');
-    // 一次性迁移：只迁「没主动选过」的配置，用户自己选的不能被反复扳回来
-    assert(/windowEmbedMigrated2/.test(storeJs), '要有一次性迁移标记');
+    // XORA 0.6.8：默认把 Android 画面嵌入 XORA 窗口，避免点击应用后弹出第二个窗口。
+    assert(/windowEmbed:\s*true,\s*\n\s*\/\/ 镜像内/.test(storeJs), 'defaultSettings.display.windowEmbed 必须是 true');
+    // 一次性迁移：只迁「没主动选过」的旧配置，用户自己选的不能被反复扳回来
+    assert(/windowEmbedMigrated3/.test(storeJs), '要有一次性迁移标记');
     assert(/windowEmbedChosen !== true/.test(storeJs), '主动选过的配置不迁移');
     // 只看标记不够：老配置可能是「migrated2=true 但值仍是 true」（迁移没落盘 / 手改过），
     // 那种情况以前会被原样放过 → 启动又是美化壳窗口。判定基准必须是「有没有主动选过」。
-    const migBody = storeJs.slice(storeJs.indexOf('窗口承载方式的最终裁决'), storeJs.indexOf('窗口承载方式的最终裁决') + 1200);
-    assert(/d\.windowEmbedChosen !== true && d\.windowEmbed !== false/.test(migBody),
-      '迁移条件不能依赖 windowEmbedMigrated2，否则旧标记会漏迁');
-    // 原生窗口要尽早接出来，别让用户对着美化等待页干等
+    const migStart = storeJs.indexOf('Ventana integrada como comportamiento');
+    const migBody = storeJs.slice(migStart, migStart + 1200);
+    assert(/d\.windowEmbedChosen !== true && d\.windowEmbed !== true/.test(migBody),
+      '迁移条件不能依赖 windowEmbedMigrated3，否则旧标记会漏迁');
+    // El modo nativo sigue disponible como alternativa explícita; el modo integrado
+    // es el camino predeterminado para que Android no aparezca en otra ventana.
     const mainJs = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
-    assert(/pre-attach detached ok/.test(mainJs), '启动时要先尝试把模拟器原生窗口接出来');
-    // 接管失败必须重试，否则壳窗口一直停在屏幕上（用户看到的「美化窗口」）
+    assert(/async function attachAppWindow/.test(mainJs), 'debe existir la conexión del emulador con XORA');
     const attachBody = mainJs.slice(mainJs.indexOf('async function attachAppWindow'), mainJs.indexOf('async function attachAppWindow') + 2200);
-    assert(/for \(let i = 0; i < 4; i \+= 1\)/.test(attachBody), '原生窗口接管要重试');
-    assert(/临时退回嵌入模式/.test(attachBody), '四轮都失败要兜底，不能留黑屏');
+    assert(/appWin\.embed\(\)/.test(attachBody), 'el modo integrado debe insertar la pantalla en XORA');
     const appJs = fs.readFileSync(path.join(root, 'src', 'ui', 'app.js'), 'utf8');
     assert(/windowEmbedChosen:\s*true/.test(appJs), '设置页切换时要写入「已主动选择」标记');
     const indexHtml = fs.readFileSync(path.join(root, 'src', 'ui', 'index.html'), 'utf8');
     assert(/setWindowEmbed/.test(indexHtml), '设置里要有窗口模式切换入口');
-    // 原生窗口排在第一个选项，用户进设置第一眼看到的就是默认值
+    // El modo integrado aparece primero porque es el comportamiento recomendado.
     const sel = indexHtml.slice(indexHtml.indexOf('id="setWindowEmbed"'), indexHtml.indexOf('id="setWindowEmbed"') + 400);
-    assert(sel.indexOf('value="detached"') < sel.indexOf('value="embed"'), '原生窗口应为默认选项（排在前面）');
+    assert(sel.indexOf('value="embed"') < sel.indexOf('value="detached"'), 'el modo integrado debe ser la primera opción');
   });
 
   await test('窗口模式：探针与自动检测按新默认值判定', () => {
     const root = path.join(__dirname, '..');
     const probeJs = fs.readFileSync(path.join(root, 'src', 'core', 'autodebug-probe.js'), 'utf8');
-    // 只有显式 true 才算嵌入模式，未设置时按原生窗口处理
+    // Solo true significa integrado; el valor predeterminado ya se normaliza a true.
     assert(/windowEmbed:\s*!!\(settings\.display && settings\.display\.windowEmbed === true\)/.test(probeJs),
       '探针要按「显式 true 才算嵌入」判定');
   });

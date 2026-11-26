@@ -1272,7 +1272,10 @@ kbd {
 }
 .addon-card-icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 13px; background: #f1f4f6; color: var(--brand-ink); font-size: 25px; font-weight: 800; overflow: hidden; }
 .addon-logo { display: grid; place-items: center; width: 100%; height: 100%; }
-.addon-logo-store { background: linear-gradient(145deg, #eef8ff, #f5f8fb); color: #1687d9; font-size: 29px; text-shadow: 5px 3px 0 #f6c343, -2px -2px 0 #ea4335; }
+.addon-logo-store { background: linear-gradient(145deg, #eef8ff, #f5f8fb); }
+.google-play-icon { display: block; width: 72%; height: 72%; }
+.system-app-icon { display: grid; place-items: center; width: 100%; height: 100%; border-radius: inherit; background: linear-gradient(145deg, #eef8ff, #f5f8fb); overflow: hidden; }
+.system-app-icon .google-play-icon { width: 70%; height: 70%; }
 .addon-logo-games { background: linear-gradient(145deg, #eaf9ed, #d8f2df); color: #1c9b4b; font-size: 23px; }
 .addon-logo-services { background: linear-gradient(145deg, #fff7f0, #f5f7fb); color: #4285f4; font-family: Arial, sans-serif; font-size: 27px; }
 .addon-card h2 { margin: 0; font-size: 17px; }

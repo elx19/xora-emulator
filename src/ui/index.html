@@ -562,12 +562,11 @@
         <div class="field">
           <label>Modo de ventana</label>
           <select id="setWindowEmbed">
-            <option value="detached">原生窗口（默认·推荐）· 模拟器自己开窗口，帧率与缩放最稳</option>
-            <option value="embed">Modo integrado · la pantalla de Android aparece dentro de la ventana de XORA</option>
+            <option value="embed">Modo integrado (recomendado) · Android aparece dentro de la ventana de XORA</option>
+            <option value="detached">Modo nativo avanzado · el simulador abre una ventana independiente</option>
           </select>
-          <span class="sub">原生窗口由模拟器直接渲染和排布，拖拽、缩放、旋转都跟手，不会出现黑边或点击错位，
-            代价是多一个任务栏图标（横屏用托盘菜单或 Ctrl+Alt+R）。嵌入模式会把模拟器窗口塞进我们的窗口，
-            观感更统一、自带旋转按钮，但在缩放/旋转/切换应用时容易掉帧并出现黑边。改动在下次打开应用时生效。</span>
+          <span class="sub">El modo integrado es el predeterminado: al abrir una aplicación, Android permanece en esta misma ventana.
+            El modo nativo avanzado queda disponible para diagnóstico y compatibilidad. El cambio se aplica al volver a abrir la aplicación.</span>
         </div>
         <div class="field" id="portraitField">
           <label>竖屏画面大小</label>
@@ -1197,6 +1196,7 @@
 <script src="i18n-catalog.js"></script>
 <script src="i18n.js"></script>
 <script src="library-state.js"></script>
+<script src="system-icons.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
