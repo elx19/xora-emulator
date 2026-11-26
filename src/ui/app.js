@@ -11,7 +11,7 @@ const i18n = window.apkstartI18n || {
 const tr = (value) => i18n.translateLegacy(value);
 const safeUiText = (value, fallback = '') => {
   const translated = tr(value);
-  return /[\u3400-\u9fff]/.test(String(translated || '')) ? fallback : translated;
+  return !String(translated || '').trim() || /[\u3400-\u9fff]/.test(String(translated || '')) ? fallback : translated;
 };
 const $ = (id) => document.getElementById(id);
 
@@ -84,8 +84,8 @@ function relTime(ts) {
  */
 let _toastSeq = 0;
 function toast({ title, body = '', type = 'info', progress = null, sticky = false, spinner = false }) {
-  title = tr(title);
-  body = tr(body);
+  title = safeUiText(title, 'Notificación de XORA');
+  body = safeUiText(body, 'Revisa la configuración o el manual de XORA.');
   const wrap = $('toastWrap');
   // ① 去重：同样的标题 + 正文（4 秒内）只刷新那一条，不叠加
   const key = `${title}|${body}`;
@@ -96,8 +96,8 @@ function toast({ title, body = '', type = 'info', progress = null, sticky = fals
       el: dup,
       dismiss: () => dup.remove(),
       update: ({ title: t2, body: b2 } = {}) => {
-        if (t2 !== undefined) dup.querySelector('.t-title-text').textContent = tr(t2);
-        if (b2 !== undefined) dup.querySelector('.t-body').textContent = tr(b2);
+        if (t2 !== undefined) dup.querySelector('.t-title-text').textContent = safeUiText(t2, 'Notificación de XORA');
+        if (b2 !== undefined) dup.querySelector('.t-body').textContent = safeUiText(b2, 'Revisa la configuración o el manual de XORA.');
       },
     };
   }
@@ -129,8 +129,8 @@ function toast({ title, body = '', type = 'info', progress = null, sticky = fals
   const ctl = {
     el, dismiss,
     update({ title: t2, body: b2, progress: p2, type: ty } = {}) {
-      if (t2 !== undefined) el.querySelector('.t-title-text').textContent = tr(t2);
-      if (b2 !== undefined) el.querySelector('.t-body').textContent = tr(b2);
+      if (t2 !== undefined) el.querySelector('.t-title-text').textContent = safeUiText(t2, 'Notificación de XORA');
+      if (b2 !== undefined) el.querySelector('.t-body').textContent = safeUiText(b2, 'Revisa la configuración o el manual de XORA.');
       if (p2 !== undefined && el.querySelector('.bar i')) {
         el.querySelector('.bar i').style.width = `${Math.max(2, Math.min(100, p2))}%`;
       }
@@ -1382,11 +1382,14 @@ function renderPreflight(res) {
   if (!list) return;
   list.textContent = '';
   if (!res || !res.report) {
-    if (sum) sum.textContent = (res && res.error) || '体检没有返回结果，请重试';
+    if (sum) sum.textContent = safeUiText(res && res.error, 'No se pudo completar el diagnóstico. Inténtalo de nuevo.');
     return;
   }
   const { report, edition } = res;
-  for (const it of report.items) {
+  for (const it of Array.isArray(report.items) ? report.items : []) {
+    const titleText = safeUiText(it.title, 'Elemento de diagnóstico');
+    const detailText = safeUiText(it.detail, 'Consulta el manual de XORA para obtener más información.');
+    const actionText = safeUiText(it.action && it.action.label, 'Abrir configuración');
     const item = document.createElement('div');
     item.className = 'pf-item';
     const head = document.createElement('div');
@@ -1395,13 +1398,13 @@ function renderPreflight(res) {
     dot.className = `pf-dot ${it.level}`;
     const title = document.createElement('span');
     title.className = 'pf-title';
-    title.textContent = it.title;
+    title.textContent = titleText;
     head.append(dot, title);
     item.append(head);
-    if (it.detail) {
+    if (it.detail && detailText) {
       const d = document.createElement('div');
       d.className = 'pf-detail';
-      d.textContent = it.detail;
+      d.textContent = detailText;
       item.append(d);
     }
     if (it.action && it.action.kind === 'elevate') {
@@ -1409,28 +1412,28 @@ function renderPreflight(res) {
       wrap.className = 'pf-action';
       const btn = document.createElement('button');
       btn.className = 'btn ghost sm';
-      btn.textContent = it.action.label;
+      btn.textContent = actionText;
       btn.addEventListener('click', async () => {
         btn.disabled = true;
         const old = btn.textContent;
-        btn.textContent = '正在处理…';
+        btn.textContent = 'Aplicando…';
         let r = null;
         if (it.action.id === 'accel') r = await api.enableAccel().catch(() => null);
         else r = await api.enableVirtualization().catch(() => null);
         btn.disabled = false;
         btn.textContent = old;
-        if (!r) { toast({ type: 'error', title: '操作没有完成', body: '可以稍后重试，或手动按提示操作' }); return; }
-        if (r.cancelled) toast({ type: 'warn', title: '已取消', body: '没有修改系统设置' });
+        if (!r) { toast({ type: 'error', title: 'La operación no se completó', body: 'Puedes volver a intentarlo o seguir las indicaciones manualmente.' }); return; }
+        if (r.cancelled) toast({ type: 'warn', title: 'Operación cancelada', body: 'No se modificó la configuración del sistema.' });
         else if (r.ok || r.already) {
           const reboot = r.restartNeeded === true;
           toast({
             type: 'ok',
-            title: r.already ? '硬件加速已经可用' : (reboot ? '已提交，需要重启' : '已生效'),
-            body: r.already ? '' : (reboot ? '重启电脑后硬件加速才会生效，回来点「开始体检」确认' : '可以点「开始体检」确认结果'),
+            title: r.already ? 'La aceleración de hardware ya está disponible' : (reboot ? 'Cambios enviados; debes reiniciar' : 'Cambio aplicado'),
+            body: r.already ? '' : (reboot ? 'Reinicia el equipo y vuelve a ejecutar el diagnóstico.' : 'Vuelve a ejecutar el diagnóstico para confirmar el resultado.'),
           });
           if (r.already || !reboot) setTimeout(() => runPreflight().catch(() => {}), 1200);
         } else {
-          toast({ type: 'error', title: '没能自动完成', body: (r.error || r.note || '请按提示手动操作') });
+          toast({ type: 'error', title: 'No se pudo completar automáticamente', body: safeUiText(r.error || r.note, 'Sigue las indicaciones manualmente.') });
         }
       });
       wrap.append(btn);
@@ -1438,16 +1441,18 @@ function renderPreflight(res) {
     } else if (it.action && it.action.kind === 'manual') {
       const wrap = document.createElement('div');
       wrap.className = 'pf-action pf-detail';
-      wrap.textContent = `⚠ ${it.action.label}`;
+      wrap.textContent = `⚠ ${actionText}`;
       item.append(wrap);
     }
     list.append(item);
   }
   const rec = report.recommended || {};
   if (sum) {
-    sum.textContent = `${report.summary}。推荐配置：${Math.round((rec.memoryMB || 0) / 1024)} GB 内存 / `
-      + `${rec.cores || 2} 核 / ${rec.renderSize || 'auto'} · 渲染 ${rec.gpuMode || 'auto'}`
-      + (edition === 'store' ? '（商店版：系统功能只能在「Windows 功能」里手动开）' : '');
+    const summary = safeUiText(report.summary, 'Diagnóstico completado.');
+    const summaryEnd = /[.!?]$/.test(summary) ? '' : '.';
+    sum.textContent = `${summary}${summaryEnd} Configuración recomendada: ${Math.round((rec.memoryMB || 0) / 1024)} GB de memoria / `
+      + `${rec.cores || 2} núcleos / ${rec.renderSize || 'auto'} · renderizado ${rec.gpuMode || 'auto'}`
+      + (edition === 'store' ? ' (en la edición de Store, las funciones del sistema se activan manualmente desde «Funciones de Windows»).' : '');
   }
   if (applyBtn) applyBtn.hidden = false;
 }
@@ -1458,13 +1463,13 @@ async function runPreflight() {
   if (!btn) return null;
   const old = btn.textContent;
   btn.disabled = true;
-  btn.textContent = '体检中…';
-  if (sum) sum.textContent = '正在检查虚拟化、显卡、内存…（第一次约 2~3 秒）';
+  btn.textContent = 'Comprobando…';
+  if (sum) sum.textContent = 'Comprobando virtualización, GPU y memoria… (la primera vez tarda unos segundos)';
   let r = null;
   try {
     r = await api.preflightRun();
   } catch (e) {
-    r = { error: e.message || '体检失败' };
+    r = { error: e.message || 'No se pudo completar el diagnóstico.' };
   }
   btn.disabled = false;
   btn.textContent = old;
@@ -1482,10 +1487,14 @@ function renderDrivers(r) {
   const errors = (r && r.errors) || [];
   const onCount = drivers.filter((d) => d.enabled && d.matched).length;
   if (sum) {
-    const accel = host.accel === 'none' ? '无硬件加速' : (host.accel || '未知');
-    sum.textContent = tr(`本机：${host.platform || ''}/${host.arch || ''} · ${host.gpuVendor || '未知'} 显卡 · ${accel}`
-      + ` · emulator ${host.emulatorVersion || '未知'}；驱动 ${drivers.length} 个，本机已生效 ${onCount} 个。`
-      + (errors.length ? ` ${errors.length} 个文件加载失败（见下）。` : ''));
+    const accel = host.accel === 'none' ? 'sin aceleración de hardware' : safeUiText(host.accel, 'estado desconocido');
+    const platform = safeUiText(host.platform, 'sistema');
+    const arch = safeUiText(host.arch, 'arquitectura desconocida');
+    const gpuVendor = safeUiText(host.gpuVendor, 'GPU desconocida');
+    const emulatorVersion = safeUiText(host.emulatorVersion, 'versión desconocida');
+    sum.textContent = `Equipo: ${platform}/${arch} · GPU ${gpuVendor} · ${accel}`
+      + ` · motor ${emulatorVersion}; ${drivers.length} controlador(es), ${onCount} activo(s).`
+      + (errors.length ? ` ${errors.length} archivo(s) no se pudieron cargar; consulta los detalles.` : '');
   }
   list.textContent = '';
   for (const d of drivers) {
@@ -1504,35 +1513,36 @@ function renderDrivers(r) {
     });
     const name = document.createElement('span');
     name.className = 'drv-name';
-    name.textContent = tr(d.name);
+    name.textContent = safeUiText(d.name, 'Controlador sin nombre');
     head.append(cb, name);
 
     if (d.matched && d.enabled) {
       const b = document.createElement('span');
       b.className = 'drv-badge hit';
-      b.textContent = tr('已生效');
+      b.textContent = 'Activo';
       head.append(b);
     }
     if (d.builtin) {
       const b = document.createElement('span');
       b.className = 'drv-badge';
-      b.textContent = tr('内置示例');
+      b.textContent = 'Ejemplo incluido';
       head.append(b);
     }
     item.append(head);
 
     const meta = document.createElement('div');
     meta.className = 'drv-meta';
-    meta.textContent = tr(`v${d.version || '?'}`
-      + (d.author ? ` · ${d.author}` : '')
-      + ` · priority ${d.priority}`
-      + (d.hits && d.hits.length ? ` · 命中：${d.hits.join(' / ')}` : ' · 本机不匹配'));
+    const author = safeUiText(d.author, 'autor desconocido');
+    const hits = Array.isArray(d.hits) && d.hits.length
+      ? d.hits.map((hit) => safeUiText(hit, 'coincidencia')).join(' / ')
+      : 'sin coincidencia en este equipo';
+    meta.textContent = `v${safeUiText(d.version, '?')} · ${author} · prioridad ${safeUiText(d.priority, '?')} · ${hits}`;
     item.append(meta);
 
     if (d.description) {
       const desc = document.createElement('div');
       desc.className = 'drv-meta';
-      desc.textContent = tr(d.description);
+      desc.textContent = safeUiText(d.description, 'Descripción no disponible.');
       item.append(desc);
     }
     list.append(item);
@@ -1540,13 +1550,15 @@ function renderDrivers(r) {
   for (const e of errors) {
     const err = document.createElement('div');
     err.className = 'drv-err';
-    err.textContent = tr(`${String(e.file || '').split(/[\\/]/).pop()}：${(e.errors || []).join('；')}`);
+    const file = safeUiText(String(e.file || '').split(/[\\/]/).pop(), 'archivo desconocido');
+    const details = Array.isArray(e.errors) ? e.errors.map((item) => safeUiText(item, 'error no especificado')).join('; ') : 'error no especificado';
+    err.textContent = `${file}: ${details}`;
     list.append(err);
   }
   if (!drivers.length && !errors.length) {
     const empty = document.createElement('div');
     empty.className = 'drv-meta';
-    empty.textContent = tr('还没有任何驱动。可以点「导出本机模板」做一个，或导入别人做好的 JSON。');
+    empty.textContent = 'Todavía no hay controladores. Puedes exportar una plantilla de este equipo o importar un JSON.';
     list.append(empty);
   }
 }
@@ -1784,12 +1796,12 @@ function bindSettingsCategory() {
 
 /** 自动检测的问题分类名（与 src/core/autodebug.js 的 CATEGORIES 对应） */
 const DEBUG_CATS = [
-  { id: 'runtime', name: '运行时' },
-  { id: 'device', name: '设备连接' },
-  { id: 'storage', name: '存储' },
-  { id: 'settings', name: '设置' },
-  { id: 'network', name: '网络' },
-  { id: 'logs', name: '日志' },
+  { id: 'runtime', name: 'Runtime de Android' },
+  { id: 'device', name: 'Conexión del dispositivo' },
+  { id: 'storage', name: 'Almacenamiento' },
+  { id: 'settings', name: 'Configuración' },
+  { id: 'network', name: 'Red' },
+  { id: 'logs', name: 'Registros' },
 ];
 
 let autodebugLast = null;
@@ -1803,16 +1815,16 @@ function renderAutodebug(res) {
   const at = res && res.at;
 
   if (txt) {
-    if (res && res.running) txt.textContent = '正在检测…';
-    else if (!at) txt.textContent = tr('尚未检测');
-    else if (!issues.length) txt.textContent = tr(`上次检测 ${relTime(at)} · 一切正常`);
-    else txt.textContent = tr(`上次检测 ${relTime(at)} · ${issues.length} 项待处理`);
+    if (res && res.running) txt.textContent = 'Comprobando…';
+    else if (!at) txt.textContent = 'Todavía no se ha comprobado';
+    else if (!issues.length) txt.textContent = `Última detección ${relTime(at)} · todo está correcto`;
+    else txt.textContent = `Última detección ${relTime(at)} · ${issues.length} elemento(s) pendiente(s)`;
   }
 
   if (!issues.length) {
     list.innerHTML = `<div class="dbg-ok">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-      <span>${esc(tr('没有发现影响使用的问题。运行时、adb 授权、磁盘、数据分区、快照与设置冲突都检查过了。'))}</span>
+      <span>No se encontraron problemas que afecten al uso. Se revisaron el runtime, la autorización ADB, el disco, la partición de datos, las instantáneas y la configuración.</span>
     </div>`;
     updateCatBadges();
     return;
@@ -1831,7 +1843,7 @@ function renderAutodebug(res) {
   });
 
   list.innerHTML = keys.map((key) => {
-    const name = tr((DEBUG_CATS.find((c) => c.id === key) || {}).name || key);
+    const name = safeUiText((DEBUG_CATS.find((c) => c.id === key) || {}).name || key, 'Diagnóstico');
     const items = byCat.get(key);
     return `<div class="dbg-group">
       <div class="dbg-group-title">${esc(name)}<span class="dbg-count">${items.length}</span></div>
@@ -1839,12 +1851,12 @@ function renderAutodebug(res) {
         <div class="dbg-item ${esc(it.severity || 'info')}">
           <span class="dbg-sev"></span>
           <div class="dbg-body">
-            <div class="dbg-name">${esc(tr(it.title || ''))}</div>
-            <div class="dbg-hint">${esc(tr(it.hint || ''))}</div>
-            ${it.detail ? `<div class="dbg-detail">${esc(tr(it.detail))}</div>` : ''}
+            <div class="dbg-name">${esc(safeUiText(it.title, 'Problema detectado'))}</div>
+            <div class="dbg-hint">${esc(safeUiText(it.hint, 'Consulta el manual de XORA para obtener una solución.'))}</div>
+            ${it.detail ? `<div class="dbg-detail">${esc(safeUiText(it.detail, 'Hay más detalles disponibles en el informe.'))}</div>` : ''}
           </div>
-          ${it.fix ? `<button class="dbg-fix" data-code="${esc(it.code)}">${esc(tr('处理'))}</button>` : ''}
-          <button class="dbg-help" data-code="${esc(it.code)}" title="${esc(tr('打开内置教程'))}">${esc(tr('教程'))}</button>
+          ${it.fix ? `<button class="dbg-fix" data-code="${esc(it.code)}">Reparar</button>` : ''}
+          <button class="dbg-help" data-code="${esc(it.code)}" title="Abrir el manual">Manual</button>
         </div>`).join('')}
     </div>`;
   }).join('');
@@ -1884,7 +1896,7 @@ function bindAutodebug() {
     btn.addEventListener('click', async () => {
       btn.disabled = true;
       const old = btn.textContent;
-      btn.textContent = '检测中…';
+      btn.textContent = 'Comprobando…';
       try {
         const r = await api.autodebugRun().catch(() => null);
         if (r) renderAutodebug(r);
@@ -3165,7 +3177,7 @@ function bindEvents() {
   api.on('autodebug:state', (r) => {
     if (r && r.running) {
       const txt = $('autodebugStateText');
-      if (txt) txt.textContent = '正在检测…';
+      if (txt) txt.textContent = 'Comprobando…';
       return;
     }
     renderAutodebug(r);
@@ -3310,9 +3322,9 @@ function renderEnvCheck(r) {
   if (chip) {
     const errs = issues.filter((i) => i.severity === 'error').length;
     chip.hidden = issues.length === 0;
-    chip.textContent = errs ? `${errs} 项待修复` : `${issues.length} 项提示`;
+    chip.textContent = errs ? `${errs} problema(s)` : `${issues.length} aviso(s)`;
     chip.className = `status-chip${errs ? ' err' : ''}`;
-    chip.title = issues.map((i) => i.title).join('；');
+    chip.title = issues.map((i) => safeUiText(i.title, 'Problema del sistema')).join('; ');
   }
 
   if (!issues.length) {
@@ -3320,9 +3332,9 @@ function renderEnvCheck(r) {
     box.innerHTML = `
       <div class="env-check-ok">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-        <span>环境自检通过，没有发现会影响运行的问题。</span>
+        <span>El diagnóstico del sistema no encontró problemas que afecten al funcionamiento.</span>
         <span style="flex:1"></span>
-        <button class="btn ghost sm" id="btnEnvRecheck">重新检查</button>
+        <button class="btn ghost sm" id="btnEnvRecheck">Comprobar de nuevo</button>
       </div>`;
     const re = $('btnEnvRecheck');
     if (re) re.addEventListener('click', selfCheck);
@@ -3333,23 +3345,23 @@ function renderEnvCheck(r) {
   box.hidden = false;
   box.innerHTML = `
     <div class="env-check-head">
-      <span class="ec-title">环境自检</span>
-      ${errs ? `<span class="ec-count">${errs} 个严重</span>` : ''}
-      ${warns ? `<span class="ec-count warn">${warns} 个提示</span>` : ''}
+      <span class="ec-title">Diagnóstico del sistema</span>
+      ${errs ? `<span class="ec-count">${errs} problema(s) grave(s)</span>` : ''}
+      ${warns ? `<span class="ec-count warn">${warns} aviso(s)</span>` : ''}
       <span class="ec-spacer"></span>
-      <button class="btn ghost sm" id="btnEnvRecheck">重新检查</button>
-      <button class="btn primary sm" id="btnEnvFixAll">一键修复全部</button>
+      <button class="btn ghost sm" id="btnEnvRecheck">Comprobar de nuevo</button>
+      <button class="btn primary sm" id="btnEnvFixAll">Reparar todo</button>
     </div>
     <div class="env-check-list">
       ${issues.map((i) => `
         <div class="env-check-item ${i.severity}">
           <span class="ec-sev"></span>
           <div class="ec-body">
-            <div class="ec-name">${esc(i.title)}</div>
-            <div class="ec-hint">${esc(i.hint || '')}</div>
+            <div class="ec-name">${esc(safeUiText(i.title, 'Problema del sistema'))}</div>
+            <div class="ec-hint">${esc(safeUiText(i.hint, 'Consulta el manual de XORA para obtener una solución.'))}</div>
           </div>
-          ${i.fix ? `<button class="ec-fix" data-code="${esc(i.code)}">修复</button>` : ''}
-          <button class="ec-help" data-code="${esc(i.code)}" title="打开内置教程">教程</button>
+          ${i.fix ? `<button class="ec-fix" data-code="${esc(i.code)}">Reparar</button>` : ''}
+          <button class="ec-help" data-code="${esc(i.code)}" title="Abrir el manual">Manual</button>
         </div>`).join('')}
     </div>`;
   const re = $('btnEnvRecheck');

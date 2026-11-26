@@ -864,9 +864,9 @@ async function enableWhpxFeatures() {
 }
 
 /** 商店版专用的手动引导文案：MSIX 包固定 mediumIL，提权通常拿不到 */
-const MSIX_ACCEL_HINT = '商店版无法自行提权。请手动开启一次：'
-  + '按 Win+R → 输入 optionalfeatures → 勾选「Windows 虚拟机监控程序平台」'
-  + '（HypervisorPlatform，WHPX 真正需要的那个），确定后重启电脑。';
+const MSIX_ACCEL_HINT = 'La edición de Microsoft Store no puede solicitar permisos elevados. Activa una vez esta función manualmente: '
+  + 'pulsa Win+R, escribe optionalfeatures y marca «Plataforma del hipervisor de Windows» '
+  + '(HypervisorPlatform, la que necesita WHPX); confirma y reinicia el equipo.';
 
 // ---------------- 主窗口 ----------------
 
@@ -2352,8 +2352,8 @@ function registerIpc() {
           // 这一条是实测 dll 文件不存在才报，可信。但要说清：0xC0000135 不等于
           // 一定是缺 VC++——商店版从 WindowsApps 起子进程也会报同码。装完若仍
           // 起不来，按内置手册 6.8 继续定位，别反复重装运行库。
-          hint: '实测系统缺少微软 VC++ 2015-2022（x64），安卓运行时依赖它。'
-            + '可一键安装；若装完仍报 0xC0000135，见内置手册 6.8——商店版还可能是子进程 DLL 路径问题。', fix: 'vcRedist',
+          hint: 'El sistema no tiene Microsoft VC++ 2015-2022 (x64), requerido por el runtime de Android. '
+            + 'Puedes instalarlo automáticamente; si aparece 0xC0000135 después, consulta el manual 6.8: en Store también puede ser una ruta de DLL del subproceso.', fix: 'vcRedist',
         });
       }
       accel = await runtime.provisioner.emulatorAccel().catch(() => ({ ok: false }));
@@ -2369,18 +2369,18 @@ function registerIpc() {
             code: 'accel',
             severity: 'error',
             title: 'Activa la Plataforma del hipervisor de Windows',
-            hint: '没有它只能跑纯软件模拟，开机会慢到几分钟。'
+            hint: 'Sin esta función solo se puede usar emulación por software, y el arranque puede tardar varios minutos. '
               + MSIX_ACCEL_HINT
-              + '（商店版无法代你提权，需要你手动操作一次，之后重启。）',
+              + ' Necesitas hacerlo una vez y reiniciar.',
             fix: 'virtualization',
           }
           : {
             code: 'accel',
             severity: 'warn',
             title: 'La aceleración de hardware no está activa',
-            hint: `${accel.note || '将回退软件模拟（能跑但很慢）。'}`
-              + '点右侧「修复」会自动开启（需要管理员授权，可能要重启一次）；'
-              + '失败时会自动改装 AEHD 驱动。',
+            hint: `${accel.note || 'Se usará emulación por software; funcionará, pero será más lenta.'}`
+              + ' Pulsa «Reparar» para activarla automáticamente; puede requerir permisos de administrador y un reinicio. '
+              + 'Si falla, XORA intentará instalar el controlador AEHD.',
             fix: 'virtualization',
           });
       }
@@ -2388,14 +2388,14 @@ function registerIpc() {
       if (free && free < 8192) {
         issues.push({
           code: 'disk', severity: free < 2048 ? 'error' : 'warn', title: 'Hay poco espacio en el disco del runtime',
-          hint: `「${runtime.provisioner.paths().root}」所在盘仅剩 ${free} MB，运行时与镜像可能撑爆硬盘。`, fix: 'disk',
+          hint: `La unidad de «${runtime.provisioner.paths().root}» solo tiene ${free} MB libres; el runtime y la imagen podrían llenar el disco.`, fix: 'disk',
         });
       }
       const rtDir = runtime.provisioner.paths().root;
       if (!doctor.isAsciiPath(rtDir)) {
         issues.push({
           code: 'pathRuntime', severity: 'warn', title: 'La carpeta del runtime contiene caracteres especiales',
-          hint: '部分运行时组件对中文路径敏感，可能引发启动失败。建议改到纯英文目录。', fix: 'path',
+          hint: 'Algunos componentes del runtime no funcionan bien con rutas que contienen caracteres especiales. Usa una carpeta con una ruta simple.', fix: 'path',
         });
       }
       const env = await runtime.provisioner.checkEnv().catch(() => ({}));

@@ -2546,8 +2546,8 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
     // 3) 商店（MSIX）版：拿不到提权就退回「手动引导」，而不是弹一个注定失败的 UAC
     assert(/if \(store\.STORE_BUILD\) \{[\s\S]{0,900}manual: true/.test(handlerBody),
       '商店版失败时要返回 manual 交给 UI 引导');
-    assert(/商店版无法自行提权/.test(mainJs), '商店版文案要说明为什么不能自动开');
-    assert(/虚拟机监控程序平台/.test(mainJs), '要明确写出「Windows 虚拟机监控程序平台」');
+    assert(/La edición de Microsoft Store no puede solicitar permisos elevados/.test(mainJs), 'la edición Store debe explicar por qué no puede activarlo automáticamente');
+    assert(/Plataforma del hipervisor de Windows/.test(mainJs), 'debe indicar qué función de Windows hay que activar');
     // 4) 开启成功后必须清掉加速缓存，否则界面还显示旧结论
     assert(/const whpx = await enableWhpxFeatures\(\);\s*\n\s*runtime\.provisioner\.invalidateEnvCache/.test(mainJs),
       '开启后要 invalidateEnvCache');

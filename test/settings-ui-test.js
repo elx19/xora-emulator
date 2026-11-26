@@ -81,7 +81,28 @@ const OVERRIDES = {
   'runtime:dataInfo': () => ({ avdDir: 'C:\\data\\avd', configuredGB: 6, actualGB: 6 }),
   'android:status': () => ({ running: false, wifi: true, airplane: false, anim: true, volume: 50, font: 1, density: 320 }),
   'drivers:list': () => ({ drivers: [], errors: [] }),
-  'preflight:run': () => ({ items: [] }),
+  'preflight:run': () => ({
+    ok: true,
+    edition: 'installer',
+    report: {
+      items: [
+        {
+          level: 'warn',
+          title: 'CPU 虚拟化在 BIOS 开启',
+          detail: '这段来自旧版本的诊断输出不应直接显示给用户。',
+          action: { kind: 'manual', label: '请手动处理' },
+        },
+        {
+          level: 'bad',
+          title: '虚拟机监控程序平台没有启用',
+          detail: '请打开 Windows 功能。',
+          action: { kind: 'elevate', id: 'virtualization', label: '一键开启（需管理员）' },
+        },
+      ],
+      summary: '发现 2 个问题',
+      recommended: { memoryMB: 4096, cores: 2, renderSize: 'auto', gpuMode: 'auto' },
+    },
+  }),
   'autodebug:state': () => ({ issues: DEBUG_ISSUES, summary: { total: 3, errors: 1, warns: 2, infos: 0, health: 'error', byCategory: [] }, at: Date.now(), running: false }),
   'autodebug:run': () => ({ issues: DEBUG_ISSUES, summary: { total: 3, errors: 1, warns: 2, infos: 0, health: 'error', byCategory: [] }, at: Date.now(), running: false }),
   'autodebug:config': () => SETTINGS.debug,
@@ -363,6 +384,20 @@ app.whenReady().then(async () => {
   step('自动检测结果按分类分组渲染', diag.groups >= 3 && diag.items === 3, `${diag.groups} 组 / ${diag.items} 项`);
   step('每条问题都有「处理」按钮', diag.fixBtns === 3, `${diag.fixBtns} 个按钮`);
   step('状态行显示上次检测时间', /Última detección/.test(diag.text), diag.text);
+
+  await evalJs(`document.getElementById('btnPreflight')?.click()`);
+  await waitFor(`document.querySelectorAll('#preflightList .pf-item').length === 2`);
+  const preflightLocaleAudit = await evalJs(`(() => {
+    const root = document.getElementById('preflightGroup');
+    const text = root?.innerText || '';
+    return {
+      count: (text.match(/[\\u3400-\\u9fff]/g) || []).length,
+      items: document.querySelectorAll('#preflightList .pf-item').length,
+      summary: document.getElementById('preflightSummary')?.textContent || '',
+    };
+  })()`);
+  step('el diagnóstico del hardware no conserva texto chino', preflightLocaleAudit.count === 0,
+    JSON.stringify(preflightLocaleAudit));
   const settingsLocaleAudit = await evalJs(`(() => {
     const text = document.getElementById('settingsBody')?.innerText || '';
     const lines = text.split('\\n').filter((line) => /[\\u3400-\\u9fff]/.test(line));
@@ -389,8 +424,9 @@ app.whenReady().then(async () => {
 
   // 滚到自动检测面板再截图（等合成器跟上，避免拍到上一帧）
   await evalJs(`document.getElementById('autodebugGroup').scrollIntoView({ block: 'start' })`);
+  win.webContents.invalidate();
   await new Promise((r) => setTimeout(r, 900));
-  await win.capturePage().then((img) => fs.writeFileSync(path.join(OUT, 'settings-diag.png'), img.toPNG()));
+  await win.webContents.capturePage().then((img) => fs.writeFileSync(path.join(OUT, 'settings-diag.png'), img.toPNG()));
 
   console.log('\n[设置页 · 搜索]');
   await evalJs(`(() => { const s = document.getElementById('setSearch'); s.value = 'horizontal'; s.dispatchEvent(new Event('input')); })()`);
