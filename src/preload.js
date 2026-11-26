@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld('apkstart', {
   restoreMouseHook: () => invoke('settings:unhook'),
 
   runtimeStatus: () => invoke('runtime:status'),
+  networkStatus: (opts) => invoke('network:status', opts || {}),
   runtimeProbe: () => invoke('runtime:probe'),
   runtimeStart: () => invoke('runtime:start'),
   runtimeStop: () => invoke('runtime:stop'),

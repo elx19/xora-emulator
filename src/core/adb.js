@@ -96,6 +96,10 @@ const ANTI_EMULATOR_RE = /anti[-_ ]?emulat|emulator.?detect|检测到.{0,6}(模�
 /** 把启动后的崩溃日志翻译成能看懂的原因 */
 function friendlyLaunchError(raw, pkg) {
   const t = String(raw || '');
+  if (/device\s+['"`]?[^\s'"`]+['"`]?\s+not found|no devices?\/emulators? found|offline|connection refused|cannot connect to adb/i.test(t)) {
+    return `${pkg || 'La aplicación'} no pudo iniciar porque Android perdió temporalmente la conexión ADB. `
+      + 'XORA esperará y recuperará el runtime automáticamente; vuelve a intentarlo si el mensaje persiste.';
+  }
   if (ANTI_EMULATOR_RE.test(t)) {
     return `${pkg || 'La aplicación'} detectó un emulador o una capa de traducción y se cerró `
       + 'por una comprobación antiemulación, antidepuración o de seguridad. '

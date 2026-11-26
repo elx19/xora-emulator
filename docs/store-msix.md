@@ -9,7 +9,7 @@ Esta guía describe cómo preparar el paquete de Microsoft Store. El nombre visi
 | Product name | `XORA` |
 | Package identity name | `XORA.Emulator` |
 | Publisher | `CN=XORA` (provisional) |
-| Artefacto | `dist/store/XORA_0.6.10.0_x64.msix` |
+| Artefacto | `dist/store/XORA_0.6.11.0_x64.msix` |
 
 El Publisher real debe copiarse desde Partner Center. `build/msix.js` bloquea el paquete si se intenta publicar con el Publisher provisional.
 
@@ -30,7 +30,7 @@ node build/msix.js --identity "XORA.Emulator" --publisher "CN=TU-PUBLISHER-DE-PA
 El paquete final debe aparecer en:
 
 ```text
-dist/store/XORA_0.6.10.0_x64.msix
+dist/store/XORA_0.6.11.0_x64.msix
 ```
 
 El script valida la versión de cuatro componentes, la identidad del manifiesto, los recursos gráficos y la estructura del paquete.
@@ -40,8 +40,8 @@ El script valida la versión de cuatro componentes, la identidad del manifiesto,
 La firma de prueba solo sirve para instalar el paquete en un equipo de desarrollo. No uses certificados de prueba para Microsoft Store.
 
 ```powershell
-signtool sign /fd SHA256 /a /f dist\store\XORA-test.pfx /p "CONTRASEÑA-DE-PRUEBA" dist\store\XORA_0.6.10.0_x64.msix
-Add-AppxPackage -Path dist\store\XORA_0.6.10.0_x64.msix
+signtool sign /fd SHA256 /a /f dist\store\XORA-test.pfx /p "CONTRASEÑA-DE-PRUEBA" dist\store\XORA_0.6.11.0_x64.msix
+Add-AppxPackage -Path dist\store\XORA_0.6.11.0_x64.msix
 ```
 
 ## Datos del runtime
@@ -58,7 +58,7 @@ La primera ejecución puede expandir la imagen local y tardar más que los sigui
 1. Abre Partner Center y crea o selecciona el producto `XORA`.
 2. Copia el `Package Identity Name` y el `Publisher` reales.
 3. Regenera el paquete usando esos valores.
-4. Sube `dist/store/XORA_0.6.10.0_x64.msix`.
+4. Sube `dist/store/XORA_0.6.11.0_x64.msix`.
 5. Usa las descripciones de [store-listing.md](store-listing.md).
 
 Antes de publicar, comprueba la política de privacidad, los requisitos del sistema, las capturas y la firma comercial.

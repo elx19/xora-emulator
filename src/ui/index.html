@@ -165,7 +165,10 @@
       <button class="status-chip" id="envChip" hidden></button>
     </div>
     <div class="status-right">
-      <span class="status-item status-net" id="statusNet" hidden></span>
+      <span class="status-item status-net" id="statusNet" hidden>
+        <span class="status-net-icon" id="statusNetIcon" aria-hidden="true">▂▄▆█</span>
+        <span id="statusNetText">Sin comprobar</span>
+      </span>
       <span class="sep" id="statusNetSep" hidden></span>
       <span class="status-item" id="statusDevice"></span>
       <span class="sep"></span>
@@ -1117,15 +1120,15 @@
         <div class="field">
           <label>当前版本 <span class="inline-note" id="updateCurrent">—</span></label>
           <div class="row">
-            <span class="inline-note" id="updateState">尚未检查</span>
+            <span class="inline-note" id="updateState">Aún no se ha comprobado</span>
             <span style="flex:1"></span>
-            <button class="btn ghost sm" id="btnCheckUpdate">检查更新</button>
-            <button class="btn primary sm" id="btnDoUpdate" style="display:none" hidden>立即更新</button>
+            <button class="btn ghost sm" id="btnCheckUpdate">Comprobar actualización</button>
+            <button class="btn primary sm" id="btnDoUpdate" style="display:none" hidden>Actualizar ahora</button>
           </div>
           <div class="update-bar" id="updateBar" hidden><i id="updateBarFill"></i></div>
           <span class="sub" id="updateNote">
-            从 GitHub（elx19/xora-emulator）获取最新版本；轻量版会下载便携包并自动替换程序文件，
-            运行时、已装应用与快照都不受影响。
+            XORA comprueba las versiones desde GitHub. Si aceptas, la actualización se descarga y se instala desde la aplicación;
+            el runtime, las aplicaciones y las instantáneas se conservan.
           </span>
         </div>
         <div class="field two">

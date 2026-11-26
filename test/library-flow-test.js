@@ -6,6 +6,7 @@ const path = require('path');
 const { mergeInstalledApp } = require('../src/ui/library-state');
 const { googlePlayIcon } = require('../src/ui/system-icons');
 const { normalizeInstallPath, runtimeNeedsPreparation } = require('../src/core/installer');
+const { classifySignal } = require('../src/core/network');
 const { listSystemApps, mergeSystemApps, isProtectedSystemApp } = require('../src/core/system-apps');
 
 const installed = {
@@ -42,6 +43,7 @@ assert.strictEqual(runtimeNeedsPreparation(null), true, 'un diagnóstico ausente
 const libraryHtml = fs.readFileSync(path.join(__dirname, '..', 'src', 'ui', 'index.html'), 'utf8');
 const libraryUi = fs.readFileSync(path.join(__dirname, '..', 'src', 'ui', 'app.js'), 'utf8');
 const mainProcess = fs.readFileSync(path.join(__dirname, '..', 'src', 'main.js'), 'utf8');
+const installerSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'core', 'installer.js'), 'utf8');
 assert.match(libraryHtml, /Selecciona un APK o arrástralo aquí/i, 'la pantalla vacía debe explicar la instalación directa');
 assert.match(libraryHtml, /id="dropzone"/, 'la biblioteca debe conservar una zona de arrastre');
 assert.doesNotMatch(libraryHtml, /把 APK 拖进来就能装/, 'la pantalla de instalación no debe mostrar chino');
@@ -50,6 +52,15 @@ assert.match(mainProcess, /async function prepareRuntimeForInstall/, 'la instala
 assert.match(mainProcess, /autoDeploy\(\{[\s\S]*?force: true/, 'la instalación debe poder preparar el runtime aunque el despliegue de fondo esté desactivado');
 assert.doesNotMatch(mainProcess, /if \(e\.needsSetup\) send\('ui:navigate', 'setup'\)/, 'un APK no debe expulsar al usuario al asistente técnico');
 assert.doesNotMatch(libraryUi, /正在安装 \$\{name\}/, 'la notificación de instalación no debe mostrar chino');
+
+assert.strictEqual(classifySignal(0).level, 'offline', 'la red debe mostrar sin señal cuando no hay velocidad');
+assert.strictEqual(classifySignal(8).level, 'fair', 'la velocidad debe convertirse en una señal legible');
+assert.match(libraryHtml, /id="statusNetIcon"/, 'la barra de estado debe incluir un icono de señal');
+assert.match(libraryUi, /Red del PC|Internet del PC/, 'la interfaz debe indicar la conexión del equipo');
+assert.match(mainProcess, /network:status/, 'el proceso principal debe exponer el estado de red');
+assert.match(mainProcess, /promptUpdateInstall/, 'una actualización disponible debe pedir confirmación');
+assert.match(libraryUi, /Actualizar ahora/, 'la actualización debe ofrecer una acción en español');
+assert.match(installerSource, /waitForAdbDevice/, 'el arranque debe esperar un dispositivo ADB válido antes de abrir la app');
 
 const playStore = listSystemApps({ playImageReady: true })[0];
 assert.strictEqual(playStore.package, 'com.android.vending', 'Play Store debe usar su paquete oficial');

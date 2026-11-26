@@ -56,6 +56,7 @@ const addons = require('./core/addons');
 const { mergeSystemApps, isProtectedSystemApp } = require('./core/system-apps');
 const { sha256File } = require('./core/download');
 const { MetricsSampler } = require('./core/telemetry');
+const { probeHostNetwork } = require('./core/network');
 const leftovers = require('./core/leftovers');
 const manual = require('./core/manual');
 // El mismo puente que usa la UI también cubre el proceso principal: aquí
@@ -259,6 +260,30 @@ let updater = null;
 let metricsSampler = null;
 let updateBusy = false;
 let updateInfo = null;
+let updatePromptedVersion = '';
+let hostNetworkCache = null;
+let hostNetworkProbe = null;
+
+/**
+ * Indicador de red del PC. Es una medición pequeña y con caché: no se ejecuta
+ * en cada repintado de la barra ni consume ancho de banda continuamente.
+ */
+async function hostNetworkStatus({ force = false } = {}) {
+  const now = Date.now();
+  if (!force && hostNetworkCache && now - hostNetworkCache.checkedAt < 30000) return hostNetworkCache;
+  if (hostNetworkProbe) return hostNetworkProbe;
+  hostNetworkProbe = probeHostNetwork()
+    .then((result) => {
+      hostNetworkCache = { ...result, checkedAt: Date.now() };
+      return hostNetworkCache;
+    })
+    .catch((e) => {
+      hostNetworkCache = { ok: false, error: e.message, signal: { level: 'offline', bars: 0 }, checkedAt: Date.now() };
+      return hostNetworkCache;
+    })
+    .finally(() => { hostNetworkProbe = null; });
+  return hostNetworkProbe;
+}
 
 /**
  * 开机动画窗口的状态放在模块级。
@@ -1311,7 +1336,25 @@ async function runInstall(filePath) {
  * 下载并安装新版本，然后由 update-apply 脚本接管「替换 + 重启」。
  * 界面与托盘菜单共用这一条路径。
  */
-async function runUpdate() {
+async function promptUpdateInstall(info) {
+  if (!info || !info.hasUpdate || !info.asset || !info.securityManifest) return { ok: false, deferred: true };
+  if (updatePromptedVersion === info.version || updateBusy) return { ok: false, deferred: true };
+  updatePromptedVersion = info.version;
+  const result = await dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    buttons: ['Instalar ahora', 'Más tarde'],
+    defaultId: 1,
+    cancelId: 1,
+    noLink: true,
+    title: 'Actualización disponible',
+    message: `XORA ${info.tag || `v${info.version}`} está disponible`,
+    detail: 'XORA descargará la actualización desde GitHub y reiniciará la aplicación para terminarla. Puedes instalarla ahora o hacerlo más tarde desde Configuración → Actualizaciones.',
+  });
+  if (result.response !== 0) return { ok: false, deferred: true, version: info.version };
+  return runUpdate({ info, prompt: false });
+}
+
+async function runUpdate({ info: requestedInfo = null, prompt = true } = {}) {
   if (updateBusy) return { ok: false, error: '正在更新中' };
   // 商店（MSIX）版不能自更新：安装目录 C:\Program Files\WindowsApps 是只读的，
   // 覆盖 exe 不仅会失败，还可能让包完整性校验失效、应用直接起不来。
@@ -1323,7 +1366,7 @@ async function runUpdate() {
   updateBusy = true;
   const sendProgress = (p) => send('update:progress', p);
   try {
-    const info = updateInfo && updateInfo.hasUpdate ? updateInfo : await updater.check();
+    const info = requestedInfo || (updateInfo && updateInfo.hasUpdate ? updateInfo : await updater.check());
     updateInfo = info;
     if (!info.hasUpdate) return { ok: false, error: '已经是最新版本' };
     if (!info.asset) {
@@ -1333,6 +1376,23 @@ async function runUpdate() {
     if (!info.securityManifest) {
       shell.openExternal(info.htmlUrl || Updater.repoUrl()).catch(() => {});
       return { ok: false, error: 'Esta versión no incluye un manifiesto firmado; se abrió la página de publicación para descargarla manualmente.', manual: true };
+    }
+    if (prompt && updatePromptedVersion !== info.version) {
+      const choice = await dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        buttons: ['Instalar ahora', 'Más tarde'],
+        defaultId: 1,
+        cancelId: 1,
+        noLink: true,
+        title: 'Confirmar actualización',
+        message: `¿Quieres instalar XORA ${info.tag || `v${info.version}`} ahora?`,
+        detail: 'La aplicación se cerrará y volverá a abrirse al terminar. Si eliges «Más tarde», podrás hacerlo desde Configuración → Actualizaciones.',
+      });
+      if (choice.response !== 0) {
+        updatePromptedVersion = info.version;
+        return { ok: false, deferred: true, version: info.version };
+      }
+      updatePromptedVersion = info.version;
     }
     sendProgress({ stage: 'download', percent: 0, message: '准备下载…' });
     const job = await updater.prepare(info);
@@ -2704,6 +2764,11 @@ function registerIpc() {
     }
   });
 
+  // Estado de la conexión del PC: la interfaz lo muestra junto al estado de
+  // Android para distinguir «el PC está conectado» de «el invitado perdió su
+  // red». La prueba usa una URL fija y solo descarga una muestra pequeña.
+  ipcMain.handle('network:status', (_e, opts = {}) => hostNetworkStatus({ force: !!opts.force }));
+
   // ---------------- 旧版本残留 ----------------
 
   /** 只扫描、不删除：先把「能找到什么」原样给界面，由用户决定 */
@@ -3669,6 +3734,7 @@ if (!gotLock) {
             appLog(`update available ${info.tag} (current v${app.getVersion()}, asset=${info.asset ? info.asset.name : 'none'})`);
             // 不再单独弹系统通知：启动时的提醒统一收到应用内的「欢迎卡」里，
             // 避免开机自启时又冒一个右下角气泡（用户反馈的「小弹窗」之一）。
+            promptUpdateInstall(info).catch((e) => appLog(`update prompt failed: ${e.message}`));
           }
         }).catch((e) => appLog(`update check failed: ${e.message}`));
       }, 8000).unref?.();

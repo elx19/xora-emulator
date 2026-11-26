@@ -516,6 +516,18 @@ body {
 .status-left { display: flex; align-items: center; gap: 7px; }
 .status-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 .status-item { white-space: nowrap; }
+.status-net { display: inline-flex; align-items: center; gap: 5px; }
+.status-net-icon {
+  display: inline-block;
+  min-width: 28px;
+  color: var(--brand);
+  font-size: 10px;
+  letter-spacing: -2px;
+  line-height: 1;
+  text-align: center;
+}
+.status-net.warn .status-net-icon { color: #c17b16; }
+.status-net-icon.bars-0 { letter-spacing: 0; font-size: 13px; }
 .sep { width: 1px; height: 11px; background: var(--line-strong); }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: #cbd2da; }
 .dot.ok { background: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }

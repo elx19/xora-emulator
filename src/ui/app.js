@@ -20,6 +20,8 @@ const state = {
   apps: [],
   settings: null,
   status: null,
+  hostNetwork: null,
+  networkProbeBusy: false,
   filter: '',
   installing: false,
   setupBusy: null,
@@ -730,79 +732,121 @@ async function refreshStatus() {
 
     if (!s.adbOk) {
       dot.className = 'dot err';
-      text.textContent = '运行时未部署 —— 打开设置 → 运行时，一键完成';
-      tag.textContent = '需要部署';
+      text.textContent = 'El runtime no está preparado; se configurará automáticamente al instalar un APK';
+      tag.textContent = 'Preparación pendiente';
       tag.className = 'brand-tag';
       if (sideStatus) sideStatus.textContent = 'Completa la configuración';
     } else if (s.deviceOnline) {
       dot.className = 'dot ok';
-      text.textContent = `运行时已就绪 · Android ${s.android || '?'}${s.freeform ? ' · 独立窗口已启用' : ''}`;
+      text.textContent = `Runtime listo · Android ${s.android || '?'}${s.freeform ? ' · ventanas independientes activas' : ''}`;
       tag.textContent = `Android ${s.android || ''}`.trim();
       tag.className = 'brand-tag ok';
       if (sideStatus) sideStatus.textContent = 'Android en ejecución';
     } else if (s.phase === 'booting' || s.vmStarting) {
       dot.className = 'dot warn';
-      text.textContent = '正在引导 Android…';
-      tag.textContent = '引导中';
+      text.textContent = 'Iniciando Android…';
+      tag.textContent = 'Iniciando';
       tag.className = 'brand-tag';
     } else if (s.needsSetup === 'accel') {
       dot.className = 'dot warn';
-      // 说清「怎么修」而不是只说「没开」——这句是状态条上最容易被看到的位置
-      text.textContent = '未启用硬件加速：已回退软件模拟（很慢）。点右下角「环境自检 → 修复」开启';
-      tag.textContent = '软件模拟';
+      text.textContent = 'La aceleración de hardware no está activa; se usará el modo compatible';
+      tag.textContent = 'Modo compatible';
       tag.className = 'brand-tag';
     } else if (s.needsSetup === 'sysimg') {
       dot.className = 'dot err';
-      text.textContent = '缺少 Android 14 通用系统镜像 —— 设置 → 运行时里下载（约 1.5GB，只下一次）';
-      tag.textContent = '待下载镜像';
+      text.textContent = 'Falta la imagen de Android; XORA la descargará desde GitHub cuando sea necesaria';
+      tag.textContent = 'Imagen pendiente';
       tag.className = 'brand-tag';
     } else if (s.needsSetup === 'emulator') {
       dot.className = 'dot err';
-      text.textContent = '运行时引擎未安装 —— 打开设置 → 运行时一键完成';
-      tag.textContent = '需要部署';
+      text.textContent = 'El motor de Android se preparará automáticamente al instalar o abrir una aplicación';
+      tag.textContent = 'Motor pendiente';
       tag.className = 'brand-tag';
     } else if (s.needsSetup === 'boot') {
       dot.className = 'dot warn';
-      text.textContent = '运行时已就绪 —— 安装 APK 或双击桌面图标会自动开机';
-      tag.textContent = '待开机';
+      text.textContent = 'Runtime listo; se iniciará al instalar o abrir una aplicación';
+      tag.textContent = 'Listo para iniciar';
       tag.className = 'brand-tag';
       if (sideStatus) sideStatus.textContent = 'Iniciando Android';
     } else if (s.installing) {
       dot.className = 'dot warn';
-      text.textContent = '安装程序运行中 —— 请在虚拟机窗口里完成安装';
-      tag.textContent = '安装中';
+      text.textContent = 'Instalación del runtime en curso…';
+      tag.textContent = 'Instalando';
       tag.className = 'brand-tag';
       if (sideStatus) sideStatus.textContent = 'Preparando runtime';
     } else {
       dot.className = 'dot';
       text.textContent = s.installed
-        ? '运行时待机（安装或打开应用时会自动拉起）'
-        : '运行时尚未安装 Android 系统 —— 打开设置 → 运行时继续';
-      tag.textContent = s.installed ? '待机' : '待安装';
+        ? 'Runtime en espera; se activará al instalar o abrir una aplicación'
+        : 'Android se descargará automáticamente cuando sea necesario';
+      tag.textContent = s.installed ? 'En espera' : 'Pendiente';
       tag.className = 'brand-tag';
       if (sideStatus) sideStatus.textContent = 'XORA listo para usar';
     }
     $('statusDevice').textContent = s.deviceOnline ? (s.serial || '') : '';
-    // 网络状态：这是用户最容易踩的坑（应用里一直「网络错误」，但看不出是虚拟机没网）。
-    // 直接摆在状态栏，出问题时一眼能看到，不用去翻日志。
-    const netEl = $('statusNet');
-    const netSep = $('statusNetSep');
-    if (netEl) {
-      const show = !!s.deviceOnline && !!s.network;
-      netEl.hidden = !show;
-      if (netSep) netSep.hidden = !show;
-      if (show) {
-        netEl.textContent = s.network.ok ? `网络正常 ${s.network.ip || ''}`.trim() : '虚拟机未联网';
-        netEl.className = 'status-item status-net ' + (s.network.ok ? 'ok' : 'warn');
-        netEl.title = s.network.ok
-          ? '安卓虚拟机已联网，联网类应用可以正常加载'
-          : '安卓虚拟机没有网络，联网页面会一直是空白/报错。可在「设置 → 修复网络」处理';
-      }
-    }
+    renderNetworkIndicator(s.network);
 
     renderSetup(s);
   } catch (e) {
     $('statusText').textContent = `状态检查失败：${e.message}`;
+  }
+}
+
+function renderNetworkIndicator(guestNetwork = null) {
+  const netEl = $('statusNet');
+  const netText = $('statusNetText');
+  const netIcon = $('statusNetIcon');
+  const netSep = $('statusNetSep');
+  if (!netEl) return;
+  const host = state.hostNetwork;
+  const guest = guestNetwork || state.status?.network;
+  const show = !!host || (!!state.status?.deviceOnline && !!guest);
+  netEl.hidden = !show;
+  if (netSep) netSep.hidden = !show;
+  if (!show) return;
+
+  const bars = host
+    ? Math.max(0, Math.min(4, Number(host.signal?.bars) || 0))
+    : (guest?.ok ? 3 : 0);
+  if (netIcon) {
+    netIcon.textContent = ['×', '▂', '▂▄', '▂▄▆', '▂▄▆█'][bars];
+    netIcon.className = `status-net-icon bars-${bars}`;
+  }
+  const speed = host?.ok && Number(host.speedMbps) > 0 ? `${Number(host.speedMbps).toFixed(1)} Mb/s` : '';
+  if (host && !host.ok) {
+    netEl.className = 'status-item status-net warn';
+    if (netText) netText.textContent = 'Sin conexión en el PC';
+    netEl.title = 'XORA no puede acceder a Internet desde este equipo.';
+    return;
+  }
+  if (!host && guest?.ok) {
+    netEl.className = 'status-item status-net ok';
+    if (netText) netText.textContent = `Android conectado${guest.ip ? ` · ${guest.ip}` : ''}`;
+    netEl.title = 'Android tiene conexión. La medición de velocidad del PC todavía está en curso.';
+    return;
+  }
+  if (state.status?.deviceOnline && guest && !guest.ok) {
+    netEl.className = 'status-item status-net warn';
+    if (netText) netText.textContent = `PC conectada${speed ? ` · ${speed}` : ''} · Android sin red`;
+    netEl.title = 'El PC tiene Internet, pero Android todavía no tiene red. XORA reintentará la conexión automáticamente.';
+    return;
+  }
+  netEl.className = 'status-item status-net ok';
+  if (netText) netText.textContent = `Internet del PC${speed ? ` · ${speed}` : ''}`;
+  netEl.title = `Conexión del PC disponible${host.latencyMs ? ` · latencia ${host.latencyMs} ms` : ''}. Android usa esta conexión mediante la red virtual.`;
+}
+
+async function refreshNetworkStatus(force = false) {
+  if (!api.networkStatus || state.networkProbeBusy) return;
+  state.networkProbeBusy = true;
+  try {
+    state.hostNetwork = await api.networkStatus({ force });
+    renderNetworkIndicator(state.status?.network);
+  } catch (_) {
+    state.hostNetwork = { ok: false, signal: { bars: 0 } };
+    renderNetworkIndicator(state.status?.network);
+  } finally {
+    state.networkProbeBusy = false;
   }
 }
 
@@ -1642,7 +1686,7 @@ function fillSettings(s) {
   if ($('setAutoRotate')) $('setAutoRotate').value = d.autoRotate === false ? 'off' : 'on';
   if ($('setTabletMode')) $('setTabletMode').value = d.tabletMode === false ? 'off' : 'on';
   $('setPortrait').value = d.portrait || '900x1600';
-  // XORA 0.6.10 usa la ventana integrada por defecto; el modo nativo solo se activa
+  // XORA 0.6.11 usa la ventana integrada por defecto; el modo nativo solo se activa
   // cuando el usuario lo elige explícitamente en Configuración.
   if ($('setWindowEmbed')) $('setWindowEmbed').value = d.windowEmbed === true ? 'embed' : 'detached';
   $('portraitField').hidden = $('setDisplayMode').value === 'fullscreen';
@@ -2050,7 +2094,7 @@ function renderUpdate(info) {
     // 检查失败也要给一条出路：直接把发布页打开，用户至少能手动下载。
     // 以前这里是「什么都不显示」，用户只会觉得「更新功能坏了」。
     showUpdateBtn(true);
-    btn.textContent = '打开下载页';
+    btn.textContent = 'Abrir página de descargas';
     btn.dataset.mode = 'manual';
     lastUpdate = { htmlUrl: info.htmlUrl || '' };
     if (bar) bar.hidden = true;
@@ -2064,7 +2108,7 @@ function renderUpdate(info) {
     const stale = info.stale ? '（离线缓存，可能不是最新）' : '';
     st.textContent = `发现新版本 ${info.tag}${src ? `（${src}）` : ''}${bad ? `；${bad} 不可达` : ''}${stale}`;
     showUpdateBtn(true);
-    btn.textContent = info.asset ? '立即更新' : '打开下载页';
+    btn.textContent = info.asset ? 'Actualizar ahora' : 'Abrir página de descargas';
     btn.dataset.mode = info.asset ? 'auto' : 'manual';
     const note = $('updateNote');
     if (note && info.notes) {
@@ -2075,7 +2119,7 @@ function renderUpdate(info) {
   } else {
     const src = (info.sources || []).map((x) => x.name).join(' / ');
     const stale = info.stale ? '（离线缓存）' : '';
-    st.textContent = `已是最新版本（v${info.current}）${src ? ` · 经由 ${src}` : ''}${stale}`;
+    st.textContent = `Ya tienes la versión más reciente (v${info.current})${src ? ` · ${src}` : ''}${stale}`;
     showUpdateBtn(false);
     if (bar) bar.hidden = true;
   }
@@ -2100,7 +2144,7 @@ function renderUpdateProgress(p) {
     toast({ title: 'Falló la actualización', body: safeUiText(p.message, 'No se pudo completar la descarga.'), type: 'error' });
     return;
   }
-  if (st) st.textContent = p.message || '正在更新…';
+  if (st) st.textContent = p.message || 'Actualizando…';
   if (bar && fill) {
     bar.hidden = false;
     fill.style.width = `${Math.max(0, Math.min(100, p.percent || 0))}%`;
@@ -2116,13 +2160,13 @@ function bindUpdate() {
     if (!silent) {
       check.disabled = true;
       const old = check.textContent;
-      check.textContent = '检查中…';
-      $('updateState').textContent = '正在连接 GitHub…';
+      check.textContent = 'Comprobando…';
+      $('updateState').textContent = 'Conectando con GitHub…';
       try {
         const info = await api.updateCheck();
         renderUpdate(info);
-        if (info && info.hasUpdate) toast({ title: `发现新版本 ${info.tag}`, body: '点「立即更新」自动下载安装', type: 'info' });
-        else if (info && info.ok !== false) toast({ title: '已是最新版本', body: `v${info.current}`, type: 'ok' });
+        if (info && info.hasUpdate) toast({ title: `Nueva versión ${info.tag}`, body: 'Pulsa «Actualizar ahora»; XORA pedirá confirmación antes de instalarla.', type: 'info' });
+        else if (info && info.ok !== false) toast({ title: 'Ya está actualizado', body: `v${info.current}`, type: 'ok' });
       } catch (e) {
         $('updateState').textContent = `No se pudo comprobar la actualización: ${safeUiText(e.message, 'GitHub no respondió. Comprueba tu conexión e inténtalo de nuevo.')}`;
       } finally {
@@ -2143,17 +2187,22 @@ function bindUpdate() {
       return;
     }
     go.disabled = true;
-    go.textContent = '更新中…';
+    go.textContent = 'Actualizando…';
     const r = await api.updateApply().catch((e) => ({ ok: false, error: e.message }));
     if (!r || !r.ok) {
       go.disabled = false;
-      go.textContent = '立即更新';
+      go.textContent = 'Actualizar ahora';
+      if (r && r.deferred) {
+        $('updateState').textContent = 'Actualización pospuesta. Puedes instalarla más tarde desde aquí.';
+        toast({ title: 'Actualización pospuesta', body: 'No se descargó ningún archivo.', type: 'info' });
+        return;
+      }
       if (r && r.error && !r.manual) {
         $('updateState').textContent = `Falló la actualización: ${safeUiText(r.error, 'No se pudo completar la descarga.')}`;
         toast({ title: 'Falló la actualización', body: safeUiText(r.error, 'No se pudo completar la descarga.'), type: 'error' });
       }
     } else {
-      $('updateState').textContent = `已下载 v${r.version}，正在重启完成安装…`;
+      $('updateState').textContent = `v${r.version} descargada; XORA se reiniciará para terminar la instalación…`;
     }
   });
 
@@ -3219,10 +3268,12 @@ async function init() {
   await refreshStatus();
   await refreshApps();
   refreshAndroid();
+  refreshNetworkStatus(true);
   selfCheck();
   // La pantalla inicial entra directamente en la biblioteca; no la bloqueamos
   // con una bienvenida para que el usuario pueda instalar o abrir una APK al instante.
   setInterval(refreshStatus, 6000);
+  setInterval(refreshNetworkStatus, 30000);
   setInterval(refreshApps, 15000);
   setInterval(selfCheck, 60000);
 }

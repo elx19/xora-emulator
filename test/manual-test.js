@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Pruebas del manual integrado (0.6.10).
+ * Pruebas del manual integrado (0.6.11).
  *
  * 重点守两件事：
  *  1) 每个章节锚点都必须真的存在于随包分发的 src/ui/manual.html；
@@ -38,8 +38,8 @@ test('每个主题的锚点都存在于随包 HTML', () => {
   }
 });
 
-test('el manual contiene la versión 0.6.10 y el capítulo de sonido', () => {
-  assert(html.includes('v0.6.10'), 'el manual debe indicar v0.6.10');
+test('el manual contiene la versión 0.6.11 y el capítulo de sonido', () => {
+  assert(html.includes('v0.6.11'), 'el manual debe indicar v0.6.11');
   assert(html.includes('La aplicación no tiene sonido'), '手册应有声音排障章节');
   assert(html.includes('Manual integrado y tutoriales automáticos'), '手册应说明自动教程');
 });

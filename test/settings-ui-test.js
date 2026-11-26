@@ -78,6 +78,7 @@ const OVERRIDES = {
   'doctor:report': () => ({ ok: true, file: 'C:\\report.txt' }),
   'runtime:usage': () => ({ totalText: '8.2 GB', reclaimableText: '1.1 GB', count: 3 }),
   'runtime:status': () => ({ mode: 'builtin', backend: 'builtin', backendLabel: 'Imagen oficial', installed: true, vmRunning: false, deviceOnline: false, ready: false, phase: 'idle', needsSetup: null, error: '', env: { adb: { ok: true }, emulator: { ok: true }, sysimg: { ok: true } }, accel: { ok: true }, network: null }),
+  'network:status': () => ({ ok: true, host: 'test', speedMbps: 120, latencyMs: 20, signal: { level: 'excellent', bars: 4 } }),
   'runtime:dataInfo': () => ({ avdDir: 'C:\\data\\avd', configuredGB: 6, actualGB: 6 }),
   'android:status': () => ({ running: false, wifi: true, airplane: false, anim: true, volume: 50, font: 1, density: 320 }),
   'drivers:list': () => ({ drivers: [], errors: [] }),

@@ -37,6 +37,29 @@ function runtimeNeedsPreparation(env) {
   return !env || !env.adb?.ok || !env.emulator?.ok || !env.sysimg?.ok;
 }
 
+/**
+ * ADB puede conservar durante unos instantes un serial que ya desapareció.
+ * Nunca se debe enviar `am start` durante esa ventana: produce el error visible
+ * «device ... not found». Se espera y se intenta reconectar antes de abrir la
+ * aplicación; si no vuelve, el llamador puede reiniciar el runtime una vez.
+ */
+async function waitForAdbDevice(client, { timeoutMs = 12000, onLog = () => {} } = {}) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    if (await client.isOnline().catch(() => false)) return true;
+    await client.connect().catch(() => false);
+    // eslint-disable-next-line no-await-in-loop
+    await sleep(350);
+  }
+  onLog('El dispositivo Android no respondió por ADB; se reiniciará el enlace antes de abrir la aplicación.');
+  return false;
+}
+
+function isTransientAdbError(error) {
+  return /device\s+['"`]?[^\s'"`]+['"`]?\s+not found|no devices?\/emulators? found|offline|connection refused|cannot connect to adb/i
+    .test(String(error?.message || error || ''));
+}
+
 /** APK 只有 ARM 原生库（国产 App 绝大多数如此） */
 function isArmOnly(meta) {
   return !!(meta && meta.abis && meta.abis.length && !meta.abis.some((a) => /x86/i.test(a)));
@@ -525,6 +548,21 @@ class Installer {
       // 后续全部用新的。不返回就继续用原来的。
       if (replaced && replaced.client) rt = replaced;
     }
+    let adbRecoveryUsed = false;
+    const recoverAdb = async () => {
+      if (adbRecoveryUsed) return false;
+      adbRecoveryUsed = true;
+      onLog('La conexión ADB se perdió durante el arranque; esperando al dispositivo Android…');
+      const recovered = await this.runtime.ensure({ onLog }).catch(() => null);
+      if (!recovered || !recovered.ok || !recovered.client) return false;
+      rt = recovered;
+      return waitForAdbDevice(rt.client, { timeoutMs: 15000, onLog });
+    };
+    if (!(await waitForAdbDevice(rt.client, { onLog }))) {
+      if (!(await recoverAdb())) {
+        throw new Error('Android no respondió por ADB. XORA no pudo abrir la aplicación; vuelve a intentarlo y el runtime se recuperará automáticamente.');
+      }
+    }
     // 清掉旧版本可能残留在 /data 里的 wm size / density 覆盖与自动旋转设置。
     // 这些覆盖是持久化的，不清理的话每次启动画面都会被转 90° 躺倒、留黑边、
     // 鼠标点击也无法对应（用户反馈的「旋转黑边 / 未填满 / 点不动同意」）。
@@ -574,7 +612,7 @@ class Installer {
       }
     }
     const settings = store.getSettings();
-    const start = () => rt.client.startApp(app ? app.package : pkg, app ? app.activity : null, {
+    let start = () => rt.client.startApp(app ? app.package : pkg, app ? app.activity : null, {
       freeform: settings.freeform,
       bounds: app ? app.bounds : null,
     });
@@ -633,6 +671,17 @@ class Installer {
       onMark('permissions granted');
       let ok = false;
       for (let attempt = 1; attempt <= 3 && !ok; attempt += 1) {
+        if (!(await waitForAdbDevice(rt.client, { timeoutMs: 8000, onLog }))) {
+          if (await recoverAdb()) {
+            start = () => rt.client.startApp(app ? app.package : pkg, app ? app.activity : null, {
+              freeform: settings.freeform,
+              bounds: app ? app.bounds : null,
+            });
+            attempt -= 1;
+            continue;
+          }
+          throw new Error('Android se desconectó antes de abrir la aplicación. XORA intentará recuperarlo en el próximo inicio.');
+        }
         if (attempt > 1) {
           // eslint-disable-next-line no-await-in-loop
           await rt.client.forceStop(pkg).catch(() => {});
@@ -649,6 +698,14 @@ class Installer {
           // eslint-disable-next-line no-await-in-loop
           await start();
         } catch (e) {
+          if (isTransientAdbError(e) && await recoverAdb()) {
+            start = () => rt.client.startApp(app ? app.package : pkg, app ? app.activity : null, {
+              freeform: settings.freeform,
+              bounds: app ? app.bounds : null,
+            });
+            attempt -= 1;
+            continue;
+          }
           // 有明确崩溃日志才交给外层（可能要切兼容镜像）；没有证据多半只是启动慢，重试即可
           if (e.code === 'APP_CRASHED' && e.crash) throw e;
           started = false;
@@ -731,5 +788,5 @@ class Installer {
 }
 
 module.exports = {
-  Installer, accentOf, parseBundle, normalizeInstallPath, runtimeNeedsPreparation,
+  Installer, accentOf, parseBundle, normalizeInstallPath, runtimeNeedsPreparation, waitForAdbDevice,
 };
