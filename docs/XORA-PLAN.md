@@ -2,7 +2,7 @@
 
 **Nombre del producto:** XORA  
 **Descripción:** emulador Android de escritorio ligero, fluido y sencillo de configurar.  
-**Estado:** implementación funcional completada sobre la base técnica de ApkStart 0.6.4; quedan validaciones externas de publicación y hardware.
+**Estado:** implementación funcional completada sobre la base técnica de la versión 0.6.4; quedan validaciones externas de publicación y hardware.
 **Repositorio objetivo:** privado en GitHub; la confirmación de privacidad y protección de `main` queda como tarea administrativa.
 
 ## Estado de implementación
@@ -293,7 +293,7 @@ Estados permitidos: `not_installed`, `available`, `installing`, `installed`, `up
 
 ### Fase 1 — Identidad y shell
 
-- [x] Cambiar la identidad visible de ApkStart a XORA.
+- [x] Verificar la identidad visible de XORA en la aplicación y la distribución.
 - [x] Consolidar navegación y diseño sobrio.
 - [x] Completar traducciones y eliminar textos nativos visibles restantes.
 - [x] Definir temas, iconos y estados accesibles.

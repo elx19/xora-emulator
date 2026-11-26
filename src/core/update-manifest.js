@@ -25,15 +25,15 @@ const ALLOWED_HOSTS = new Set([
 // Esta clave pública es deliberadamente la única material criptográfico
 // incluido en el cliente. La privada debe vivir solamente en CI/secret manager.
 const XORA_UPDATE_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEA4+ltzDejjECRM1MmlmBr
-6/OgKlFuZw6TRNsYBH5/UcIIuSXdHgyV6N4myFdlrRnOeIv/8W+Z6RUBgoM9sUHl
-U1aVqigyOxSMV11sh3RYfDDk3fmQY8cBCyNi0R8MC5NgwxptFhe2EwN9zs1PO9CF
-wAmqVmhuqwN9O66CDE6EY4OnksCgSjy8WjWSZRszocDdnJFnmE1j76LpeVMWunpT
-8Lv0NU8gUMnCEFRoM8rmLjT9eY2/ElojApLuUaJ0hekSnNxHQvvyewI5N9MBGIDk
-nDU80HuFD1SQvnvfG6wHWSXhS1UxZE6GexEJYyymORVBTssjjuCencgUeEyvsBBy
-Moo1amVHNMCZ+dSeqgCIDJT8ZtZdltvQ8o+5gQTF51mh+kS9giFcRiMT9rCoGhCj
-Yue1HRK5EcYqsJh9qtkBoOGPlJ7oRSkxrJOKKVI8XLVcv9oQ4hgAcdwpYOvgbF4Y
-q7wtKcAzw1UOaRAQBMvlLE1waOoJ6qT/OtbDpBLhbMK1AgMBAAE=
+MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAqYbfBuV4hrGeKI2nRaGo
+vnWEQ9Q09zrtMk4V+AJyfD8JAfSS3xMT4ILdC8e3dvRdACbx2cMzOkX+yz+MHBPe
+M16Ihus714BBRTZzT4a5lUZ2mSt77+qDz6kYKjjZzOJLVeDThfa1AxEm/QVDKhaI
+erFkaSd3mLyA5Rovlde4MVNVxcZRXWyKfW/j1+Wb/KNnxvbsvLYUAAnYxQXHiI+7
+ryFsXLjrowIax6pRS8sxxM+33qYXrZN8qPzCrUW+/18sfctRiV9c0GgFRfd1+iGl
+t0/BSdXkn9a2Bt6EjQASr48hz4J/h9HAFWCL2v9XfntT2VxA/9UyHKUtCiH7pVKj
+psIvQOUIaxPA4W4UZqpnqwu3QxRrMQ4UvySbaliBADxIC7V0jI77YfssxWvjrk3P
+BPdHqZ+A4ZNirRepbFTnIh01jaHsjhrGYaWPT8Fr5f0B1G2eQuTaKDaozkbx5yhO
+DrS0jfGuLVs9qGZZeYapRU802vzGAmVS9+81NBcxYMTLAgMBAAE=
 -----END PUBLIC KEY-----`;
 
 function canonicalize(value) {
