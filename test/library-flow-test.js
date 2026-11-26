@@ -52,6 +52,7 @@ assert.match(mainProcess, /async function prepareRuntimeForInstall/, 'la instala
 assert.match(mainProcess, /autoDeploy\(\{[\s\S]*?force: true/, 'la instalación debe poder preparar el runtime aunque el despliegue de fondo esté desactivado');
 assert.doesNotMatch(mainProcess, /if \(e\.needsSetup\) send\('ui:navigate', 'setup'\)/, 'un APK no debe expulsar al usuario al asistente técnico');
 assert.doesNotMatch(libraryUi, /正在安装 \$\{name\}/, 'la notificación de instalación no debe mostrar chino');
+assert.doesNotMatch(libraryUi, /状态检查失败|发现新版本|离线缓存/, 'los estados dinámicos no deben construir mensajes en chino');
 
 assert.strictEqual(classifySignal(0).level, 'offline', 'la red debe mostrar sin señal cuando no hay velocidad');
 assert.strictEqual(classifySignal(8).level, 'fair', 'la velocidad debe convertirse en una señal legible');
@@ -59,6 +60,7 @@ assert.match(libraryHtml, /id="statusNetIcon"/, 'la barra de estado debe incluir
 assert.match(libraryUi, /Red del PC|Internet del PC/, 'la interfaz debe indicar la conexión del equipo');
 assert.match(mainProcess, /network:status/, 'el proceso principal debe exponer el estado de red');
 assert.match(mainProcess, /promptUpdateInstall/, 'una actualización disponible debe pedir confirmación');
+assert.doesNotMatch(mainProcess, /正在更新中|已经是最新版本|准备下载|正在替换程序并重启/, 'los estados del actualizador no deben mostrar chino');
 assert.match(libraryUi, /Actualizar ahora/, 'la actualización debe ofrecer una acción en español');
 assert.match(installerSource, /waitForAdbDevice/, 'el arranque debe esperar un dispositivo ADB válido antes de abrir la app');
 

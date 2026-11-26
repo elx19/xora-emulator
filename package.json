@@ -1,7 +1,7 @@
 {
   "name": "xora-emulator",
   "productName": "XORA",
-  "version": "0.6.11",
+  "version": "0.6.12",
   "description": "XORA: emulador Android ligero para Windows y Linux, con aplicaciones en ventanas independientes y perfiles de rendimiento",
   "main": "src/main.js",
   "author": "XORA Project",

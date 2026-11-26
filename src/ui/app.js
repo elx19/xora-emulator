@@ -788,7 +788,7 @@ async function refreshStatus() {
 
     renderSetup(s);
   } catch (e) {
-    $('statusText').textContent = `状态检查失败：${e.message}`;
+    $('statusText').textContent = `Falló la comprobación del estado: ${safeUiText(e.message, 'No se pudo leer el estado de Android.')}`;
   }
 }
 
@@ -1686,7 +1686,7 @@ function fillSettings(s) {
   if ($('setAutoRotate')) $('setAutoRotate').value = d.autoRotate === false ? 'off' : 'on';
   if ($('setTabletMode')) $('setTabletMode').value = d.tabletMode === false ? 'off' : 'on';
   $('setPortrait').value = d.portrait || '900x1600';
-  // XORA 0.6.11 usa la ventana integrada por defecto; el modo nativo solo se activa
+  // XORA 0.6.12 usa la ventana integrada por defecto; el modo nativo solo se activa
   // cuando el usuario lo elige explícitamente en Configuración.
   if ($('setWindowEmbed')) $('setWindowEmbed').value = d.windowEmbed === true ? 'embed' : 'detached';
   $('portraitField').hidden = $('setDisplayMode').value === 'fullscreen';
@@ -2104,9 +2104,9 @@ function renderUpdate(info) {
     // 如实说明这次是哪个源给出的版本、另一个源为什么没参与 ——
     // 用户排查「为什么检查更新很慢」时，这一行比任何日志都直接。
     const src = (info.sources || []).map((x) => `${x.name} ${x.tag || ''}`.trim()).join(' / ');
-    const bad = (info.unreachable || []).map((x) => x.name).join('、');
-    const stale = info.stale ? '（离线缓存，可能不是最新）' : '';
-    st.textContent = `发现新版本 ${info.tag}${src ? `（${src}）` : ''}${bad ? `；${bad} 不可达` : ''}${stale}`;
+    const bad = (info.unreachable || []).map((x) => x.name).join(', ');
+    const stale = info.stale ? ' (caché sin conexión; puede no estar actualizado)' : '';
+    st.textContent = `Hay una nueva versión ${info.tag}${src ? ` (${src})` : ''}${bad ? `; no se pudo acceder a ${bad}` : ''}${stale}`;
     showUpdateBtn(true);
     btn.textContent = info.asset ? 'Actualizar ahora' : 'Abrir página de descargas';
     btn.dataset.mode = info.asset ? 'auto' : 'manual';
@@ -2118,7 +2118,7 @@ function renderUpdate(info) {
     if (bar) bar.hidden = true;
   } else {
     const src = (info.sources || []).map((x) => x.name).join(' / ');
-    const stale = info.stale ? '（离线缓存）' : '';
+    const stale = info.stale ? ' (caché sin conexión)' : '';
     st.textContent = `Ya tienes la versión más reciente (v${info.current})${src ? ` · ${src}` : ''}${stale}`;
     showUpdateBtn(false);
     if (bar) bar.hidden = true;
@@ -3231,7 +3231,7 @@ function bindEvents() {
   api.on('update:state', (info) => {
     if (!info) return;
     renderUpdate(info);
-    // 启动 8 秒后才拿到更新信息：欢迎卡若还开着，把「发现新版本」这条补进去
+    // Si la comprobación termina después de 8 segundos, añade el aviso a la pantalla de bienvenida.
     const wm = $('welcomeMask');
     if (wm && !wm.hidden) renderWelcomeTips();
   });

@@ -1201,7 +1201,7 @@ function buildTray() {
       { label: trMain('同步共享目录'), click: () => sharer.sync() },
       { label: trMain('设置'), click: () => { showWindow(); send('ui:navigate', 'settings'); } },
       {
-        label: trMain(updateInfo && updateInfo.hasUpdate ? `发现新版本 ${updateInfo.tag}` : '检查更新'),
+        label: updateInfo && updateInfo.hasUpdate ? `Hay una nueva versión ${updateInfo.tag}` : 'Comprobar actualización',
         click: async () => {
           showWindow();
           send('ui:navigate', 'settings');
@@ -1210,10 +1210,10 @@ function buildTray() {
           if (info && info.hasUpdate && info.asset) {
             const r = await dialog.showMessageBox(mainWindow || undefined, {
               type: 'question',
-              title: trMain('发现新版本'),
+              title: 'Hay una nueva versión',
               message: trMain(`XORA ${info.tag} ya está disponible; la versión actual es v${app.getVersion()}. ¿Actualizar ahora?`),
               detail: (info.notes || '').slice(0, 600),
-              buttons: [trMain('立即更新'), trMain('稍后')],
+              buttons: ['Instalar ahora', 'Más tarde'],
               defaultId: 0,
               cancelId: 1,
             });
@@ -1355,23 +1355,23 @@ async function promptUpdateInstall(info) {
 }
 
 async function runUpdate({ info: requestedInfo = null, prompt = true } = {}) {
-  if (updateBusy) return { ok: false, error: '正在更新中' };
+  if (updateBusy) return { ok: false, error: 'Ya hay una actualización en curso.' };
   // 商店（MSIX）版不能自更新：安装目录 C:\Program Files\WindowsApps 是只读的，
   // 覆盖 exe 不仅会失败，还可能让包完整性校验失效、应用直接起不来。
   // 更新走 Microsoft Store（ms-windows-store: 协议）。
   if (store.STORE_BUILD) {
     shell.openExternal('ms-windows-store://downloadsandupdates').catch(() => {});
-    return { ok: false, error: '商店版更新由 Microsoft Store 负责，已打开商店的「下载和更新」', manual: true };
+    return { ok: false, error: 'La versión de Microsoft Store se actualiza desde Microsoft Store; se abrió «Descargas y actualizaciones».', manual: true };
   }
   updateBusy = true;
   const sendProgress = (p) => send('update:progress', p);
   try {
     const info = requestedInfo || (updateInfo && updateInfo.hasUpdate ? updateInfo : await updater.check());
     updateInfo = info;
-    if (!info.hasUpdate) return { ok: false, error: '已经是最新版本' };
+    if (!info.hasUpdate) return { ok: false, error: 'Ya tienes la versión más reciente.' };
     if (!info.asset) {
       shell.openExternal(info.htmlUrl || Updater.repoUrl()).catch(() => {});
-      return { ok: false, error: '该版本没有可直接安装的包，已打开 GitHub 发布页', manual: true };
+      return { ok: false, error: 'Esta versión no tiene un paquete instalable; se abrió la página de publicaciones de GitHub.', manual: true };
     }
     if (!info.securityManifest) {
       shell.openExternal(info.htmlUrl || Updater.repoUrl()).catch(() => {});
@@ -1394,9 +1394,9 @@ async function runUpdate({ info: requestedInfo = null, prompt = true } = {}) {
       }
       updatePromptedVersion = info.version;
     }
-    sendProgress({ stage: 'download', percent: 0, message: '准备下载…' });
+    sendProgress({ stage: 'download', percent: 0, message: 'Preparando la descarga…' });
     const job = await updater.prepare(info);
-    sendProgress({ stage: 'apply', percent: 100, message: '正在替换程序并重启…' });
+    sendProgress({ stage: 'apply', percent: 100, message: 'Aplicando la actualización y preparando el reinicio…' });
     updateManifest.markUpdatePending(store.DATA_DIR, { from: app.getVersion(), to: info.version, mode: job.mode });
     updater.apply(job);
     // 给界面一点时间显示「即将重启」，然后走正常退出流程（before-quit 会把模拟器窗口藏好）
@@ -3706,7 +3706,7 @@ if (!gotLock) {
       }).catch(() => {});
     }, 20000).unref?.();
 
-    // 启动 8 秒后静默查一次新版本（打包后才有意义）。发现新版本只提示，
+    // Comprobar en segundo plano tras 8 segundos (solo tiene sentido en la versión empaquetada). Una actualización disponible solo se anuncia,
     // 绝不自动下载 —— 更新是用户点「立即更新」才做的事。
     // 商店（MSIX）版跳过：安装目录是只读的 WindowsApps，自更新既写不进去也不
     // 合规，更新统一由 Microsoft Store 负责。

@@ -2710,7 +2710,7 @@ const { AdbClient, friendlyInstallError, friendlyLaunchError } = require('../src
   await test('窗口模式：默认嵌入主窗口，两种模式可在设置里切换，且只迁移一次', () => {
     const root = path.join(__dirname, '..');
     const storeJs = fs.readFileSync(path.join(root, 'src', 'core', 'store.js'), 'utf8');
-    // XORA 0.6.11：默认把 Android 画面嵌入 XORA 窗口，避免点击应用后弹出第二个窗口。
+    // XORA 0.6.12：默认把 Android 画面嵌入 XORA 窗口，避免点击应用后弹出第二个窗口。
     assert(/windowEmbed:\s*true,\s*\n\s*\/\/ 镜像内/.test(storeJs), 'defaultSettings.display.windowEmbed 必须是 true');
     // 一次性迁移：只迁「没主动选过」的旧配置，用户自己选的不能被反复扳回来
     assert(/windowEmbedMigrated3/.test(storeJs), '要有一次性迁移标记');
